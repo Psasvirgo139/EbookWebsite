@@ -1,0 +1,56 @@
+# NetBeans specific #
+nbproject/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+# Eclipse #
+.settings/
+.classpath
+.project
+
+# IntelliJ IDEA #
+.idea/
+*.iml
+
+# VS Code #
+.vscode/
+*.code-workspace
+
+# Class Files #
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.iml
+
+# Log files #
+*.log
+log/
+logs/
+
+# Temporary files #
+*.tmp
+*.swp
+*.bak
+
+/target/
+dependency-reduced-pom.xml
+.idea/
+*.env
+local.properties
+application.properties
+application.yml
+
+# OS-specific files #
+.DS_Store
+Thumbs.db
+
+test-output/
+target/jacoco*
+surefire-reports/
