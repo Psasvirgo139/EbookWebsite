@@ -1,6 +1,7 @@
 package com.mycompany.ebookwebsite.dao;
 
 import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.model.UserInfor;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -259,4 +260,32 @@ public class UserDAO {
                 (rs.getDate("last_login") != null) ? rs.getDate("last_login").toLocalDate() : null
         );
     }
+    
+    
+    public User checkLogin(String usernameOrEmail, String password) {
+        if (usernameOrEmail != null) usernameOrEmail = usernameOrEmail.trim();
+        if (password != null)        password        = password.trim();
+
+        String sql = "SELECT * FROM Users "
+                   + "WHERE (username = ? OR email = ?) "
+                   + "  AND password_hash = ? "
+                   + "  AND status != 'deleted'";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, usernameOrEmail);
+            ps.setString(2, usernameOrEmail);
+            ps.setString(3, password);
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapUser(rs);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    
 }
