@@ -14,6 +14,7 @@ import com.mycompany.ebookwebsite.service.UserService;
 
 @WebServlet(name = "ProfileServlet", urlPatterns = {"/profile"})
 public class ProfileServlet extends HttpServlet {
+
     private UserService userService;
 
     @Override
@@ -35,10 +36,27 @@ public class ProfileServlet extends HttpServlet {
         }
 
         // Lấy thông tin chi tiết UserInfor nếu có userinforId
+        // Lấy thông tin chi tiết UserInfor nếu có userinforId
         UserInfor userInfor = null;
         if (user.getUserinforId() != null) {
             userInfor = userService.getUserInforById(user.getUserinforId());
         }
+
+// Format ngày tạo thành String
+        String createdAtStr = "-";
+        if (user.getCreatedAt() != null) {
+            createdAtStr = user.getCreatedAt()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        request.setAttribute("createdAtStr", createdAtStr);
+
+// Format ngày sinh
+        String birthDayStr = "-";
+        if (userInfor != null && userInfor.getBirthDay() != null) {
+            birthDayStr = userInfor.getBirthDay()
+                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+        request.setAttribute("birthDayStr", birthDayStr);
 
         request.setAttribute("user", user);
         request.setAttribute("userInfor", userInfor);
