@@ -14,23 +14,19 @@ import java.util.logging.Logger;
  * @author ADMIN
  */
 public class DBConnection {
-    public static String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    public static String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
-    public static String userDB = "sa";
-    public static String passDB = "123";
+    private static final String JDBC_URL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_USER = "sa"; // sửa lại nếu khác
+    private static final String JDBC_PASSWORD = "Danh24092004@";
 
     public static Connection getConnection() {
-        Connection con = null;
         try {
-            Class.forName(driverName);
-            con = DriverManager.getConnection(dbURL, userDB, passDB);
-            return con;
-        } catch (Exception ex) {
-            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            return DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace(); // In lỗi rõ ràng
+            return null;
         }
-        return null;
     }
-
     public static void main(String[] args) {
         try (Connection con = getConnection()) {
             if (con != null) {

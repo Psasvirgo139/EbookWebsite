@@ -1,4 +1,4 @@
-package com.mycompany.ebookwebsite.servlet;
+package com.mycompany.ebookwebsite.controller;
 
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.UserService;
