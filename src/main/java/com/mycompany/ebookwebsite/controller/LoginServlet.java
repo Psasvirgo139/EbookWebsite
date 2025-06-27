@@ -1,16 +1,18 @@
 package com.mycompany.ebookwebsite.controller;
 
-import com.mycompany.ebookwebsite.bean.LoginBean;
 import java.io.IOException;
+import java.sql.SQLException;
+
+import com.mycompany.ebookwebsite.bean.LoginBean;
+import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.service.UserService;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
-import com.mycompany.ebookwebsite.model.User;
-import com.mycompany.ebookwebsite.service.UserService;
 
 @WebServlet(name = "LoginServlet", urlPatterns = {"/login"})
 public class LoginServlet extends HttpServlet {
@@ -43,8 +45,13 @@ public class LoginServlet extends HttpServlet {
         }
 
         // Gọi service kiểm tra đăng nhập
-        User user = userService.checkLogin(
-                login.getUsernameOrEmail(), login.getPassword());
+        User user = null;
+        try {
+            user = userService.authenticateUserByUsernameOrEmail(
+                    login.getUsernameOrEmail(), login.getPassword());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         if (user == null) {
             // Sai thông tin
@@ -58,15 +65,13 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
 
-        // Chuyển hướng tuỳ theo vai trò
-        String target = "admin".equalsIgnoreCase(user.getRole())
-                ? "/admin/dashboard"
-                : "/profile";
+        // Chuyển hướng về trang chủ cho cả user và admin
+        String target = "/index.jsp";
         response.sendRedirect(request.getContextPath() + target);
     }
 
     @Override
     public String getServletInfo() {
-        return "Servlet xử lý đăng nhập người dùng, phân quyền user/admin";
+        return "Servlet xử lý đăng nhập người dùng, chuyển hướng về trang chủ";
     }
 }

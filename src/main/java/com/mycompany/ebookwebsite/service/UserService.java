@@ -39,6 +39,28 @@ public class UserService {
     }
 
     /**
+     * Xác thực đăng nhập người dùng bằng username hoặc email
+     */
+    public User authenticateUserByUsernameOrEmail(String usernameOrEmail, String password) throws SQLException {
+        String hashedPassword = hashPassword(password);
+        
+        // Thử tìm theo username trước
+        User user = userDAO.findByUsernameAndPassword(usernameOrEmail, hashedPassword);
+        
+        // Nếu không tìm thấy, thử tìm theo email
+        if (user == null) {
+            user = userDAO.findByEmailAndPassword(usernameOrEmail, hashedPassword);
+        }
+
+        if (user != null) {
+            // Cập nhật last login
+            userDAO.updateLastLogin(user.getId());
+        }
+
+        return user;
+    }
+
+    /**
      * Tạo user mới
      */
     public User createUser(User user) throws SQLException {
