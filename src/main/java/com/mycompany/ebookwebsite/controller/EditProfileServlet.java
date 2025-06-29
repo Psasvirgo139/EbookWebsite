@@ -20,10 +20,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "ProfileServlet", urlPatterns = {"/profile"})
-public class ProfileServlet extends HttpServlet {
+@WebServlet(name = "EditProfileServlet", urlPatterns = {"/edit-profile"})
+public class EditProfileServlet extends HttpServlet {
 
-    private static final Logger LOGGER = Logger.getLogger(ProfileServlet.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(EditProfileServlet.class.getName());
     private UserService userService;
     private UserDAO userDAO;
     private UserInforDAO userInforDAO;
@@ -51,24 +51,20 @@ public class ProfileServlet extends HttpServlet {
         // Lấy thông tin chi tiết UserInfor nếu có userinforId
         UserInfor userInfor = null;
         if (user.getUserinforId() != null) {
-            userInfor = userService.getUserInforById(user.getUserinforId());
+            try {
+                userInfor = userInforDAO.selectUserInfor(user.getUserinforId());
+                LOGGER.info("Loaded UserInfor for user " + user.getUsername() + " with ID: " + userInfor.getId());
+            } catch (SQLException e) {
+                LOGGER.warning("Failed to load UserInfor for user " + user.getUsername() + ": " + e.getMessage());
+            }
         }
 
-        // Format ngày tạo thành String
-        String createdAtStr = "-";
-        if (user.getCreatedAt() != null) {
-            createdAtStr = user.getCreatedAt()
-                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        // Nếu không có UserInfor, tạo một object rỗng để form có thể hiển thị
+        if (userInfor == null) {
+            userInfor = new UserInfor();
+            userInfor.setId(0);
+            LOGGER.info("Created empty UserInfor object for user " + user.getUsername());
         }
-        request.setAttribute("createdAtStr", createdAtStr);
-
-        // Format ngày sinh
-        String birthDayStr = "-";
-        if (userInfor != null && userInfor.getBirthDay() != null) {
-            birthDayStr = userInfor.getBirthDay()
-                    .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
-        request.setAttribute("birthDayStr", birthDayStr);
 
         // Xử lý thông báo từ URL parameters
         String message = request.getParameter("message");
@@ -77,19 +73,10 @@ public class ProfileServlet extends HttpServlet {
             request.setAttribute("message", message);
             request.setAttribute("messageType", messageType);
         }
-        
-        // Xử lý thông báo từ session (từ ChangePasswordServlet)
-        String successMessage = (String) session.getAttribute("successMessage");
-        if (successMessage != null) {
-            request.setAttribute("message", successMessage);
-            request.setAttribute("messageType", "success");
-            // Xóa thông báo khỏi session để không hiển thị lại
-            session.removeAttribute("successMessage");
-        }
 
         request.setAttribute("user", user);
         request.setAttribute("userInfor", userInfor);
-        request.getRequestDispatcher("user/profile.jsp").forward(request, response);
+        request.getRequestDispatcher("user/edit_profile.jsp").forward(request, response);
     }
 
     @Override
@@ -231,6 +218,6 @@ public class ProfileServlet extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "Servlet hiển thị và cập nhật trang cá nhân người dùng";
+        return "Servlet hiển thị và xử lý trang chỉnh sửa thông tin cá nhân";
     }
-}
+} 

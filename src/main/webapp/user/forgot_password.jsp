@@ -128,6 +128,12 @@
             border: 1px solid #bee3f8;
         }
         
+        .message.warning {
+            background: #fffaf0;
+            color: #c05621;
+            border: 1px solid #feb2b2;
+        }
+        
         .back-link {
             margin-top: 20px;
             display: block;
@@ -147,6 +153,43 @@
             display: block;
         }
         
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: #f56565;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-secondary:hover {
+            background: #e53e3e;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .action-buttons .btn {
+            flex: 1;
+            margin-top: 0;
+        }
+        
+        .action-buttons .btn-secondary {
+            flex: 1;
+            margin-top: 0;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 padding: 30px 20px;
@@ -155,6 +198,11 @@
             
             .logo {
                 font-size: 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
             }
         }
     </style>
@@ -180,14 +228,29 @@
                     id="email" 
                     name="email" 
                     placeholder="example@email.com"
-                    value="${param.email}"
+                    value="${email}"
                     required 
                 />
             </div>
             
-            <button type="submit" class="btn" id="submitBtn">
-                Gửi yêu cầu đặt lại mật khẩu
-            </button>
+            <!-- Hiển thị nút đăng ký khi email không tồn tại -->
+            <c:choose>
+                <c:when test="${emailExists == false and not empty message and messageType == 'warning'}">
+                    <div class="action-buttons">
+                        <button type="submit" class="btn" id="submitBtn">
+                            Thử lại với email khác
+                        </button>
+                        <a href="${pageContext.request.contextPath}/register" class="btn-secondary">
+                            Đăng ký tài khoản
+                        </a>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <button type="submit" class="btn" id="submitBtn">
+                        Gửi yêu cầu đặt lại mật khẩu
+                    </button>
+                </c:otherwise>
+            </c:choose>
         </form>
         
         <a href="${pageContext.request.contextPath}/login" class="back-link">
@@ -213,6 +276,17 @@
                 }, 300);
             }
         }, 5000);
+        
+        // Auto-hide warning messages after 8 seconds
+        setTimeout(function() {
+            const warningMsg = document.querySelector('.message.warning');
+            if (warningMsg) {
+                warningMsg.style.opacity = '0';
+                setTimeout(function() {
+                    warningMsg.style.display = 'none';
+                }, 300);
+            }
+        }, 8000);
     </script>
 </body>
 </html>

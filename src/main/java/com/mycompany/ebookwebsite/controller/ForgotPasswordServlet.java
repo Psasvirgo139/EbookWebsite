@@ -4,13 +4,15 @@
  */
 package com.mycompany.ebookwebsite.controller;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.mycompany.ebookwebsite.dao.UserDAO;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.utils.EmailUtil;
 import com.mycompany.ebookwebsite.utils.TokenUtil;
-import java.io.IOException;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+
 import jakarta.mail.MessagingException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -45,7 +47,8 @@ public class ForgotPasswordServlet extends HttpServlet {
     throws ServletException, IOException {
         String email = request.getParameter("email");
         String message;
-        String messageType = "error"; // error, success
+        String messageType = "error"; // error, success, warning
+        boolean emailExists = false;
 
         if (email == null || email.trim().isEmpty()) {
             message = "Vui lòng nhập email đã đăng ký!";
@@ -59,10 +62,14 @@ public class ForgotPasswordServlet extends HttpServlet {
                     User user = userDAO.findByEmail(email);
 
                     if (user == null) {
-                        // Không cho biết email có tồn tại hay không để bảo mật
-                        message = "Nếu email tồn tại trong hệ thống, chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.";
-                        messageType = "info";
+                        // Email không tồn tại trong database
+                        message = "Tài khoản chưa có trong hệ thống. Vui lòng đăng ký tài khoản mới!";
+                        messageType = "warning";
+                        emailExists = false;
                     } else {
+                        // Email tồn tại, gửi email reset password
+                        emailExists = true;
+                        
                         // Tạo token và lưu vào database
                         String token = TokenUtil.createAndSaveToken(email);
                         
@@ -106,9 +113,11 @@ public class ForgotPasswordServlet extends HttpServlet {
             }
         }
 
-        // Truyền thông báo cho JSP
+        // Truyền thông báo và trạng thái email cho JSP
         request.setAttribute("message", message);
         request.setAttribute("messageType", messageType);
+        request.setAttribute("emailExists", emailExists);
+        request.setAttribute("email", email); // Giữ lại email để hiển thị trong form
         request.getRequestDispatcher("/user/forgot_password.jsp").forward(request, response);
     }
     

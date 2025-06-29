@@ -1,63 +1,80 @@
 package com.mycompany.ebookwebsite.service;
 
-import com.mycompany.ebookwebsite.dao.UserDAO;
-import com.mycompany.ebookwebsite.dao.UserInforDAO;
-import com.mycompany.ebookwebsite.model.User;
-import com.mycompany.ebookwebsite.model.UserInfor;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.mycompany.ebookwebsite.dao.UserDAO;
+import com.mycompany.ebookwebsite.dao.UserInforDAO;
+import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.model.UserInfor;
 
 public class UserService {
 
+    private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
     private UserDAO userDAO;
-     private UserInforDAO userInforDAO; 
+    private UserInforDAO userInforDAO; 
 
     public UserService() {
         this.userDAO = new UserDAO();
+        this.userInforDAO = new UserInforDAO();
     }
 
     public UserService(UserDAO userDAO) {
         this.userDAO = userDAO;
+        this.userInforDAO = new UserInforDAO();
     }
 
     /**
      * Xác thực đăng nhập người dùng
      */
     public User authenticateUser(String username, String password) throws SQLException {
-        String hashedPassword = hashPassword(password);
-        User user = userDAO.findByUsernameAndPassword(username, hashedPassword);
-
-        if (user != null) {
-            // Cập nhật last login
-            userDAO.updateLastLogin(user.getId());
+        // Lấy user theo username
+        User user = userDAO.findByUsername(username);
+        if (user == null) {
+            return null;
         }
 
-        return user;
+        // Băm password_hash từ database thành mật khẩu để đối chiếu
+        String hashedPassword = hashPassword(password);
+        if (hashedPassword.equals(user.getPasswordHash())) {
+            // Cập nhật last login
+            userDAO.updateLastLogin(user.getId());
+            return user;
+        }
+
+        return null;
     }
 
     /**
      * Xác thực đăng nhập người dùng bằng username hoặc email
      */
     public User authenticateUserByUsernameOrEmail(String usernameOrEmail, String password) throws SQLException {
-        String hashedPassword = hashPassword(password);
-        
         // Thử tìm theo username trước
-        User user = userDAO.findByUsernameAndPassword(usernameOrEmail, hashedPassword);
+        User user = userDAO.findByUsername(usernameOrEmail);
         
         // Nếu không tìm thấy, thử tìm theo email
         if (user == null) {
-            user = userDAO.findByEmailAndPassword(usernameOrEmail, hashedPassword);
+            user = userDAO.findByEmail(usernameOrEmail);
         }
 
-        if (user != null) {
+        if (user == null) {
+            return null;
+        }
+
+        // Băm password_hash từ database thành mật khẩu để đối chiếu
+        String hashedPassword = hashPassword(password);
+        if (hashedPassword.equals(user.getPasswordHash())) {
             // Cập nhật last login
             userDAO.updateLastLogin(user.getId());
+            return user;
         }
 
-        return user;
+        return null;
     }
 
     /**
@@ -77,7 +94,7 @@ public class UserService {
         // Set default values
         setDefaultValues(user);
 
-        // Hash password
+        // Băm mật khẩu thành password_hash và lưu vào database
         user.setPasswordHash(hashPassword(user.getPasswordHash()));
 
         userDAO.insert(user);
@@ -170,8 +187,9 @@ public class UserService {
             throw new IllegalArgumentException("User không tồn tại với ID: " + userId);
         }
 
-        user.setPasswordHash(hashPassword(newPassword));
-        return userDAO.update(user);
+        // Băm mật khẩu mới thành password_hash và lưu vào database
+        String newPasswordHash = hashPassword(newPassword);
+        return userDAO.updatePassword(userId, newPasswordHash);
     }
 
     /**
@@ -227,15 +245,14 @@ public class UserService {
     }
 
     public UserInfor getUserInforById(Integer id) {
-    if (id == null) return null;
-    try {
-        return userInforDAO.selectUserInfor(id);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return null;
+        if (id == null) return null;
+        try {
+            return userInforDAO.selectUserInfor(id);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error getting UserInfor by ID: " + id, e);
+            return null;
+        }
     }
 }
-// ... Nếu có hàm khác thì thêm dưới đây
-} // <-- Đây là dấu kết thúc class UserService
 
 
