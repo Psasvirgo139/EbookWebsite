@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import com.mycompany.ebookwebsite.bean.LoginBean;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.UserService;
+import com.mycompany.ebookwebsite.utils.UserValidation;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -44,6 +45,16 @@ public class LoginServlet extends HttpServlet {
             login.setPassword(request.getParameter("password"));
         }
 
+        // Validate dữ liệu đầu vào
+        try {
+            UserValidation.validateLoginCredentials(login.getUsernameOrEmail(), login.getPassword());
+        } catch (IllegalArgumentException e) {
+            login.setError(e.getMessage());
+            request.setAttribute("login", login);
+            request.getRequestDispatcher("user/login.jsp").forward(request, response);
+            return;
+        }
+
         // Gọi service kiểm tra đăng nhập
         User user = null;
         try {
@@ -51,6 +62,10 @@ public class LoginServlet extends HttpServlet {
                     login.getUsernameOrEmail(), login.getPassword());
         } catch (SQLException e) {
             e.printStackTrace();
+            login.setError("Lỗi hệ thống, vui lòng thử lại sau!");
+            request.setAttribute("login", login);
+            request.getRequestDispatcher("user/login.jsp").forward(request, response);
+            return;
         }
 
         if (user == null) {

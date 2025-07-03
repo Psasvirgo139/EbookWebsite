@@ -19,16 +19,14 @@ public class DBConnection {
     public static String userDB = "sa";
     public static String passDB = "123";
 
-    public static Connection getConnection() {
-        Connection con = null;
+    public static Connection getConnection() throws SQLException {
         try {
             Class.forName(driverName);
-            con = DriverManager.getConnection(dbURL, userDB, passDB);
-            return con;
-        } catch (Exception ex) {
+            return DriverManager.getConnection(dbURL, userDB, passDB);
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+            throw new SQLException("Database driver not found", ex);
         }
-        return null;
     }
 
     public static void main(String[] args) {

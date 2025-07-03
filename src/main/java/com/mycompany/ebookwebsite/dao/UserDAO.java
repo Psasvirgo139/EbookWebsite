@@ -1,10 +1,18 @@
 package com.mycompany.ebookwebsite.dao;
 
-import com.mycompany.ebookwebsite.model.User;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mycompany.ebookwebsite.model.User;
 
 public class UserDAO {
 
@@ -280,35 +288,7 @@ public class UserDAO {
         );
     }
 
-    public User checkLogin(String usernameOrEmail, String password) {
-        if (usernameOrEmail != null) {
-            usernameOrEmail = usernameOrEmail.trim();
-        }
-        if (password != null) {
-            password = password.trim();
-        }
 
-        String sql = "SELECT * FROM Users "
-                + "WHERE (username = ? OR email = ?) "
-                + "  AND password_hash = ? "
-                + "  AND status != 'deleted'";
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, usernameOrEmail);
-            ps.setString(2, usernameOrEmail);
-            ps.setString(3, password);
-
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapUser(rs);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
     // 1. Đặt token reset cho user
 
     public boolean setResetToken(String email, String token, Timestamp expiry) throws SQLException {
