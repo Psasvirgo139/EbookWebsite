@@ -131,6 +131,44 @@ public class UserReadDAO {
         }
     }
 
+    public void insertUserRead(UserRead userRead) throws SQLException {
+        String sql = "INSERT INTO UserRead (user_id, ebook_id, last_read_chapter_id, last_read_at) VALUES (?, ?, ?, ?)";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, userRead.getUserID());
+            ps.setInt(2, userRead.getEbookID());
+            if (userRead.getLastReadChapterID() != null) {
+                ps.setInt(3, userRead.getLastReadChapterID());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
+            if (userRead.getLastReadAt() != null) {
+                ps.setDate(4, Date.valueOf(userRead.getLastReadAt()));
+            } else {
+                ps.setNull(4, Types.DATE);
+            }
+            ps.executeUpdate();
+        }
+    }
+
+    public boolean updateUserRead(UserRead userRead) throws SQLException {
+        String sql = "UPDATE UserRead SET last_read_chapter_id = ?, last_read_at = ? WHERE user_id = ? AND ebook_id = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            if (userRead.getLastReadChapterID() != null) {
+                ps.setInt(1, userRead.getLastReadChapterID());
+            } else {
+                ps.setNull(1, Types.INTEGER);
+            }
+            if (userRead.getLastReadAt() != null) {
+                ps.setDate(2, Date.valueOf(userRead.getLastReadAt()));
+            } else {
+                ps.setNull(2, Types.DATE);
+            }
+            ps.setInt(3, userRead.getUserID());
+            ps.setInt(4, userRead.getEbookID());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     private UserRead mapUserRead(ResultSet rs) throws SQLException {
         return new UserRead(
                 rs.getInt("user_id"),

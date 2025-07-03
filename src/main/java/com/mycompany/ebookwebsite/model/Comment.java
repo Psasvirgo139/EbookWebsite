@@ -4,7 +4,7 @@
  */
 package com.mycompany.ebookwebsite.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -16,14 +16,14 @@ public class Comment {
     private int ebookID;
     private Integer chapterID;
     private String content;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private Integer parentCommentID;
     private int likeCount;
 
     public Comment() {
     }
 
-    public Comment(int id, int userID, int ebookID, Integer chapterID, String content, LocalDate createdAt, Integer parentCommentID, int likeCount) {
+    public Comment(int id, int userID, int ebookID, Integer chapterID, String content, LocalDateTime createdAt, Integer parentCommentID, int likeCount) {
         this.id = id;
         this.userID = userID;
         this.ebookID = ebookID;
@@ -74,11 +74,11 @@ public class Comment {
         this.content = content;
     }
 
-    public LocalDate getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

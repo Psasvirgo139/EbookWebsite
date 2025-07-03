@@ -95,8 +95,14 @@ application.yml
 *.sqlite
 uploads/
 
+test-output/
+target/jacoco*
+surefire-reports/
+
 ############################
 #  OTHER                   #
 ############################
 # Ignore user-specific Maven repo (optional; giữ lại nếu bạn CHIA SẺ cache)
 # .m2/
+
+src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
