@@ -2,6 +2,7 @@ package com.mycompany.ebookwebsite.service;
 
 import com.mycompany.ebookwebsite.dao.TagDAO;
 import com.mycompany.ebookwebsite.model.Tag;
+import com.mycompany.ebookwebsite.model.User;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -25,7 +26,10 @@ public class TagService {
         tagDAO.updateTag(tag);
     }
 
-    public void deleteTag(int id) throws SQLException {
+    public void deleteTag(int id, User user) throws SQLException {
+        if (!"admin".equals(user.getRole())) {
+            throw new SecurityException("Bạn không có quyền xóa tag!");
+        }
         tagDAO.deleteTag(id);
     }
 }

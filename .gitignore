@@ -54,3 +54,5 @@ Thumbs.db
 test-output/
 target/jacoco*
 surefire-reports/
+
+src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java

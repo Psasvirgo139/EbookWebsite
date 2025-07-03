@@ -61,7 +61,6 @@ public class FavoriteDAO {
         List<Favorite> list = new ArrayList<>();
         try (Connection con = DBConnection.getConnection(); 
              PreparedStatement ps = con.prepareStatement(SELECT_BY_USER)) {
-            
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {

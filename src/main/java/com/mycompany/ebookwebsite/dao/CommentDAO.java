@@ -8,9 +8,17 @@ import java.util.List;
 
 public class CommentDAO {
 
+    private static final String SELECT_BY_EBOOK = "SELECT * FROM Comments WHERE ebook_id = ? ORDER BY created_at DESC";
+    private static final String INSERT = "INSERT INTO Comments (user_id, ebook_id, chapter_id, content, created_at) VALUES (?, ?, ?, ?, GETDATE())";
+    private static final String DELETE = "DELETE FROM Comments WHERE id = ?";
+    private static final String SELECT_BY_CHAPTER = "SELECT * FROM Comments WHERE ebook_id = ? AND chapter_id = ? ORDER BY created_at DESC";
+    private static final String DELETE_BY_ID_AND_USER = "DELETE FROM Comments WHERE id = ? AND user_id = ?";
+    private static final String SELECT_BY_ID = "SELECT * FROM Comments WHERE id = ?";
+
+
     public List<Comment> getCommentsByEbookId(int ebookId) {
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM Comments WHERE ebook_id = ? ORDER BY created_at DESC";
+        String sql = SELECT_BY_EBOOK;
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -28,7 +36,7 @@ public class CommentDAO {
     }
 
     public void insertComment(Comment comment) {
-        String sql = "INSERT INTO Comments (user_id, ebook_id, chapter_id, content, created_at) VALUES (?, ?, ?, ?, GETDATE())";
+        String sql = INSERT;
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -49,7 +57,7 @@ public class CommentDAO {
     }
 
     public void deleteComment(int commentId) {
-        String sql = "DELETE FROM Comments WHERE id = ?";
+        String sql = DELETE;
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -63,7 +71,7 @@ public class CommentDAO {
     
     public List<Comment> getCommentsByChapter(int ebookId, int chapterId) {
         List<Comment> comments = new ArrayList<>();
-        String sql = "SELECT * FROM Comments WHERE ebook_id = ? AND chapter_id = ? ORDER BY created_at DESC";
+        String sql = SELECT_BY_CHAPTER;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -81,7 +89,7 @@ public class CommentDAO {
     }
 
     public void deleteCommentByIdAndUser(int commentId, int userId) {
-        String sql = "DELETE FROM Comments WHERE id = ? AND user_id = ?";
+        String sql = DELETE_BY_ID_AND_USER;
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -92,6 +100,20 @@ public class CommentDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public Comment getCommentById(int commentId) {
+        String sql = SELECT_BY_ID;
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, commentId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private Comment mapRow(ResultSet rs) throws SQLException {

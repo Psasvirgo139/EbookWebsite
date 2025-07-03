@@ -8,11 +8,17 @@ import java.util.List;
 
 public class EbookDAO {
 
+    private static final String INSERT = "INSERT INTO Ebooks (title, description, release_type, language, status, visibility, uploader_id, created_at, view_count, cover_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String SELECT_BY_ID = "SELECT * FROM Ebooks WHERE id = ?";
+    private static final String COUNT_ALL = "SELECT COUNT(*) FROM Ebooks";
+    private static final String UPDATE = "UPDATE Ebooks SET title=?, description=?, release_type=?, language=?, status=?, visibility=?, uploader_id=?, created_at=?, view_count=?, cover_url=? WHERE id=?";
+    private static final String SOFT_DELETE = "UPDATE Ebooks SET status = 'deleted' WHERE id = ?";
+    private static final String INCREMENT_VIEW = "UPDATE Ebooks SET view_count = view_count + 1 WHERE id = ?";
+    private static final String SELECT_ALL_BY_CREATED_TIME = "SELECT * FROM Ebooks ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
     public List<Ebook> getBooksByPage(int offset, int limit) throws SQLException {
         List<Ebook> ebooks = new ArrayList<>();
-        String sql = "SELECT * FROM Ebooks ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_ALL_BY_CREATED_TIME)) {
             ps.setInt(1, offset);
             ps.setInt(2, limit);
             try (ResultSet rs = ps.executeQuery()) {
@@ -25,15 +31,13 @@ public class EbookDAO {
     }
 
     public int countAllBooks() throws SQLException {
-        String sql = "SELECT COUNT(*) FROM Ebooks";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(COUNT_ALL); ResultSet rs = ps.executeQuery()) {
             return rs.next() ? rs.getInt(1) : 0;
         }
     }
 
     public Ebook getBookById(int id) throws SQLException {
-        String sql = "SELECT * FROM Ebooks WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 return rs.next() ? mapRow(rs) : null;
@@ -58,8 +62,7 @@ public class EbookDAO {
     }
 
     public Ebook getEbookById(int id) throws SQLException {
-        String sql = "SELECT * FROM Ebooks WHERE id = ?";
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SELECT_BY_ID)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -70,40 +73,50 @@ public class EbookDAO {
     }
 
     public void incrementViewCount(int id) throws SQLException {
-        String sql = "UPDATE Ebooks SET view_count = view_count + 1 WHERE id = ?";
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(INCREMENT_VIEW)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
     }
 
-    public List<Ebook> selectBooksByPage(int offset, int pageSize) throws SQLException {
-        List<Ebook> ebooks = new ArrayList<>();
-        String sql = "SELECT * FROM Ebooks ORDER BY id OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, offset);
-            ps.setInt(2, pageSize);
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Ebook ebook = new Ebook();
-                ebook.setId(rs.getInt("id"));
-                ebook.setTitle(rs.getString("title"));
-                ebook.setDescription(rs.getString("description"));
-                ebook.setReleaseType(rs.getString("release_type"));
-                ebook.setLanguage(rs.getString("language"));
-                ebook.setStatus(rs.getString("status"));
-                ebook.setVisibility(rs.getString("visibility"));
-                ebook.setUploaderId(rs.getInt("uploader_id"));
-                ebook.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                ebook.setViewCount(rs.getInt("view_count"));
-                ebook.setCoverUrl(rs.getString("cover_url"));
-                ebooks.add(ebook);
-            }
+    public void insertEbook(Ebook ebook) throws SQLException {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(INSERT)) {
+            ps.setString(1, ebook.getTitle());
+            ps.setString(2, ebook.getDescription());
+            ps.setString(3, ebook.getReleaseType());
+            ps.setString(4, ebook.getLanguage());
+            ps.setString(5, ebook.getStatus());
+            ps.setString(6, ebook.getVisibility());
+            ps.setInt(7, ebook.getUploaderId());
+            ps.setTimestamp(8, Timestamp.valueOf(ebook.getCreatedAt()));
+            ps.setInt(9, ebook.getViewCount());
+            ps.setString(10, ebook.getCoverUrl());
+            ps.executeUpdate();
         }
+    }
 
-        return ebooks;
+    public boolean updateEbook(Ebook ebook) throws SQLException {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(UPDATE)) {
+            ps.setString(1, ebook.getTitle());
+            ps.setString(2, ebook.getDescription());
+            ps.setString(3, ebook.getReleaseType());
+            ps.setString(4, ebook.getLanguage());
+            ps.setString(5, ebook.getStatus());
+            ps.setString(6, ebook.getVisibility());
+            ps.setInt(7, ebook.getUploaderId());
+            ps.setTimestamp(8, Timestamp.valueOf(ebook.getCreatedAt()));
+            ps.setInt(9, ebook.getViewCount());
+            ps.setString(10, ebook.getCoverUrl());
+            ps.setInt(11, ebook.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean deleteEbook(int id) throws SQLException {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SOFT_DELETE)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        }
     }
 
 }
