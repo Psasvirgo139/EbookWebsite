@@ -4,6 +4,7 @@
  */
 package com.mycompany.ebookwebsite.model;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 /**
@@ -21,6 +22,8 @@ public class User {
     private Integer userinforId;
     private String status;
     private LocalDate lastLogin;
+    private String resetToken;
+    private Timestamp resetTokenExpiry;
 
     public User() {
     }
@@ -36,6 +39,21 @@ public class User {
         this.userinforId = userinforId;
         this.status = status;
         this.lastLogin = lastLogin;
+    }
+
+    public User(int id, String username, String email, String passwordHash, String avatarUrl, String role, LocalDate createdAt, Integer userinforId, String status, LocalDate lastLogin, String resetToken, Timestamp resetTokenExpiry) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.avatarUrl = avatarUrl;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.userinforId = userinforId;
+        this.status = status;
+        this.lastLogin = lastLogin;
+        this.resetToken = resetToken;
+        this.resetTokenExpiry = resetTokenExpiry;
     }
 
     public int getId() {
@@ -118,8 +136,24 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public Timestamp getResetTokenExpiry() {
+        return resetTokenExpiry;
+    }
+
+    public void setResetTokenExpiry(Timestamp resetTokenExpiry) {
+        this.resetTokenExpiry = resetTokenExpiry;
+    }
+
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", username=" + username + ", email=" + email + ", passwordHash=" + passwordHash + ", avatarUrl=" + avatarUrl + ", role=" + role + ", createdAt=" + createdAt + ", userinforId=" + userinforId + ", status=" + status + ", lastLogin=" + lastLogin + '}';
+        return "User{" + "id=" + id + ", username=" + username + ", email=" + email + ", passwordHash=" + passwordHash + ", avatarUrl=" + avatarUrl + ", role=" + role + ", createdAt=" + createdAt + ", userinforId=" + userinforId + ", status=" + status + ", lastLogin=" + lastLogin + ", resetToken=" + resetToken + ", resetTokenExpiry=" + resetTokenExpiry + '}';
     }
 }

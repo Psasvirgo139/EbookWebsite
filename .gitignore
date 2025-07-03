@@ -1,58 +1,108 @@
-# NetBeans specific #
+############################
+#  IDE & BUILD DIRECTORIES #
+############################
+
+# NetBeans
 nbproject/
-build/
+nbproject/private/
 nbbuild/
+build/
 dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
 
-# Eclipse #
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
 .settings/
 .classpath
 .project
 
-# IntelliJ IDEA #
-.idea/
-*.iml
-
-# VS Code #
+# VS Code
 .vscode/
 *.code-workspace
 
-# Class Files #
-*.class
+# Gradle (nếu lỡ import)
+.gradle/
+build/
 
-# Package Files #
+############################
+#  MAVEN & WRAPPER         #
+############################
+/target/
+.mvn/
+mvnw
+mvnw.cmd
+dependency-reduced-pom.xml
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+############################
+#  JAVA / JVM              #
+############################
+*.class
 *.jar
 *.war
 *.ear
-*.iml
+*.nar
 
-# Log files #
+############################
+#  LOGS & REPORTS          #
+############################
 *.log
 log/
 logs/
+test-output/
+surefire-reports/
+target/jacoco*
 
-# Temporary files #
+############################
+#  TEMP / CACHE / EDITOR   #
+############################
 *.tmp
 *.swp
 *.bak
-
-/target/
-dependency-reduced-pom.xml
+*.cache
+*~
 .idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+############################
+#  CONFIG / SECRETS        #
+############################
 *.env
+*.secret
+*.key
+*.pem
+*.keystore
 local.properties
 application.properties
 application.yml
 
-# OS-specific files #
-.DS_Store
-Thumbs.db
+############################
+#  DATABASE / UPLOADS      #
+############################
+*.db
+*.h2.db
+*.derby
+*.sqlite
+uploads/
 
 test-output/
 target/jacoco*
 surefire-reports/
+
+############################
+#  OTHER                   #
+############################
+# Ignore user-specific Maven repo (optional; giữ lại nếu bạn CHIA SẺ cache)
+# .m2/
 
 src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
