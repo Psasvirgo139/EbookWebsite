@@ -1,12 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app version="6.0" xmlns="https://jakarta.ee/xml/ns/jakartaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+<web-app
+        version="6.0"
+        xmlns="https://jakarta.ee/xml/ns/jakartaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+                            https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd">
+
+    <!-- ============ FILTER ĐẢM BẢO UTF-8 ============ -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.mycompany.ebookwebsite.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ============ WELCOME FILE LIST ============ -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+    <!-- ============ LISTENERS ============ -->
+    <!-- Khởi tạo tài nguyên khi ứng dụng start / shutdown -->
+    <listener>
+        <listener-class>com.mycompany.ebookwebsite.listener.AppContextListener</listener-class>
+    </listener>
+
+    <!-- Đếm số người dùng online -->
+    <listener>
+        <listener-class>com.mycompany.ebookwebsite.listener.SessionCounter</listener-class>
+    </listener>
+
+    <!-- Listener gốc mặc định bạn đã có từ trước -->
     <listener>
         <description>ServletContextListener</description>
         <listener-class>com.mycompany.ebookwebsite.listener.DefaultContextListener</listener-class>
     </listener>
+
+    <!-- ============ CẤU HÌNH SESSION ============ -->
     <session-config>
-        <session-timeout>
-            30
-        </session-timeout>
+        <!-- 30 phút (tính bằng phút) -->
+        <session-timeout>30</session-timeout>
     </session-config>
+
 </web-app>

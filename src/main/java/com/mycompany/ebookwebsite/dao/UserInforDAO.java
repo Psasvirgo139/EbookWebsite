@@ -1,16 +1,23 @@
 package com.mycompany.ebookwebsite.dao;
 
-import com.mycompany.ebookwebsite.model.UserInfor;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mycompany.ebookwebsite.model.UserInfor;
+
 public class UserInforDAO {
     
-    private static final String INSERT = "INSERT INTO UserInfor (phone, birth_day, gender, address, introduction) VALUES (?, ?, ?, ?, ?)";
+    private static final String INSERT = "INSERT INTO UserInfor (phone, birthday, gender, address, introduction) VALUES (?, ?, ?, ?, ?)";
     private static final String SELECT_ALL = "SELECT * FROM UserInfor";
     private static final String SELECT_BY_ID = "SELECT * FROM UserInfor WHERE id = ?";
-    private static final String UPDATE = "UPDATE UserInfor SET phone = ?, birth_day = ?, gender = ?, address = ?, introduction = ? WHERE id = ?";
+    private static final String UPDATE = "UPDATE UserInfor SET phone = ?, birthday = ?, gender = ?, address = ?, introduction = ? WHERE id = ?";
     private static final String DELETE = "UPDATE UserInfor SET status = 'deleted' WHERE id = ?";
     private static final String SELECT_ACTIVE = "SELECT * FROM UserInfor WHERE status != 'deleted' OR status IS NULL";
 
@@ -113,7 +120,7 @@ public class UserInforDAO {
         return new UserInfor(
                 rs.getInt("id"),
                 rs.getString("phone"),
-                (rs.getDate("birth_day") != null) ? rs.getDate("birth_day").toLocalDate() : null,
+                (rs.getDate("birthday") != null) ? rs.getDate("birthday").toLocalDate() : null,
                 rs.getString("gender"),
                 rs.getString("address"),
                 rs.getString("introduction")

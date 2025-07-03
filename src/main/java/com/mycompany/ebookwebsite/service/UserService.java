@@ -1,199 +1,228 @@
 package com.mycompany.ebookwebsite.service;
 
-import com.mycompany.ebookwebsite.dao.UserDAO;
-import com.mycompany.ebookwebsite.model.User;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.mycompany.ebookwebsite.dao.UserDAO;
+import com.mycompany.ebookwebsite.dao.UserInforDAO;
+import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.model.UserInfor;
 
 public class UserService {
-    
+
+    private static final Logger LOGGER = Logger.getLogger(UserService.class.getName());
     private UserDAO userDAO;
-    
+    private UserInforDAO userInforDAO; 
+
     public UserService() {
         this.userDAO = new UserDAO();
+        this.userInforDAO = new UserInforDAO();
     }
-    
+
     public UserService(UserDAO userDAO) {
         this.userDAO = userDAO;
+        this.userInforDAO = new UserInforDAO();
     }
-    
+
     /**
      * Xác thực đăng nhập người dùng
      */
     public User authenticateUser(String username, String password) throws SQLException {
+        // Lấy user theo username
+        User user = userDAO.findByUsername(username);
+        if (user == null) {
+            return null;
+        }
+
+        // Băm password_hash từ database thành mật khẩu để đối chiếu
         String hashedPassword = hashPassword(password);
-        User user = userDAO.findByUsernameAndPassword(username, hashedPassword);
-        
-        if (user != null) {
+        if (hashedPassword.equals(user.getPasswordHash())) {
             // Cập nhật last login
             userDAO.updateLastLogin(user.getId());
+            return user;
         }
-        
-        return user;
+
+        return null;
     }
-    
+
+    /**
+     * Xác thực đăng nhập người dùng bằng username hoặc email
+     */
+    public User authenticateUserByUsernameOrEmail(String usernameOrEmail, String password) throws SQLException {
+        // Thử tìm theo username trước
+        User user = userDAO.findByUsername(usernameOrEmail);
+        
+        // Nếu không tìm thấy, thử tìm theo email
+        if (user == null) {
+            user = userDAO.findByEmail(usernameOrEmail);
+        }
+
+        if (user == null) {
+            return null;
+        }
+
+        // Băm password_hash từ database thành mật khẩu để đối chiếu
+        String hashedPassword = hashPassword(password);
+        if (hashedPassword.equals(user.getPasswordHash())) {
+            // Cập nhật last login
+            userDAO.updateLastLogin(user.getId());
+            return user;
+        }
+
+        return null;
+    }
+
     /**
      * Tạo user mới
      */
     public User createUser(User user) throws SQLException {
-        // Kiểm tra username đã tồn tại chưa
-        if (isUsernameExists(user.getUsername(), 0)) {
-            throw new IllegalArgumentException("Username đã tồn tại: " + user.getUsername());
-        }
-        
-        // Kiểm tra email đã tồn tại chưa
-        if (isEmailExists(user.getEmail(), 0)) {
-            throw new IllegalArgumentException("Email đã tồn tại: " + user.getEmail());
-        }
-        
         // Set default values
         setDefaultValues(user);
-        
-        // Hash password
+
+        // Băm mật khẩu thành password_hash và lưu vào database
         user.setPasswordHash(hashPassword(user.getPasswordHash()));
-        
+
         userDAO.insert(user);
         return user;
     }
-    
+
     /**
      * Cập nhật thông tin user
      */
     public boolean updateUser(User user) throws SQLException {
-        // Kiểm tra user có tồn tại không
-        User existingUser = userDAO.findById(user.getId());
-        if (existingUser == null) {
-            throw new IllegalArgumentException("User không tồn tại với ID: " + user.getId());
-        }
-        
-        // Kiểm tra username đã tồn tại chưa (trừ chính user này)
-        if (isUsernameExists(user.getUsername(), user.getId())) {
-            throw new IllegalArgumentException("Username đã tồn tại: " + user.getUsername());
-        }
-        
-        // Kiểm tra email đã tồn tại chưa (trừ chính user này)
-        if (isEmailExists(user.getEmail(), user.getId())) {
-            throw new IllegalArgumentException("Email đã tồn tại: " + user.getEmail());
-        }
-        
         return userDAO.update(user);
     }
-    
+
     /**
      * Xóa user (soft delete)
      */
     public boolean deleteUser(int userId) throws SQLException {
-        User existingUser = userDAO.findById(userId);
-        if (existingUser == null) {
-            throw new IllegalArgumentException("User không tồn tại với ID: " + userId);
-        }
-        
         return userDAO.delete(userId);
     }
-    
+
     /**
      * Lấy user theo ID
      */
     public User getUserById(int id) throws SQLException {
         return userDAO.findById(id);
     }
-    
+
     /**
      * Lấy user theo username
      */
     public User getUserByUsername(String username) throws SQLException {
         return userDAO.findByUsername(username);
     }
-    
+
     /**
      * Lấy user theo email
      */
     public User getUserByEmail(String email) throws SQLException {
         return userDAO.findByEmail(email);
     }
-    
+
     /**
      * Tìm kiếm user theo tên
      */
     public List<User> searchUsers(String searchName) throws SQLException {
         return userDAO.searchByUsername(searchName.trim());
     }
-    
+
     /**
      * Lấy tất cả user
      */
     public List<User> getAllUsers() throws SQLException {
         return userDAO.findAll();
     }
-    
+
     /**
      * Lấy tất cả user đang hoạt động
      */
     public List<User> getActiveUsers() throws SQLException {
         return userDAO.findAllActive();
     }
-    
+
     /**
      * Cập nhật mật khẩu user
      */
     public boolean updatePassword(int userId, String newPassword) throws SQLException {
-        User user = userDAO.findById(userId);
-        if (user == null) {
-            throw new IllegalArgumentException("User không tồn tại với ID: " + userId);
-        }
-        
-        user.setPasswordHash(hashPassword(newPassword));
-        return userDAO.update(user);
+        // Băm mật khẩu mới thành password_hash và lưu vào database
+        String newPasswordHash = hashPassword(newPassword);
+        return userDAO.updatePassword(userId, newPasswordHash);
     }
-    
+
     /**
      * Kiểm tra username đã tồn tại chưa
      */
     public boolean isUsernameExists(String username, int excludeUserId) throws SQLException {
         return userDAO.countByUsername(username, excludeUserId) > 0;
     }
-    
+
     /**
      * Kiểm tra email đã tồn tại chưa
      */
     public boolean isEmailExists(String email, int excludeUserId) throws SQLException {
         return userDAO.countByEmail(email, excludeUserId) > 0;
     }
-    
+
     /**
-     * Set default values cho user
+     * Set default values cho user mới
      */
     private void setDefaultValues(User user) {
         if (user.getRole() == null || user.getRole().trim().isEmpty()) {
             user.setRole("user");
         }
-        
         if (user.getStatus() == null || user.getStatus().trim().isEmpty()) {
             user.setStatus("active");
         }
-        
         if (user.getCreatedAt() == null) {
             user.setCreatedAt(LocalDate.now());
         }
     }
-    
+
     /**
-     * Hash password bằng SHA-256
+     * Băm mật khẩu bằng SHA-256
      */
     private String hashPassword(String password) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashedBytes = md.digest(password.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashedBytes) {
-                sb.append(String.format("%02x", b));
+            byte[] hash = md.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
             }
-            return sb.toString();
+            return hexString.toString();
         } catch (NoSuchAlgorithmException e) {
+            LOGGER.log(Level.SEVERE, "Error hashing password", e);
             throw new RuntimeException("Error hashing password", e);
         }
     }
+
+    /**
+     * Kiểm tra đăng nhập (legacy method - giữ lại để tương thích)
+     */
+    public User checkLogin(String usernameOrEmail, String password) throws SQLException {
+        return authenticateUserByUsernameOrEmail(usernameOrEmail, password);
+    }
+
+    /**
+     * Lấy thông tin user
+     */
+    public UserInfor getUserInforById(Integer id) throws SQLException {
+        if (id == null) {
+            return null;
+        }
+        return userInforDAO.selectUserInfor(id);
+    }
 }
+
+
