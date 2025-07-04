@@ -7,7 +7,7 @@
 <a href="#main" class="skip-link">Bỏ qua và tới nội dung chính</a>
 <header class="header" id="top">
   <div class="logo" aria-label="Trang chủ Scroll">
-    📚 <span>scroll</span>
+    📖 <span>scroll</span>
   </div>
   <nav class="main-nav" id="mainNav" aria-label="Điều hướng chính">
     <a class="nav-link" href="${ctx}/index.jsp">Trang chủ</a>
@@ -32,8 +32,37 @@
       </div>
     </div>
     <a class="nav-link" href="${ctx}/latest">Truyện mới</a>
+    <a class="nav-link" href="${ctx}/books">📖 Danh sách truyện</a>
     <a class="nav-link" href="${ctx}/recommend">Đề xuất</a>
     <a class="nav-link" href="${ctx}/favorites">Yêu thích</a>
+    
+    <!-- Upload Button (only for logged in users) -->
+    <c:if test="${not empty sessionScope.user}">
+        <a class="nav-link upload-btn" href="${ctx}/book?action=upload" style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            margin: 0 8px;
+        ">
+            📤 Upload Truyện Mới
+        </a>
+    </c:if>
+    
+    <!-- AI Features -->
+    <div class="nav-item ai-dropdown">
+      <a class="nav-link" href="#" aria-haspopup="true" aria-expanded="false" style="color: #6a5acd;">
+        🤖 AI Features ▾
+      </a>
+      <div class="dropdown-menu" aria-label="AI Features">
+        <a href="${ctx}/ai/chat">💬 AI Chat</a>
+        <a href="${ctx}/ai/recommendations">🎯 AI Đề Xuất</a>
+        <a href="${ctx}/ai/smart-recommendations">🚀 Smart AI</a>
+      </div>
+    </div>
     <a class="premium-badge" href="${ctx}/premium">Premium</a>
   </nav>
   <div class="header-actions">

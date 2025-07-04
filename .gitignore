@@ -100,3 +100,50 @@ uploads/
 ############################
 # Ignore user-specific Maven repo (optional; giữ lại nếu bạn CHIA SẺ cache)
 # .m2/
+
+# Ignore everything by default
+/*
+
+# Allow Maven config
+!pom.xml
+
+# Allow AI-related Java source code
+!src/main/java/com/mycompany/ebookwebsite/ai/
+!src/main/java/com/mycompany/ebookwebsite/agent/
+!src/main/java/com/mycompany/ebookwebsite/service/OpenAIChatService.java
+!src/main/java/com/mycompany/ebookwebsite/service/OpenAIContentFilterService.java
+!src/main/java/com/mycompany/ebookwebsite/service/OpenAIContentSummaryService.java
+!src/main/java/com/mycompany/ebookwebsite/service/RealOpenAISummaryService.java
+!src/main/java/com/mycompany/ebookwebsite/service/AIChatService.java
+!src/main/java/com/mycompany/ebookwebsite/service/ContentFilterFactory.java
+!src/main/java/com/mycompany/ebookwebsite/service/RuleBasedContentFilterService.java
+!src/main/java/com/mycompany/ebookwebsite/service/AIRecommendationService.java
+!src/main/java/com/mycompany/ebookwebsite/dao/AIRecommendationDAO.java
+!src/main/java/com/mycompany/ebookwebsite/utils/AIValidation.java
+!src/main/java/com/mycompany/ebookwebsite/controller/AIChatServlet.java
+!src/main/java/com/mycompany/ebookwebsite/controller/AIRecommendationServlet.java
+!src/main/java/com/mycompany/ebookwebsite/controller/SmartRecommendationServlet.java
+!src/main/java/com/mycompany/ebookwebsite/model/UserAI.java
+
+# Allow AI-related frontend files
+!src/main/webapp/ai/
+!src/main/webapp/assets/js/app.js
+!src/main/webapp/assets/css/style.css
+
+# Allow AI-related test files
+!src/main/java/com/mycompany/ebookwebsite/test/RealAIApiTest.java
+!src/main/java/com/mycompany/ebookwebsite/test/ComprehensiveAITest.java
+!src/main/java/com/mycompany/ebookwebsite/test/SimpleAITest.java
+!src/main/java/com/mycompany/ebookwebsite/test/UpdatedAITest.java
+!src/main/java/com/mycompany/ebookwebsite/test/OpenAIApiTest.java
+!src/main/java/com/mycompany/ebookwebsite/test/InteractiveAISummaryTest.java
+!src/main/java/com/mycompany/ebookwebsite/test/ManualAIUploadTest.java
+!src/main/java/com/mycompany/ebookwebsite/test/IndividualAITest.java
+!src/main/java/com/mycompany/ebookwebsite/test/TestChatAI.java
+
+# Allow config and web.xml for servlet mapping
+!src/main/webapp/WEB-INF/web.xml
+
+# Ignore all uploads and build output
+uploads/
+target/

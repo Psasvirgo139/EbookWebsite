@@ -17,7 +17,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <meta name="description" content="Scroll – Kho truyện lớn, cập nhật nhanh, đọc mượt trên mọi thiết bị." />
-    <link rel="icon" href="${ctx}/favicon.ico" />
+    <link rel="icon" href="${ctx}/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="${ctx}/favicon.svg" type="image/x-icon" />
+    <link rel="shortcut icon" href="${ctx}/favicon.svg" />
 </head>
 <body>
     <!-- Skip-link for Accessibility -->
@@ -33,7 +35,20 @@
                 <span class="highlight">chất lượng</span>
             </h1>
             <p>Hơn 20 thể loại, hàng nghìn chương mới mỗi ngày.</p>
-            <a href="#storiesGrid" class="cta-btn">Bắt đầu đọc ngay</a>
+            <div class="hero-buttons">
+                <a href="#storiesGrid" class="cta-btn">Bắt đầu đọc ngay</a>
+                
+                <!-- Upload Button for logged in users -->
+                <c:if test="${not empty sessionScope.user}">
+                    <a href="${ctx}/book?action=upload" class="cta-btn upload-btn" style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        margin-left: 15px;
+                        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+                    ">
+                        📤 Upload Truyện Mới
+                    </a>
+                </c:if>
+            </div>
         </section>
 
         <!-- STORIES FEATURED -->
@@ -41,6 +56,13 @@
             <h2 id="featured-heading">Truyện nổi bật</h2>
             <div class="stories-grid" id="storiesGrid" aria-live="polite"></div>
             <div class="skeleton-loader" id="skeletonLoader"></div>
+            
+            <!-- VIEW ALL STORIES BUTTON -->
+            <div class="view-all-section" style="text-align: center; margin-top: 30px; margin-bottom: 40px;">
+                <a href="${ctx}/book-list" class="view-all-btn">
+                    📚 Xem tất cả truyện
+                </a>
+            </div>
         </section>
 
         <!-- STORIES UPDATE -->

@@ -51,7 +51,12 @@ public class ProfileServlet extends HttpServlet {
         // Lấy thông tin chi tiết UserInfor nếu có userinforId
         UserInfor userInfor = null;
         if (user.getUserinforId() != null) {
-            userInfor = userService.getUserInforById(user.getUserinforId());
+            try {
+                userInfor = userService.getUserInforById(user.getUserinforId());
+            } catch (SQLException e) {
+                LOGGER.log(Level.WARNING, "Error getting user info: " + e.getMessage(), e);
+                // Không làm gì, userInfor sẽ là null
+            }
         }
 
         // Format ngày tạo thành String

@@ -6,6 +6,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quên mật khẩu | Scroll</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="../favicon.svg" />
     
     <!-- Import Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

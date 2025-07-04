@@ -506,6 +506,13 @@
                         </div>
                         
                         <div class="action-buttons">
+                            <a href="${pageContext.request.contextPath}/book?action=upload" class="btn btn-primary" style="
+                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                margin-right: 10px;
+                            ">
+                                <i class="fas fa-upload"></i>
+                                📤 Upload Truyện
+                            </a>
                             <a href="${pageContext.request.contextPath}/edit-profile" class="btn btn-primary">
                                 <i class="fas fa-edit"></i>
                                 Chỉnh sửa thông tin
