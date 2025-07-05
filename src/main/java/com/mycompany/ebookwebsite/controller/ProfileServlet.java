@@ -51,7 +51,13 @@ public class ProfileServlet extends HttpServlet {
         // Lấy thông tin chi tiết UserInfor nếu có userinforId
         UserInfor userInfor = null;
         if (user.getUserinforId() != null) {
-            userInfor = userService.getUserInforById(user.getUserinforId());
+            try {
+                userInfor = userService.getUserInforById(user.getUserinforId());
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Database error while fetching user info", e);
+                request.setAttribute("message", "Lỗi database: " + e.getMessage());
+                request.setAttribute("messageType", "error");
+            }
         }
 
         // Format ngày tạo thành String

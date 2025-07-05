@@ -39,8 +39,19 @@
         <!-- STORIES FEATURED -->
         <section class="stories-list" aria-labelledby="featured-heading">
             <h2 id="featured-heading">Truyện nổi bật</h2>
-            <div class="stories-grid" id="storiesGrid" aria-live="polite"></div>
-            <div class="skeleton-loader" id="skeletonLoader"></div>
+            <div class="stories-grid" id="storiesGrid" aria-live="polite">
+                <c:forEach var="book" items="${featuredBooks}">
+                    <div class="story-card">
+                        <img class="story-thumb" src="${book.coverUrl}" alt="${book.title}" />
+                        <div class="story-content">
+                            <a class="story-title" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">${book.title}</a>
+                            <div class="story-desc">${book.description}</div>
+                            <div class="story-info"><span>Lượt xem: ${book.viewCount}</span></div>
+                            <a class="read-btn" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">Đọc</a>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
         </section>
 
         <!-- STORIES UPDATE -->
