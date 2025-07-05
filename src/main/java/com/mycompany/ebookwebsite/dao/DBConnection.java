@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @author ADMIN
  */
 public class DBConnection {
-    private static final String JDBC_URL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
+    private static final String JDBC_URL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsiteTest1;encrypt=true;trustServerCertificate=true";
     private static final String JDBC_USER = "sa"; // sửa lại nếu khác
     private static final String JDBC_PASSWORD = "Danh24092004@";
 

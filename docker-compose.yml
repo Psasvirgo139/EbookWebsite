@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # SQL Server Database
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ebookwebsite_db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=EbookWebsite2024!
+      - MSSQL_PID=Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/opt/mssql
+      - ./database_schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - ebookwebsite_network
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P EbookWebsite2024! -Q 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # EbookWebsite Application
+  app:
+    build: .
+    container_name: ebookwebsite_app
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=1433
+      - DB_NAME=EbookWebsite
+      - DB_USER=sa
+      - DB_PASSWORD=EbookWebsite2024!
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - ebookwebsite_network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: ebookwebsite_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - ebookwebsite_network
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  ebookwebsite_network:
+    driver: bridge 

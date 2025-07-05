@@ -1,6 +1,8 @@
 package com.mycompany.ebookwebsite.dao;
 
 import com.mycompany.ebookwebsite.model.UserRead;
+import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.User;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,6 +131,84 @@ public class UserReadDAO {
             ps.setInt(1, ebookID);
             return ps.executeUpdate() > 0;
         }
+    }
+
+    public int getTotalReads() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM UserRead";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public List<Ebook> getTopBooksByReads(int limit) throws SQLException {
+        List<Ebook> books = new ArrayList<>();
+        String sql = "SELECT e.*, COUNT(ur.user_id) as read_count FROM Ebooks e " +
+                    "LEFT JOIN UserRead ur ON e.id = ur.ebook_id " +
+                    "GROUP BY e.id, e.title, e.description, e.release_type, e.language, e.status, e.visibility, e.uploader_id, e.created_at, e.view_count, e.cover_url, e.is_premium, e.price " +
+                    "ORDER BY read_count DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Ebook book = new Ebook();
+                book.setId(rs.getInt("id"));
+                book.setTitle(rs.getString("title"));
+                book.setDescription(rs.getString("description"));
+                book.setReleaseType(rs.getString("release_type"));
+                book.setLanguage(rs.getString("language"));
+                book.setStatus(rs.getString("status"));
+                book.setVisibility(rs.getString("visibility"));
+                book.setUploaderId(rs.getInt("uploader_id"));
+                book.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                book.setViewCount(rs.getInt("view_count"));
+                book.setCoverUrl(rs.getString("cover_url"));
+                books.add(book);
+            }
+        }
+        return books;
+    }
+
+    public List<User> getTopUsersByActivity(int limit) throws SQLException {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT u.*, COUNT(ur.ebook_id) as read_count FROM Users u " +
+                    "LEFT JOIN UserRead ur ON u.id = ur.user_id " +
+                    "WHERE (u.status != 'deleted' OR u.status IS NULL) " +
+                    "GROUP BY u.id, u.username, u.email, u.password_hash, u.avatar_url, u.role, u.created_at, u.userinfor_id, u.status, u.last_login, u.is_premium " +
+                    "ORDER BY read_count DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setPasswordHash(rs.getString("password_hash"));
+                user.setAvatarUrl(rs.getString("avatar_url"));
+                user.setRole(rs.getString("role"));
+                user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setUserinforId(rs.getInt("userinfor_id"));
+                user.setStatus(rs.getString("status"));
+                user.setLastLogin(rs.getTimestamp("last_login") != null ? rs.getTimestamp("last_login").toLocalDateTime() : null);
+                user.setPremium(rs.getBoolean("is_premium"));
+                users.add(user);
+            }
+        }
+        return users;
     }
 
     private UserRead mapUserRead(ResultSet rs) throws SQLException {

@@ -113,8 +113,7 @@ public class UserServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
         
         try {
-            int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
+            int userId = UserValidation.validateId(request.getParameter("id"));
             
             User user = userService.getUserById(userId);
             if (user == null) {
@@ -152,8 +151,7 @@ public class UserServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
         
         try {
-            int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
+            int userId = UserValidation.validateId(request.getParameter("id"));
             
             User user = userService.getUserById(userId);
             if (user == null) {
@@ -187,6 +185,16 @@ public class UserServlet extends HttpServlet {
             String password = request.getParameter("password");
             String role = request.getParameter("role");
             String status = request.getParameter("status");
+            String avatarUrl = request.getParameter("avatarUrl");
+            String isPremiumStr = request.getParameter("isPremium");
+            boolean isPremium = "on".equals(isPremiumStr) || "true".equals(isPremiumStr);
+            String userInforIdStr = request.getParameter("userinforId");
+            Integer userInforId = null;
+            if (userInforIdStr != null && !userInforIdStr.isEmpty()) {
+                try {
+                    userInforId = Integer.parseInt(userInforIdStr);
+                } catch (NumberFormatException ignored) {}
+            }
             
             // Tạo đối tượng User
             User user = new User();
@@ -195,6 +203,9 @@ public class UserServlet extends HttpServlet {
             user.setPasswordHash(password);
             user.setRole(role);
             user.setStatus(status);
+            user.setAvatarUrl(avatarUrl);
+            user.setPremium(isPremium);
+            user.setUserinforId(userInforId);
             
             // Validate dữ liệu
             UserValidation.validateUserData(user, true);
@@ -216,6 +227,9 @@ public class UserServlet extends HttpServlet {
             request.setAttribute("email", request.getParameter("email"));
             request.setAttribute("role", request.getParameter("role"));
             request.setAttribute("status", request.getParameter("status"));
+            request.setAttribute("avatarUrl", request.getParameter("avatarUrl"));
+            request.setAttribute("isPremium", request.getParameter("isPremium"));
+            request.setAttribute("userinforId", request.getParameter("userinforId"));
             
             // CHUYỂN HƯỚNG: Forward về trang form khi có lỗi (giữ nguyên trang)
             request.getRequestDispatcher("/views/user/new.jsp").forward(request, response);
@@ -230,14 +244,21 @@ public class UserServlet extends HttpServlet {
         
         try {
             // Lấy dữ liệu từ form
-            int userId = Integer.parseInt(request.getParameter("id"));
+            int userId = UserValidation.validateId(request.getParameter("id"));
             String username = request.getParameter("username");
             String email = request.getParameter("email");
             String role = request.getParameter("role");
             String status = request.getParameter("status");
-            
-            // Validate user ID
-            UserValidation.validateUserId(userId);
+            String avatarUrl = request.getParameter("avatarUrl");
+            String isPremiumStr = request.getParameter("isPremium");
+            boolean isPremium = "on".equals(isPremiumStr) || "true".equals(isPremiumStr);
+            String userInforIdStr = request.getParameter("userinforId");
+            Integer userInforId = null;
+            if (userInforIdStr != null && !userInforIdStr.isEmpty()) {
+                try {
+                    userInforId = Integer.parseInt(userInforIdStr);
+                } catch (NumberFormatException ignored) {}
+            }
             
             // Tạo đối tượng User
             User user = new User();
@@ -246,6 +267,9 @@ public class UserServlet extends HttpServlet {
             user.setEmail(email);
             user.setRole(role);
             user.setStatus(status);
+            user.setAvatarUrl(avatarUrl);
+            user.setPremium(isPremium);
+            user.setUserinforId(userInforId);
             
             // Validate dữ liệu
             UserValidation.validateUserData(user, false);
@@ -278,6 +302,15 @@ public class UserServlet extends HttpServlet {
             user.setEmail(request.getParameter("email"));
             user.setRole(request.getParameter("role"));
             user.setStatus(request.getParameter("status"));
+            user.setAvatarUrl(request.getParameter("avatarUrl"));
+            String isPremiumStr2 = request.getParameter("isPremium");
+            user.setPremium("on".equals(isPremiumStr2) || "true".equals(isPremiumStr2));
+            String userInforIdStr2 = request.getParameter("userinforId");
+            if (userInforIdStr2 != null && !userInforIdStr2.isEmpty()) {
+                try {
+                    user.setUserinforId(Integer.parseInt(userInforIdStr2));
+                } catch (NumberFormatException ignored) {}
+            }
             request.setAttribute("user", user);
             
             // CHUYỂN HƯỚNG: Forward về trang form khi có lỗi validation (giữ nguyên trang)
@@ -292,12 +325,11 @@ public class UserServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
         
         try {
-            int userId = Integer.parseInt(request.getParameter("id"));
+            int userId = UserValidation.validateId(request.getParameter("id"));
             String newPassword = request.getParameter("newPassword");
             String confirmPassword = request.getParameter("confirmPassword");
             
             // Validate
-            UserValidation.validateUserId(userId);
             UserValidation.validatePassword(newPassword);
             
             if (!newPassword.equals(confirmPassword)) {
@@ -331,8 +363,7 @@ public class UserServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
         
         try {
-            int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
+            int userId = UserValidation.validateId(request.getParameter("id"));
             
             boolean deleted = userService.deleteUser(userId);
             

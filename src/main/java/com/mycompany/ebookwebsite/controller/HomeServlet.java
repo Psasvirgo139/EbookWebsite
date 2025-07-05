@@ -1,42 +1,51 @@
 package com.mycompany.ebookwebsite.controller;
 
-import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.service.EbookService;
-import com.mycompany.ebookwebsite.utils.EbookValidation;
+import com.mycompany.ebookwebsite.service.TagService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.List;
+import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.Tag;
 
-@WebServlet("/book/home")
+@WebServlet(urlPatterns = {"/", "/home"})
 public class HomeServlet extends HttpServlet {
-    private final EbookService service = new EbookService();
-    private static final int PAGE_SIZE = 8;
+    private final EbookService ebookService = new EbookService();
+    private final TagService tagService = new TagService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        int currentPage = 1;
         try {
-            String pageParam = req.getParameter("page");
-            if (pageParam != null) {
-                currentPage = EbookValidation.validatePage(pageParam);
-            }
-
-            int offset = (currentPage - 1) * PAGE_SIZE;
-            List<Ebook> ebooks = service.getBooksByPage(offset, PAGE_SIZE);
-            int totalBooks = service.countAllBooks();
-            int totalPages = (int) Math.ceil((double) totalBooks / PAGE_SIZE);
-
-            req.setAttribute("ebookList", ebooks);
-            req.setAttribute("currentPage", currentPage);
-            req.setAttribute("totalPages", totalPages);
-            req.getRequestDispatcher("/book/list.jsp").forward(req, resp);
-        } catch (IllegalArgumentException | SQLException e) {
-            req.setAttribute("error", e.getMessage());
+            System.out.println("=== HomeServlet: Bắt đầu lấy dữ liệu ===");
+            
+            List<Ebook> topBooks = ebookService.getTopPremiumBooks(8);
+            System.out.println("Top books count: " + (topBooks != null ? topBooks.size() : "null"));
+            
+            List<Ebook> newBooks = ebookService.getRecentBooks(8);
+            System.out.println("New books count: " + (newBooks != null ? newBooks.size() : "null"));
+            
+            List<Ebook> freeBooks = ebookService.getTopFreeBooks(8);
+            System.out.println("Free books count: " + (freeBooks != null ? freeBooks.size() : "null"));
+            
+            List<Tag> categories = tagService.getAllTags();
+            System.out.println("Categories count: " + (categories != null ? categories.size() : "null"));
+            
+            req.setAttribute("topBooks", topBooks);
+            req.setAttribute("newBooks", newBooks);
+            req.setAttribute("freeBooks", freeBooks);
+            req.setAttribute("categories", categories);
+            
+            System.out.println("=== HomeServlet: Hoàn thành lấy dữ liệu ===");
+            
+            req.getRequestDispatcher("/index.jsp").forward(req, resp);
+        } catch (Exception e) {
+            System.err.println("=== HomeServlet ERROR: " + e.getMessage() + " ===");
+            e.printStackTrace();
+            req.setAttribute("error", "Không thể tải dữ liệu sách: " + e.getMessage());
             req.getRequestDispatcher("/error.jsp").forward(req, resp);
         }
     }

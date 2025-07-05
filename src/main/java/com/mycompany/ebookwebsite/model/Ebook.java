@@ -5,6 +5,7 @@
 package com.mycompany.ebookwebsite.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  *
@@ -22,11 +23,13 @@ public class Ebook {
     private LocalDateTime createdAt;
     private int viewCount;
     private String coverUrl;
+    private List<Tag> tags;
+    private int reviewCount;
 
     public Ebook() {
     }
 
-    public Ebook(int id, String title, String description, String releaseType, String language, String status, String visibility, Integer uploaderId, LocalDateTime createdAt, int viewCount, String coverUrl) {
+    public Ebook(int id, String title, String description, String releaseType, String language, String status, String visibility, Integer uploaderId, LocalDateTime createdAt, int viewCount, String coverUrl, boolean isPremium, Double price) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -128,8 +131,36 @@ public class Ebook {
         this.coverUrl = coverUrl;
     }
 
+    public List<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Tag> tags) {
+        this.tags = tags;
+    }
+
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = reviewCount;
+    }
+
     @Override
     public String toString() {
-        return "Ebook{" + "id=" + id + ", title=" + title + ", description=" + description + ", releaseType=" + releaseType + ", language=" + language + ", status=" + status + ", visibility=" + visibility + ", uploaderId=" + uploaderId + ", createdAt=" + createdAt + ", viewCount=" + viewCount + ", coverUrl=" + coverUrl + '}';
+        return "Ebook{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", releaseType='" + releaseType + '\'' +
+                ", language='" + language + '\'' +
+                ", status='" + status + '\'' +
+                ", visibility='" + visibility + '\'' +
+                ", uploaderId=" + uploaderId +
+                ", createdAt=" + createdAt +
+                ", viewCount=" + viewCount +
+                ", coverUrl='" + coverUrl + '\'' +
+                '}';
     }
 }

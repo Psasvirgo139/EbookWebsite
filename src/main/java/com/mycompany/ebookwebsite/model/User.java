@@ -4,7 +4,7 @@
  */
 package com.mycompany.ebookwebsite.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -17,15 +17,16 @@ public class User {
     private String passwordHash;
     private String avatarUrl;
     private String role;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private Integer userinforId;
     private String status;
-    private LocalDate lastLogin;
+    private LocalDateTime lastLogin;
+    private boolean isPremium;
 
     public User() {
     }
 
-    public User(int id, String username, String email, String passwordHash, String avatarUrl, String role, LocalDate createdAt, Integer userinforId, String status, LocalDate lastLogin) {
+    public User(int id, String username, String email, String passwordHash, String avatarUrl, String role, LocalDateTime createdAt, Integer userinforId, String status, LocalDateTime lastLogin, boolean isPremium) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -36,6 +37,7 @@ public class User {
         this.userinforId = userinforId;
         this.status = status;
         this.lastLogin = lastLogin;
+        this.isPremium = isPremium;
     }
 
     public int getId() {
@@ -69,6 +71,15 @@ public class User {
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
     }
+    
+    // Method để set password (sẽ được hash trong service)
+    public void setPassword(String password) {
+        this.passwordHash = password; // Service sẽ hash trước khi lưu
+    }
+    
+    public String getPassword() {
+        return this.passwordHash;
+    }
 
     public String getAvatarUrl() {
         return avatarUrl;
@@ -86,11 +97,11 @@ public class User {
         this.role = role;
     }
 
-    public LocalDate getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -110,16 +121,31 @@ public class User {
         this.status = status;
     }
 
-    public LocalDate getLastLogin() {
+    public LocalDateTime getLastLogin() {
         return lastLogin;
     }
 
-    public void setLastLogin(LocalDate lastLogin) {
+    public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    public boolean isPremium() {
+        return isPremium;
+    }
+
+    public void setPremium(boolean isPremium) {
+        this.isPremium = isPremium;
     }
 
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", username=" + username + ", email=" + email + ", passwordHash=" + passwordHash + ", avatarUrl=" + avatarUrl + ", role=" + role + ", createdAt=" + createdAt + ", userinforId=" + userinforId + ", status=" + status + ", lastLogin=" + lastLogin + '}';
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", role='" + role + '\'' +
+                ", status='" + status + '\'' +
+                ", isPremium=" + isPremium +
+                '}';
     }
 }

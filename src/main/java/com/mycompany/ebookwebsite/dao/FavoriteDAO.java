@@ -184,6 +184,19 @@ public class FavoriteDAO {
         }
     }
     
+    public int getTotalFavorites() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Favorites";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+    
     private Favorite mapFavorite(ResultSet rs) throws SQLException {
         return new Favorite(
                 rs.getInt("user_id"),

@@ -1,54 +1,125 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" language="java" %>
 <%@ include file="/common/header.jspf" %>
 
-<div class="container py-4">
-    <!-- ======= Thông tin sách ======= -->
-    <h2 class="mb-3">${ebook.title}</h2>
-    <img src="${ebook.coverUrl}" alt="cover" class="img-fluid mb-3" style="max-height:300px;">
+<div class="book-container">
+  <div class="main-content">
 
-    <div class="mb-4">
-        <p><strong>Ngôn ngữ:</strong> ${ebook.language}</p>
-        <p><strong>Mô tả:</strong> ${ebook.description}</p>
-        <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
-        <a href="read?id=${ebook.id}" class="btn btn-success mt-2">Đọc ngay</a>
+    <!-- THÔNG TIN CHÍNH -->
+    <div class="book-main">
+      <div class="book-left">
+        <img src="${ebook.coverUrl}" alt="Bìa sách" class="book-cover-img" />
+      </div>
+
+      <div class="book-right">
+        <h1 class="book-title">${ebook.title}</h1>
+        <div class="book-author">
+          Tác giả:
+          <c:forEach var="author" items="${authors}" varStatus="s">
+            <span>${author.name}</span><c:if test="${!s.last}">, </c:if>
+          </c:forEach>
+        </div>
+
+        <div class="book-meta">
+          <div>
+            Thể loại:
+            <c:forEach var="tag" items="${ebook.tags}">
+              <a href="${pageContext.request.contextPath}/book/list?tag=${tag.id}" class="tag-btn">${tag.name}</a>
+            </c:forEach>
+          </div>
+          <div>Ngôn ngữ: <c:out value="${ebook.language}" /></div>
+        </div>
+
+        <div class="book-rating">
+          <span class="star">⭐</span>
+          <span class="avg-rating">${rating}</span>/5
+          <span class="rating-count">(${ebook.reviewCount} đánh giá)</span>
+        </div>
+
+        <div class="book-actions">
+          <a class="btn btn-primary" href="#">Thêm vào giỏ hàng</a>
+          <a class="btn btn-outline" href="#">Tải xuống</a>
+          <a class="btn btn-outline" href="#">Yêu thích</a>
+        </div>
+
+        <div class="book-chapters">
+          <h3>Đọc thử / Xem trước</h3>
+          <ul>
+            <c:forEach var="chapter" items="${chapters}">
+              <li>
+                <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${chapter.id}">
+                  ${chapter.title}
+                </a>
+              </li>
+            </c:forEach>
+          </ul>
+        </div>
+      </div>
     </div>
 
-    <!-- Form thêm bình luận -->
-    <div class="mt-4">
-        <h5>Thêm bình luận</h5>
-        <form action="${pageContext.request.contextPath}/add-comment" method="post">
-            <input type="hidden" name="ebookId" value="${ebook.id}" />
-            <div class="mb-3">
-                <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận..."></textarea>
+    <!-- GIỚI THIỆU -->
+    <div class="book-description">
+      <h2>Giới thiệu nội dung</h2>
+      <p>${ebook.description}</p>
+
+      <c:if test="${not empty chapters}">
+        <h3>Mục lục</h3>
+        <ul>
+          <c:forEach var="chapter" items="${chapters}">
+            <li>${chapter.title}</li>
+          </c:forEach>
+        </ul>
+      </c:if>
+    </div>
+
+    <!-- ĐÁNH GIÁ -->
+    <div class="book-review">
+      <h2>Đánh giá & Bình luận</h2>
+      <div class="review-summary">
+        <span class="rating-count">(${ebook.reviewCount} đánh giá)</span>
+      </div>
+
+      <form class="review-form" action="#" method="post">
+        <label>Đánh giá của bạn:</label>
+        <select name="rating">
+          <c:forEach var="i" begin="1" end="5">
+            <option value="${i}">${i} sao</option>
+          </c:forEach>
+        </select>
+        <textarea name="comment" placeholder="Nhận xét của bạn..."></textarea>
+        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+      </form>
+
+      <div class="comment-list">
+        <c:forEach var="comment" items="${comments}">
+          <div class="comment-item">
+            <img class="comment-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" alt="avatar" />
+            <div class="comment-content">
+              <span class="comment-user">${comment.username}</span>
+              <span class="comment-date">${comment.createdAt}</span>
+              <div class="comment-text">${comment.content}</div>
             </div>
-            <button type="submit" class="btn btn-primary">Gửi bình luận</button>
-        </form>
+          </div>
+        </c:forEach>
+      </div>
     </div>
 
-
-    <!-- ======= Danh sách bình luận ======= -->
-    <div class="mt-5">
-        <h4 class="mb-3">Bình luận</h4>
-
-        <c:if test="${empty comments}">
-            <p class="text-muted fst-italic">Chưa có bình luận nào.</p>
-        </c:if>
-
-        <c:if test="${not empty comments}">
-            <ul class="list-group">
-                <c:forEach var="comment" items="${comments}">
-                    <li class="list-group-item">
-                        <div class="fw-bold mb-1">Người dùng ID: ${comment.userId}</div>
-                        <div>${comment.content}</div>
-                        <small class="text-muted">Lúc: 
-                            <fmt:formatDate value="${comment.createdAt}" pattern="dd/MM/yyyy HH:mm" />
-                        </small>
-                    </li>
-                </c:forEach>
-            </ul>
-        </c:if>
+    <!-- LIÊN QUAN -->
+    <div class="related-books">
+      <h2>Sách liên quan</h2>
+      <div class="related-grid">
+        <c:forEach var="related" items="${relatedBooks}">
+          <div class="related-card">
+            <img src="${related.coverUrl}" alt="${related.title}" class="related-img" />
+            <div class="related-info">
+              <div class="related-title">${related.title}</div>
+              <div class="related-rating">⭐ ${related.rating}/5</div>
+            </div>
+          </div>
+        </c:forEach>
+      </div>
     </div>
-</div>
+
+  </div> <!-- /.main-content -->
+</div> <!-- /.book-container -->
 
 <%@ include file="/common/footer.jspf" %>

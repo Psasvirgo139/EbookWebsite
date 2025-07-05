@@ -27,7 +27,7 @@ public class Chapter {
     public Chapter() {
     }
 
-    public Chapter(int id, int ebookID, Integer volumeID, String title, double number, String contentUrl, LocalDateTime createdAt, String accessLevel, int viewCount, int likeCount) {
+    public Chapter(int id, int ebookID, Integer volumeID, String title, double number, String contentUrl, LocalDateTime createdAt, String accessLevel, int viewCount, int likeCount, boolean isFree) {
         this.id = id;
         this.ebookID = ebookID;
         this.volumeID = volumeID;
@@ -38,6 +38,7 @@ public class Chapter {
         this.accessLevel = accessLevel;
         this.viewCount = viewCount;
         this.likeCount = likeCount;
+
     }
 
     public int getId() {
@@ -130,6 +131,17 @@ public class Chapter {
 
     @Override
     public String toString() {
-        return "Chapter{" + "id=" + id + ", ebookID=" + ebookID + ", volumeID=" + volumeID + ", title=" + title + ", number=" + number + ", contentUrl=" + contentUrl + ", createdAt=" + createdAt + ", accessLevel=" + accessLevel + ", viewCount=" + viewCount + ", likeCount=" + likeCount + '}';
+        return "Chapter{"
+                + "id=" + id
+                + ", ebookID=" + ebookID
+                + ", volumeID=" + volumeID
+                + ", title='" + title + '\''
+                + ", number=" + number
+                + ", contentUrl='" + contentUrl + '\''
+                + ", createdAt=" + createdAt
+                + ", accessLevel='" + accessLevel + '\''
+                + ", viewCount=" + viewCount
+                + ", likeCount=" + likeCount
+                + '}';
     }
 }

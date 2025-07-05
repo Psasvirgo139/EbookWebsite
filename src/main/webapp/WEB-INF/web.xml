@@ -4,6 +4,12 @@
         <description>ServletContextListener</description>
         <listener-class>com.mycompany.ebookwebsite.listener.DefaultContextListener</listener-class>
     </listener>
+    
+    <!-- Welcome file list: luôn vào HomeServlet -->
+    <welcome-file-list>
+        <welcome-file>home</welcome-file>
+    </welcome-file-list>
+    
     <session-config>
         <session-timeout>
             30

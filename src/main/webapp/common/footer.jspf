@@ -1,7 +1,107 @@
-<footer class="bg-dark text-white text-center py-3 mt-4">
-    <div class="container">
-        &copy; 2025 Ebook Reader. All rights reserved.
+<%@ page contentType="text/html; charset=UTF-8" %>
+<footer class="footer">
+  <div class="container footer-container">
+    <div class="footer-logo">
+      <span style="display:flex;align-items:center;gap:8px;font-size:1.5rem;font-weight:700;color:#4f8cff;">
+        <i class="fas fa-book-open"></i> EBookWebsite
+      </span>
     </div>
+    <div class="footer-info">
+      <p>Công ty EBookWebsite</p>
+      <p>Địa chỉ công ty</p>
+      <p>Mã số doanh nghiệp: [Mã số mẫu]</p>
+      <p>Giấy phép hoạt động: [Thông tin mẫu]</p>
+      <p>Hotline: [Hotline mẫu]</p>
+    </div>
+    <div class="footer-contact">
+      <div>
+        <img src="https://waka.vn/svgs/icon-phone-footer.svg" alt="Phone" />
+        <span>Số điện thoại</span>
+      </div>
+      <div>
+        <img src="https://waka.vn/svgs/icon-email-footer.svg" alt="Email" />
+        <span>Email</span>
+      </div>
+    </div>
+    <div class="footer-links">
+      <div>
+        <h4>Về chúng tôi</h4>
+        <ul>
+          <li><a href="#">Giới thiệu</a></li>
+          <li><a href="#">Cơ cấu tổ chức</a></li>
+          <li><a href="#">Lĩnh vực hoạt động</a></li>
+          <li><a href="#">Cơ hội hợp tác</a></li>
+          <li><a href="#">Tuyển dụng</a></li>
+          <li><a href="#">Liên hệ</a></li>
+          <li><a href="#">Dịch vụ xuất bản sách</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Thông tin hữu ích</h4>
+        <ul>
+          <li><a href="#">Thỏa thuận sử dụng dịch vụ</a></li>
+          <li><a href="#">Quyền lợi</a></li>
+          <li><a href="#">Quy định riêng tư</a></li>
+          <li><a href="#">Câu hỏi thường gặp</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Tin tức</h4>
+        <ul>
+          <li><a href="#">Tin dịch vụ</a></li>
+          <li><a href="#">Review sách</a></li>
+          <li><a href="#">Lịch phát hành</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-apps">
+      <a href="https://apps.apple.com/vn/app/waka-4-0-ebook-audiobook/id929027521?l=vi" target="_blank" rel="noopener">
+        <img src="https://waka.vn/images/app-store.png" alt="App Store" />
+      </a>
+      <a href="https://play.google.com/store/apps/details?id=anim.dqh.tvw&hl=en&gl=US" target="_blank" rel="noopener">
+        <img src="https://waka.vn/images/google-play.png" alt="Google Play" />
+      </a>
+    </div>
+  </div>
 </footer>
+<style>
+  .footer, .footer * {
+    font-family: 'Poppins', 'Inter', 'Roboto', Arial, sans-serif !important;
+  }
+  .footer {
+    background-color: #fff;
+    padding: 32px 0;
+    color: #6a7ba2;
+    font-size: 14px;
+    border-top: 1px solid #e0e7ff;
+  }
+  .footer-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .footer-logo img { height: 40px; margin-bottom: 16px; }
+  .footer-info { flex: 2 1 300px; line-height: 1.4; }
+  .footer-contact { flex: 1 1 200px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+  .footer-contact div { display: flex; align-items: center; gap: 8px; }
+  .footer-contact img { width: 20px; height: 20px; }
+  .footer-links { flex: 2 1 300px; display: flex; gap: 32px; flex-wrap: wrap; }
+  .footer-links div { min-width: 140px; }
+  .footer-links h4 { font-weight: 600; margin-bottom: 8px; color: #4f8cff; }
+  .footer-links ul { list-style: none; }
+  .footer-links ul li { margin-bottom: 6px; }
+  .footer-links ul li a { color: #4f8cff; text-decoration: none; transition: color 0.3s ease; }
+  .footer-links ul li a:hover { color: #10b981; }
+  .footer-apps { flex: 1 1 200px; display: flex; gap: 16px; align-items: center; justify-content: flex-start; margin-top: 16px; }
+  .footer-apps img { height: 40px; cursor: pointer; transition: transform 0.3s ease; }
+  .footer-apps img:hover { transform: scale(1.05); }
+  @media (max-width: 768px) {
+    .footer-container { flex-direction: column; }
+    .footer-links { flex-direction: column; }
+  }
+</style>
+
 </body>
 </html>

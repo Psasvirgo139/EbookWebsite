@@ -1,8 +1,17 @@
 package com.mycompany.ebookwebsite.utils;
 
 import com.mycompany.ebookwebsite.model.User;
+import java.util.regex.Pattern;
 
 public class UserValidation {
+    
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+        "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
+    
+    private static final Pattern USERNAME_PATTERN = Pattern.compile(
+        "^[a-zA-Z0-9_]{3,20}$"
+    );
     
     /**
      * Validate dữ liệu user
@@ -34,44 +43,53 @@ public class UserValidation {
     /**
      * Validate username
      */
-    public static void validateUsername(String username) {
+    public static String validateUsername(String username) {
         if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Username không được để trống");
+            throw new IllegalArgumentException("Tên đăng nhập không được để trống");
         }
         
-        if (username.length() < 3 || username.length() > 50) {
-            throw new IllegalArgumentException("Username phải có độ dài từ 3-50 ký tự");
+        String trimmedUsername = username.trim();
+        if (trimmedUsername.length() < 3 || trimmedUsername.length() > 20) {
+            throw new IllegalArgumentException("Tên đăng nhập phải có 3-20 ký tự");
         }
         
-        if (!username.matches("^[a-zA-Z0-9_]+$")) {
-            throw new IllegalArgumentException("Username chỉ được chứa chữ cái, số và dấu gạch dưới");
+        if (!USERNAME_PATTERN.matcher(trimmedUsername).matches()) {
+            throw new IllegalArgumentException("Tên đăng nhập chỉ được chứa chữ cái, số và dấu gạch dưới");
         }
+        
+        return trimmedUsername;
     }
     
     /**
      * Validate email
      */
-    public static void validateEmail(String email) {
+    public static String validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             throw new IllegalArgumentException("Email không được để trống");
         }
         
-        if (!isValidEmail(email)) {
-            throw new IllegalArgumentException("Email không đúng định dạng");
+        String trimmedEmail = email.trim().toLowerCase();
+        if (!EMAIL_PATTERN.matcher(trimmedEmail).matches()) {
+            throw new IllegalArgumentException("Email không hợp lệ");
         }
+        
+        return trimmedEmail;
     }
     
     /**
      * Validate password
      */
-    public static void validatePassword(String password) {
+    public static String validatePassword(String password) {
         if (password == null || password.trim().isEmpty()) {
-            throw new IllegalArgumentException("Password không được để trống");
+            throw new IllegalArgumentException("Mật khẩu không được để trống");
         }
         
-        if (password.length() < 6) {
-            throw new IllegalArgumentException("Password phải có ít nhất 6 ký tự");
+        String trimmedPassword = password.trim();
+        if (trimmedPassword.length() < 6) {
+            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
         }
+        
+        return trimmedPassword;
     }
     
     /**
@@ -95,9 +113,19 @@ public class UserValidation {
     /**
      * Validate user ID
      */
-    public static void validateUserId(int userId) {
-        if (userId <= 0) {
-            throw new IllegalArgumentException("User ID không hợp lệ");
+    public static int validateId(String idStr) {
+        if (idStr == null || idStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("ID không được để trống");
+        }
+        
+        try {
+            int id = Integer.parseInt(idStr.trim());
+            if (id <= 0) {
+                throw new IllegalArgumentException("ID phải là số nguyên dương");
+            }
+            return id;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("ID không hợp lệ: " + idStr);
         }
     }
     
@@ -126,9 +154,8 @@ public class UserValidation {
     /**
      * Kiểm tra email hợp lệ
      */
-    private static boolean isValidEmail(String email) {
-        String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-        return email.matches(emailRegex);
+    public static boolean isValidEmail(String email) {
+        return email != null && EMAIL_PATTERN.matcher(email.trim().toLowerCase()).matches();
     }
     
     /**
@@ -143,5 +170,31 @@ public class UserValidation {
      */
     private static boolean isValidStatus(String status) {
         return status.equals("active") || status.equals("inactive") || status.equals("deleted") || status.equals("banned");
+    }
+    
+    // Static methods để kiểm tra format
+    public static boolean isValidUsername(String username) {
+        return username != null && USERNAME_PATTERN.matcher(username.trim()).matches();
+    }
+    
+    public static boolean isValidPassword(String password) {
+        return password != null && password.trim().length() >= 6;
+    }
+    
+    public static String validateFullName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        
+        String trimmedFullName = fullName.trim();
+        if (trimmedFullName.length() < 2 || trimmedFullName.length() > 100) {
+            throw new IllegalArgumentException("Họ tên phải có 2-100 ký tự");
+        }
+        
+        return trimmedFullName;
+    }
+    
+    public static boolean isValidFullName(String fullName) {
+        return fullName != null && fullName.trim().length() >= 2 && fullName.trim().length() <= 100;
     }
 }

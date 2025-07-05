@@ -5,7 +5,7 @@ import com.mycompany.ebookwebsite.model.User;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class UserService {
@@ -36,16 +36,16 @@ public class UserService {
     }
     
     /**
-     * Tạo user mới
+     * Đăng ký user mới
      */
-    public User createUser(User user) throws SQLException {
+    public void registerUser(User user) throws SQLException {
         // Kiểm tra username đã tồn tại chưa
-        if (isUsernameExists(user.getUsername(), 0)) {
-            throw new IllegalArgumentException("Username đã tồn tại: " + user.getUsername());
+        if (isUsernameExists(user.getUsername())) {
+            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại: " + user.getUsername());
         }
         
         // Kiểm tra email đã tồn tại chưa
-        if (isEmailExists(user.getEmail(), 0)) {
+        if (isEmailExists(user.getEmail())) {
             throw new IllegalArgumentException("Email đã tồn tại: " + user.getEmail());
         }
         
@@ -53,7 +53,30 @@ public class UserService {
         setDefaultValues(user);
         
         // Hash password
-        user.setPasswordHash(hashPassword(user.getPasswordHash()));
+        user.setPasswordHash(hashPassword(user.getPassword()));
+        
+        userDAO.insert(user);
+    }
+    
+    /**
+     * Tạo user mới
+     */
+    public User createUser(User user) throws SQLException {
+        // Kiểm tra username đã tồn tại chưa
+        if (isUsernameExists(user.getUsername())) {
+            throw new IllegalArgumentException("Username đã tồn tại: " + user.getUsername());
+        }
+        
+        // Kiểm tra email đã tồn tại chưa
+        if (isEmailExists(user.getEmail())) {
+            throw new IllegalArgumentException("Email đã tồn tại: " + user.getEmail());
+        }
+        
+        // Set default values
+        setDefaultValues(user);
+        
+        // Hash password
+        user.setPasswordHash(hashPassword(user.getPassword()));
         
         userDAO.insert(user);
         return user;
@@ -152,12 +175,26 @@ public class UserService {
     /**
      * Kiểm tra username đã tồn tại chưa
      */
+    public boolean isUsernameExists(String username) throws SQLException {
+        return userDAO.countByUsername(username, 0) > 0;
+    }
+    
+    /**
+     * Kiểm tra username đã tồn tại chưa (trừ user có ID)
+     */
     public boolean isUsernameExists(String username, int excludeUserId) throws SQLException {
         return userDAO.countByUsername(username, excludeUserId) > 0;
     }
     
     /**
      * Kiểm tra email đã tồn tại chưa
+     */
+    public boolean isEmailExists(String email) throws SQLException {
+        return userDAO.countByEmail(email, 0) > 0;
+    }
+    
+    /**
+     * Kiểm tra email đã tồn tại chưa (trừ user có ID)
      */
     public boolean isEmailExists(String email, int excludeUserId) throws SQLException {
         return userDAO.countByEmail(email, excludeUserId) > 0;
@@ -176,7 +213,7 @@ public class UserService {
         }
         
         if (user.getCreatedAt() == null) {
-            user.setCreatedAt(LocalDate.now());
+            user.setCreatedAt(LocalDateTime.now());
         }
     }
     
@@ -195,5 +232,17 @@ public class UserService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Error hashing password", e);
         }
+    }
+    
+    /**
+     * Đặt lại mật khẩu theo email (quên mật khẩu)
+     */
+    public boolean resetPassword(String email, String newPassword) throws SQLException {
+        User user = userDAO.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("Email không tồn tại: " + email);
+        }
+        user.setPasswordHash(hashPassword(newPassword));
+        return userDAO.update(user);
     }
 }
