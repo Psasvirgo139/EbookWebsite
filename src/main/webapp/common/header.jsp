@@ -3,6 +3,37 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <link rel="stylesheet" href="${ctx}/assets/css/style.css" />
+<link rel="stylesheet" href="${ctx}/assets/css/coin-system.css" />
+
+<style>
+/* Header coin display */
+.header-coin-display {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #e6c200;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.header-coin-display:hover {
+    background: linear-gradient(45deg, #ffed4e, #ffd700);
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+/* Responsive coin display */
+@media (max-width: 768px) {
+    .header-coin-display {
+        font-size: 0.75rem;
+        padding: 1px 6px;
+    }
+}
+</style>
 
 <a href="#main" class="skip-link">Bỏ qua và tới nội dung chính</a>
 <header class="header" id="top">
@@ -52,6 +83,9 @@
           <c:choose>
             <c:when test="${not empty sessionScope.user}">
               <c:out value="${sessionScope.user.username}" />
+              <span class="header-coin-display" style="margin-left: 8px;">
+                💰 <c:out value="${sessionScope.userCoins != null ? sessionScope.userCoins : 0}" />
+              </span>
             </c:when>
             <c:otherwise>
               Tài khoản

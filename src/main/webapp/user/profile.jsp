@@ -488,6 +488,10 @@
                         
                         <div class="user-stats">
                             <div class="stat-item">
+                                <span class="stat-number">${userCoins != null ? userCoins : 0}</span>
+                                <span class="stat-label">💰 Coins</span>
+                            </div>
+                            <div class="stat-item">
                                 <span class="stat-number">12</span>
                                 <span class="stat-label">Truyện đang đọc</span>
                             </div>
@@ -542,6 +546,20 @@
                             <div class="info-content">
                                 <div class="info-label">Email</div>
                                 <div class="info-value"><c:out value="${user.email}"/></div>
+                            </div>
+                        </li>
+                        
+                        <li class="info-item">
+                            <div class="info-icon">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Số dư Coins</div>
+                                <div class="info-value">
+                                    <span style="color: #ffd700; font-weight: 700; font-size: 1.1rem;">
+                                        💰 ${userCoins != null ? userCoins : 0} Coins
+                                    </span>
+                                </div>
                             </div>
                         </li>
                         

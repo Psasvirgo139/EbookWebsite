@@ -11,6 +11,7 @@ public class ChapterDAO {
     private static final String INSERT = "INSERT INTO Chapters (ebook_id, volume_id, title, number, content_url, created_at, access_level, view_count, like_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_ALL_BY_EBOOK = "SELECT * FROM Chapters WHERE ebook_id = ? ORDER BY number";
     private static final String SELECT_BY_BOOK_AND_INDEX = "SELECT * FROM Chapters WHERE ebook_id = ? AND number = ?";
+    private static final String SELECT_BY_ID = "SELECT * FROM Chapters WHERE id = ?";
     private static final String UPDATE = "UPDATE Chapters SET ebook_id=?, volume_id=?, title=?, number=?, content_url=?, created_at=?, access_level=?, view_count=?, like_count=? WHERE id=?";
     private static final String DELETE = "DELETE FROM Chapters WHERE id = ?";
 
@@ -45,6 +46,17 @@ public class ChapterDAO {
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_BOOK_AND_INDEX)) {
             ps.setInt(1, ebookId);
             ps.setDouble(2, number);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return mapRow(rs);
+            }
+            return null;
+        }
+    }
+
+    public Chapter getChapterById(int chapterId) throws SQLException {
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
+            ps.setInt(1, chapterId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return mapRow(rs);

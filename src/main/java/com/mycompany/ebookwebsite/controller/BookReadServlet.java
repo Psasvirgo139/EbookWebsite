@@ -26,12 +26,14 @@ import java.util.List;
 public class BookReadServlet extends HttpServlet {
     private EbookService ebookService;
     private ChapterService chapterService;
+    private CoinService coinService;
     private VolumeService volumeService;
 
     @Override
     public void init() {
         ebookService = new EbookService();
         chapterService = new ChapterService();
+        coinService = new CoinService();
         volumeService = new VolumeService();
     }
 
@@ -75,18 +77,54 @@ public class BookReadServlet extends HttpServlet {
                 return;
             }
 
-            boolean hasAccess = checkAccess(request, chapter);
-
-            if (hasAccess) {
-                // ✅ Đọc nội dung file và set vào chapter
-                String content = readChapterContent(chapter.getContentUrl());
-                chapter.setContent(content);
+            // Kiểm tra quyền truy cập chapter premium
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            
+            if ("premium".equals(chapter.getAccessLevel())) {
+                if (user == null) {
+                    response.sendRedirect(request.getContextPath() + "/user/login.jsp?error=login_required");
+                    return;
+                }
+                
+                // Kiểm tra user đã unlock chapter chưa
+                if (!coinService.isChapterAccessible(user.getId(), chapter.getId())) {
+                    // Chuyển đến trang yêu cầu unlock
+                    request.setAttribute("ebook", ebook);
+                    request.setAttribute("chapter", chapter);
+                    request.setAttribute("chapters", chapters);
+                    request.setAttribute("currentChapter", chapterIndex);
+                    request.setAttribute("userCoins", coinService.getUserCoins(user.getId()));
+                    request.setAttribute("unlockCost", CoinService.getUnlockChapterCost());
+                    request.setAttribute("needUnlock", true);
+                    
+                    request.getRequestDispatcher("/book/read.jsp").forward(request, response);
+                    return;
+                }
             }
+
+            // ✅ Đọc nội dung file và set vào chapter
+            String content = readChapterContent(chapter.getContentUrl());
+            chapter.setContent(content);
+
+//             boolean hasAccess = checkAccess(request, chapter);
+
+//             if (hasAccess) {
+//                 // ✅ Đọc nội dung file và set vào chapter
+//                 String content = readChapterContent(chapter.getContentUrl());
+//                 chapter.setContent(content);
+//             }
 
             request.setAttribute("ebook", ebook);
             request.setAttribute("chapter", chapter);
             request.setAttribute("chapters", chapters);
             request.setAttribute("currentChapter", chapterIndex);
+            
+            // Thêm thông tin coin cho user nếu đã login
+            if (user != null) {
+                request.setAttribute("userCoins", coinService.getUserCoins(user.getId()));
+            }
+            request.setAttribute("unlockCost", CoinService.getUnlockChapterCost());
             request.setAttribute("volumes", volumes);
             request.setAttribute("hasAccess", hasAccess);
             request.setAttribute("prevChapter", prevNum);
