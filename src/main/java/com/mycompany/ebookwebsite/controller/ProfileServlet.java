@@ -56,8 +56,10 @@ public class ProfileServlet extends HttpServlet {
         if (user.getUserinforId() != null) {
             try {
                 userInfor = userService.getUserInforById(user.getUserinforId());
-            } catch (SQLException ex) {
-                Logger.getLogger(ProfileServlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException e) {
+                LOGGER.log(Level.SEVERE, "Database error while fetching user info", e);
+                request.setAttribute("message", "Lỗi database: " + e.getMessage());
+                request.setAttribute("messageType", "error");
             }
         }
 
