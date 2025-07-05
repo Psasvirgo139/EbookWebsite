@@ -46,6 +46,12 @@ public class AuthFilter implements Filter {
         Object userObj = (session != null) ? session.getAttribute("user") : null;
 
         if (userObj == null) {                       // Chưa login
+            // Lưu URL gốc vào session để chuyển hướng lại sau đăng nhập
+            String original = uri.substring(ctx.length()); // bỏ context path
+            if (request.getQueryString() != null) {
+                original += "?" + request.getQueryString();
+            }
+            request.getSession(true).setAttribute("redirectAfterLogin", original);
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
