@@ -12,6 +12,7 @@ import com.mycompany.ebookwebsite.dao.UserInforDAO;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.model.UserInfor;
 import com.mycompany.ebookwebsite.service.UserService;
+import com.mycompany.ebookwebsite.service.CoinService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -27,12 +28,14 @@ public class ProfileServlet extends HttpServlet {
     private UserService userService;
     private UserDAO userDAO;
     private UserInforDAO userInforDAO;
+    private CoinService coinService;
 
     @Override
     public void init() throws ServletException {
         userService = new UserService();
         userDAO = new UserDAO();
         userInforDAO = new UserInforDAO();
+        coinService = new CoinService();
     }
 
     @Override
@@ -51,7 +54,11 @@ public class ProfileServlet extends HttpServlet {
         // Lấy thông tin chi tiết UserInfor nếu có userinforId
         UserInfor userInfor = null;
         if (user.getUserinforId() != null) {
-            userInfor = userService.getUserInforById(user.getUserinforId());
+            try {
+                userInfor = userService.getUserInforById(user.getUserinforId());
+            } catch (SQLException ex) {
+                Logger.getLogger(ProfileServlet.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
         // Format ngày tạo thành String
@@ -87,8 +94,13 @@ public class ProfileServlet extends HttpServlet {
             session.removeAttribute("successMessage");
         }
 
+        // Lấy thông tin coin của user với fallback an toàn
+        int userCoins = coinService.getUserCoinsSafe(user.getId());
+        LOGGER.info("Retrieved " + userCoins + " coins for user: " + user.getUsername());
+
         request.setAttribute("user", user);
         request.setAttribute("userInfor", userInfor);
+        request.setAttribute("userCoins", userCoins);
         request.getRequestDispatcher("user/profile.jsp").forward(request, response);
     }
 
