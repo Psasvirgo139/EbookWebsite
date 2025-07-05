@@ -43,31 +43,35 @@ public class BookReadServlet extends HttpServlet {
 
         try {
             int bookId = EbookValidation.validateId(request.getParameter("id"));
-            double chapterIndex;
-            if (request.getParameter("chapter") != null) {
+            String chapParam = request.getParameter("chapter");
+            int chapterIndex;
+            if (chapParam == null) {
+                chapterIndex = 1;
+            } else {
                 try {
-                    chapterIndex = Double.parseDouble(request.getParameter("chapter"));
-                    if (chapterIndex < 1) throw new NumberFormatException();
+                    double val = Double.parseDouble(chapParam);
+                    if (val < 1) throw new NumberFormatException();
+                    chapterIndex = (int) val;
                 } catch (NumberFormatException ex) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid chapter number");
                     return;
                 }
-            } else {
-                chapterIndex = 1;
             }
 
+            double chapterNumber = chapterIndex; // convert to match DB decimal format
+
             Ebook ebook = ebookService.getEbookById(bookId);
-            Chapter chapter = chapterService.getChapterByBookAndIndex(bookId, chapterIndex);
+            Chapter chapter = chapterService.getChapterByBookAndIndex(bookId, chapterNumber);
             List<Chapter> chapters = chapterService.getChaptersByBookId(bookId);
             List<Volume> volumes = volumeService.getVolumesByEbook(bookId);
 
             // Tìm chương trước và sau
-            Double prevNum = null, nextNum = null;
+            Integer prevNum = null, nextNum = null;
             for (Chapter ch : chapters) {
-                double num = ch.getNumber();
-                if (num < chapter.getNumber()) {
+                int num = (int) ch.getNumber();
+                if (num < chapterIndex) {
                     if (prevNum == null || num > prevNum) prevNum = num;
-                } else if (num > chapter.getNumber()) {
+                } else if (num > chapterIndex) {
                     if (nextNum == null || num < nextNum) nextNum = num;
                 }
             }
