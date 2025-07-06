@@ -19,7 +19,8 @@ import java.sql.SQLException;
  * Servlet để xử lý unlock chapter premium bằng coin
  * @author ADMIN
  */
-@WebServlet(name = "UnlockChapterServlet", urlPatterns = {"/unlock-chapter"})
+// @WebServlet(name = "UnlockChapterServlet", urlPatterns = {"/unlock-chapter"})
+// DISABLED: Functionality moved to BookReadServlet for pure JSP approach
 public class UnlockChapterServlet extends HttpServlet {
     
     private final CoinService coinService = new CoinService();
