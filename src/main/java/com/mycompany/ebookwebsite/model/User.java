@@ -24,6 +24,11 @@ public class User {
     private LocalDate lastLogin;
     private String resetToken;
     private Timestamp resetTokenExpiry;
+    
+    // Thêm fields cho change email
+    private String changeEmailToken;
+    private Timestamp changeEmailExpiry;
+    private String changeEmailNew;
 
     public User() {
     }
@@ -54,6 +59,24 @@ public class User {
         this.lastLogin = lastLogin;
         this.resetToken = resetToken;
         this.resetTokenExpiry = resetTokenExpiry;
+    }
+
+    public User(int id, String username, String email, String passwordHash, String avatarUrl, String role, LocalDate createdAt, Integer userinforId, String status, LocalDate lastLogin, String resetToken, Timestamp resetTokenExpiry, String changeEmailToken, Timestamp changeEmailExpiry, String changeEmailNew) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.avatarUrl = avatarUrl;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.userinforId = userinforId;
+        this.status = status;
+        this.lastLogin = lastLogin;
+        this.resetToken = resetToken;
+        this.resetTokenExpiry = resetTokenExpiry;
+        this.changeEmailToken = changeEmailToken;
+        this.changeEmailExpiry = changeEmailExpiry;
+        this.changeEmailNew = changeEmailNew;
     }
 
     public int getId() {
@@ -152,8 +175,32 @@ public class User {
         this.resetTokenExpiry = resetTokenExpiry;
     }
 
+    public String getChangeEmailToken() {
+        return changeEmailToken;
+    }
+
+    public void setChangeEmailToken(String changeEmailToken) {
+        this.changeEmailToken = changeEmailToken;
+    }
+
+    public Timestamp getChangeEmailExpiry() {
+        return changeEmailExpiry;
+    }
+
+    public void setChangeEmailExpiry(Timestamp changeEmailExpiry) {
+        this.changeEmailExpiry = changeEmailExpiry;
+    }
+
+    public String getChangeEmailNew() {
+        return changeEmailNew;
+    }
+
+    public void setChangeEmailNew(String changeEmailNew) {
+        this.changeEmailNew = changeEmailNew;
+    }
+
     @Override
     public String toString() {
-        return "User{" + "id=" + id + ", username=" + username + ", email=" + email + ", passwordHash=" + passwordHash + ", avatarUrl=" + avatarUrl + ", role=" + role + ", createdAt=" + createdAt + ", userinforId=" + userinforId + ", status=" + status + ", lastLogin=" + lastLogin + ", resetToken=" + resetToken + ", resetTokenExpiry=" + resetTokenExpiry + '}';
+        return "User{" + "id=" + id + ", username=" + username + ", email=" + email + ", passwordHash=" + passwordHash + ", avatarUrl=" + avatarUrl + ", role=" + role + ", createdAt=" + createdAt + ", userinforId=" + userinforId + ", status=" + status + ", lastLogin=" + lastLogin + ", resetToken=" + resetToken + ", resetTokenExpiry=" + resetTokenExpiry + ", changeEmailToken=" + changeEmailToken + ", changeEmailExpiry=" + changeEmailExpiry + ", changeEmailNew=" + changeEmailNew + '}';
     }
 }

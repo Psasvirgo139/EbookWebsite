@@ -335,4 +335,70 @@ public class UserDAO {
         }
     }
 
+    // Lưu token đổi email
+    public void setChangeEmailToken(int userId, String token, java.sql.Timestamp expiry, String newEmail) throws SQLException {
+        String sql = "UPDATE Users SET changeEmailToken=?, changeEmailExpiry=?, changeEmailNew=? WHERE id=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ps.setTimestamp(2, expiry);
+            ps.setString(3, newEmail);
+            ps.setInt(4, userId);
+            ps.executeUpdate();
+        }
+    }
+    
+  public boolean updateEmail(int userId, String newEmail) throws SQLException {
+    String sql = "UPDATE Users SET email=? WHERE id=?";
+    try (Connection con = DBConnection.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, newEmail);
+        ps.setInt(2, userId);
+        return ps.executeUpdate() > 0;
+    }
+}
+
+    // Xác nhận đổi email bằng token
+    public boolean confirmChangeEmail(String token) throws SQLException {
+        String sql = "SELECT id, changeEmailNew, changeEmailExpiry FROM Users WHERE changeEmailToken=?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, token);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int userId = rs.getInt("id");
+                String newEmail = rs.getString("changeEmailNew");
+                java.sql.Timestamp expiry = rs.getTimestamp("changeEmailExpiry");
+                System.out.println("DEBUG: userId=" + userId + ", newEmail=" + newEmail + ", expiry=" + expiry);
+                if (newEmail != null && expiry != null && expiry.after(new java.util.Date())) {
+                    String updateSql = "UPDATE Users SET email=?, changeEmailToken=NULL, changeEmailExpiry=NULL, changeEmailNew=NULL WHERE id=?";
+                    try (PreparedStatement ps2 = con.prepareStatement(updateSql)) {
+                        ps2.setString(1, newEmail);
+                        ps2.setInt(2, userId);
+                        int updated = ps2.executeUpdate();
+                        System.out.println("DEBUG: updated rows = " + updated);
+                    }
+                    return true;
+                } else {
+                    System.out.println("DEBUG: Điều kiện không thỏa mãn để update email.");
+                }
+            } else {
+                System.out.println("DEBUG: Không tìm thấy user với token này.");
+            }
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        // Test xác nhận đổi email bằng token
+        String token = "148529fceb0f4b04bc46aa4614021683f8aedc6ff0c"; // Thay bằng token thực tế trong DB
+        try {
+            UserDAO dao = new UserDAO();
+            boolean ok = dao.confirmChangeEmail(token);
+            System.out.println("Kết quả xác nhận: " + ok);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

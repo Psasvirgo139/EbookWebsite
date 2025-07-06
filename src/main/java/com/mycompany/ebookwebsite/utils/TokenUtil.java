@@ -1,12 +1,13 @@
 package com.mycompany.ebookwebsite.utils;
 
-import com.mycompany.ebookwebsite.dao.UserDAO;
-import com.mycompany.ebookwebsite.model.User;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.UUID;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.mycompany.ebookwebsite.dao.UserDAO;
+import com.mycompany.ebookwebsite.model.User;
 
 public class TokenUtil {
     private static final Logger LOGGER = Logger.getLogger(TokenUtil.class.getName());
@@ -90,5 +91,9 @@ public class TokenUtil {
             LOGGER.log(Level.SEVERE, "Lỗi khi tạo token reset password", e);
             throw new Exception("Lỗi hệ thống khi tạo token");
         }
+    }
+    
+    public static String generateToken() {
+        return java.util.UUID.randomUUID().toString().replace("-", "") + Long.toHexString(System.nanoTime());
     }
 }

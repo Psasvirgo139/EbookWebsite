@@ -541,7 +541,10 @@
                             </div>
                             <div class="info-content">
                                 <div class="info-label">Email</div>
-                                <div class="info-value"><c:out value="${user.email}"/></div>
+                                <div class="info-value">
+                                    <c:out value="${user.email}"/>
+                                    <a href="${pageContext.request.contextPath}/change-email" class="btn btn-secondary" style="margin-left:12px; font-size:0.95em; padding:6px 16px; display:inline-block;">Đổi email</a>
+                                </div>
                             </div>
                         </li>
                         

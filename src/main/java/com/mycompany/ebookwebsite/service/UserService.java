@@ -223,6 +223,30 @@ public class UserService {
         }
         return userInforDAO.selectUserInfor(id);
     }
+
+    /**
+     * Kiểm tra mật khẩu hiện tại của user
+     */
+    public boolean checkPassword(int userId, String password) throws SQLException {
+        User user = userDAO.findById(userId);
+        if (user == null) return false;
+        String hashedPassword = hashPassword(password);
+        return hashedPassword.equals(user.getPasswordHash());
+    }
+
+    /**
+     * Lưu token đổi email vào DB
+     */
+    public void setChangeEmailToken(int userId, String token, java.sql.Timestamp expiry, String newEmail) throws SQLException {
+        userDAO.setChangeEmailToken(userId, token, expiry, newEmail);
+    }
+
+    /**
+     * Xác nhận đổi email bằng token
+     */
+    public boolean confirmChangeEmail(String token) throws SQLException {
+        return userDAO.confirmChangeEmail(token);
+    }
 }
 
 
