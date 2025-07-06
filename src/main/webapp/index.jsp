@@ -65,6 +65,218 @@
             </div>
         </section>
 
+        <!-- AI FEATURES SECTION -->
+        <section class="ai-features" aria-labelledby="ai-heading" style="padding: 60px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <h2 id="ai-heading" style="text-align: center; margin-bottom: 50px; font-size: 2.5rem; font-weight: 700;">
+                    🤖 Tính năng AI thông minh
+                </h2>
+                <p style="text-align: center; margin-bottom: 40px; font-size: 1.2rem; opacity: 0.9;">
+                    Khám phá những tính năng AI tiên tiến giúp bạn đọc truyện thông minh hơn
+                </p>
+                
+                <div class="ai-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px;">
+                    
+                    <!-- AI Chat -->
+                    <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                        <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">💬</div>
+                        <h3 style="margin-bottom: 15px; font-size: 1.4rem;">AI Chat Trợ Lý</h3>
+                        <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                            Trò chuyện với AI để nhận tư vấn sách, tìm kiếm thông tin về tác giả và thể loại
+                        </p>
+                        <a href="${ctx}/ai/chat" class="ai-btn" style="
+                            display: inline-block; 
+                            padding: 12px 24px; 
+                            background: rgba(255,255,255,0.2); 
+                            border: 2px solid rgba(255,255,255,0.3);
+                            border-radius: 25px; 
+                            color: white; 
+                            text-decoration: none; 
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        ">
+                            Bắt đầu chat
+                        </a>
+                    </div>
+
+                    <!-- AI Recommendations -->
+                    <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                        <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">🎯</div>
+                        <h3 style="margin-bottom: 15px; font-size: 1.4rem;">AI Đề Xuất Thông Minh</h3>
+                        <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                            Nhận đề xuất sách cá nhân hóa dựa trên sở thích và lịch sử đọc của bạn
+                        </p>
+                        <a href="${ctx}/ai/recommendations" class="ai-btn" style="
+                            display: inline-block; 
+                            padding: 12px 24px; 
+                            background: rgba(255,255,255,0.2); 
+                            border: 2px solid rgba(255,255,255,0.3);
+                            border-radius: 25px; 
+                            color: white; 
+                            text-decoration: none; 
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        ">
+                            Khám phá ngay
+                        </a>
+                    </div>
+
+                    <!-- Smart Recommendations -->
+                    <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                        <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">🚀</div>
+                        <h3 style="margin-bottom: 15px; font-size: 1.4rem;">Smart AI Nâng Cao</h3>
+                        <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                            Hệ thống AI tiên tiến với bộ lọc thông minh theo tâm trạng và độ phức tạp
+                        </p>
+                        <a href="${ctx}/ai/smart-recommendations" class="ai-btn" style="
+                            display: inline-block; 
+                            padding: 12px 24px; 
+                            background: rgba(255,255,255,0.2); 
+                            border: 2px solid rgba(255,255,255,0.3);
+                            border-radius: 25px; 
+                            color: white; 
+                            text-decoration: none; 
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        ">
+                            Trải nghiệm
+                        </a>
+                    </div>
+
+                    <!-- AI Upload (for logged in users) -->
+                    <c:if test="${not empty sessionScope.user}">
+                        <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">📤</div>
+                            <h3 style="margin-bottom: 15px; font-size: 1.4rem;">Upload Truyện Thông Minh</h3>
+                            <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                                Upload truyện với 2 chế độ: Thủ công hoặc AI tự động phân tích nội dung
+                            </p>
+                            <a href="${ctx}/book?action=upload" class="ai-btn" style="
+                                display: inline-block; 
+                                padding: 12px 24px; 
+                                background: rgba(255,255,255,0.2); 
+                                border: 2px solid rgba(255,255,255,0.3);
+                                border-radius: 25px; 
+                                color: white; 
+                                text-decoration: none; 
+                                font-weight: 600;
+                                transition: all 0.3s ease;
+                            ">
+                                Upload ngay
+                            </a>
+                        </div>
+                    </c:if>
+
+                    <!-- AI Book Upload with Content Moderation -->
+                    <c:if test="${not empty sessionScope.user}">
+                        <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">🤖</div>
+                            <h3 style="margin-bottom: 15px; font-size: 1.4rem;">AI Upload với Kiểm Duyệt</h3>
+                            <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                                Upload sách với AI kiểm duyệt nội dung và trích xuất metadata tự động
+                            </p>
+                            <a href="${ctx}/ai-upload/upload-form.jsp" class="ai-btn" style="
+                                display: inline-block; 
+                                padding: 12px 24px; 
+                                background: rgba(255,255,255,0.2); 
+                                border: 2px solid rgba(255,255,255,0.3);
+                                border-radius: 25px; 
+                                color: white; 
+                                text-decoration: none; 
+                                font-weight: 600;
+                                transition: all 0.3s ease;
+                            ">
+                                AI Upload
+                            </a>
+                        </div>
+                    </c:if>
+
+                    <!-- Prompt Training (for logged in users) -->
+                    <c:if test="${not empty sessionScope.user}">
+                        <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                            <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">🧠</div>
+                            <h3 style="margin-bottom: 15px; font-size: 1.4rem;">AI Prompt Training</h3>
+                            <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                                Huấn luyện và tối ưu hóa AI để phù hợp với sở thích cá nhân của bạn
+                            </p>
+                            <a href="${ctx}/ai/prompt-training" class="ai-btn" style="
+                                display: inline-block; 
+                                padding: 12px 24px; 
+                                background: rgba(255,255,255,0.2); 
+                                border: 2px solid rgba(255,255,255,0.3);
+                                border-radius: 25px; 
+                                color: white; 
+                                text-decoration: none; 
+                                font-weight: 600;
+                                transition: all 0.3s ease;
+                            ">
+                                Huấn luyện AI
+                            </a>
+                        </div>
+                    </c:if>
+
+                    <!-- Internal AI Chat -->
+                    <div class="ai-card" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);">
+                        <div class="ai-icon" style="font-size: 3rem; margin-bottom: 20px;">🔒</div>
+                        <h3 style="margin-bottom: 15px; font-size: 1.4rem;">AI Chat Nội Bộ</h3>
+                        <p style="opacity: 0.8; margin-bottom: 25px; line-height: 1.6;">
+                            Chat AI hoàn toàn nội bộ, bảo mật tuyệt đối với dữ liệu chỉ từ cơ sở dữ liệu
+                        </p>
+                        <a href="${ctx}/ai/internal-chat" class="ai-btn" style="
+                            display: inline-block; 
+                            padding: 12px 24px; 
+                            background: rgba(255,255,255,0.2); 
+                            border: 2px solid rgba(255,255,255,0.3);
+                            border-radius: 25px; 
+                            color: white; 
+                            text-decoration: none; 
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                        ">
+                            Chat an toàn
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- AI Features Enhancement Effects -->
+            <style>
+                .ai-card:hover {
+                    transform: translateY(-10px);
+                    background: rgba(255,255,255,0.2) !important;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+                }
+                
+                .ai-btn:hover {
+                    background: rgba(255,255,255,0.3) !important;
+                    border-color: rgba(255,255,255,0.5) !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                }
+                
+                .ai-icon {
+                    animation: float 3s ease-in-out infinite;
+                }
+                
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                }
+                
+                @media (max-width: 768px) {
+                    .ai-grid {
+                        grid-template-columns: 1fr !important;
+                        gap: 20px !important;
+                    }
+                    
+                    .ai-features h2 {
+                        font-size: 2rem !important;
+                    }
+                }
+            </style>
+        </section>
+
         <!-- STORIES UPDATE -->
         <section class="stories-update" id="latest" aria-labelledby="update-heading">
             <div class="update-header">

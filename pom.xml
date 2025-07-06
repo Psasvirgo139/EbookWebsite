@@ -116,6 +116,43 @@
             <version>3.0.0</version>
         </dependency>
         
+        <!-- LangChain4j for RAG implementation -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+        
+        <!-- Redis for Vector Store -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>3.1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>6.2.6.RELEASE</version>
+        </dependency>
+        
+        <!-- LangChain4j Redis Integration -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-redis</artifactId>
+            <version>0.35.0</version>
+        </dependency>
+
+        <!-- LangChain4j-easy-rag -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-easy-rag</artifactId>
+            <version>1.1.0-beta7</version>
+        </dependency>
     </dependencies>
 
     <!-- ===== BUILD PLUGINS ===== -->
@@ -142,7 +179,23 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.mycompany.ebookwebsite.test.QuickFileTest</mainClass>
+                    <mainClass>com.mycompany.ebookwebsite.ai.AIChatTester</mainClass>
+                    <jvmArgs>
+                        <jvmArg>-Xmx512m</jvmArg>
+                        <jvmArg>-Xms256m</jvmArg>
+                    </jvmArgs>
+                </configuration>
+            </plugin>
+            
+            <!-- Tomcat7 Maven Plugin -->
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <port>9999</port>
+                    <path>/EbookWebsite</path>
+                    <uriEncoding>UTF-8</uriEncoding>
                 </configuration>
             </plugin>
         </plugins>

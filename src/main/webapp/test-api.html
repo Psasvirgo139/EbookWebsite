@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="favicon.svg" />
+</head>
+<body>
+    <h1>Test API Endpoint</h1>
+    <button onclick="testAPI()">Test /latest API</button>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                console.log('Testing API endpoint...');
+                console.log('Current URL:', window.location.href);
+                
+                // Try different paths
+                const paths = ['/latest', './latest', 'latest'];
+                
+                for (const path of paths) {
+                    console.log('Testing path:', path);
+                    try {
+                        const response = await fetch(path);
+                        console.log('Response status:', response.status);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('Success with path:', path);
+                            console.log('Data:', data);
+                            
+                            resultsDiv.innerHTML = `
+                                <h2>Success with path: ${path}</h2>
+                                <h3>Status: ${response.status}</h3>
+                                <h3>Books found: ${data.length}</h3>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            `;
+                            return;
+                        }
+                    } catch (e) {
+                        console.log('Failed with path:', path, e.message);
+                    }
+                }
+                
+                resultsDiv.innerHTML = '<h2>All API paths failed</h2>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `<h2>Error: ${error.message}</h2>`;
+            }
+        }
+    </script>
+</body>
+</html> 

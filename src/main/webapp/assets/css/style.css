@@ -2,16 +2,21 @@
    Scroll – Global Styles
    ===================== */
 :root {
-  --primary: #3e2f92;
-  --accent: #6346e6;
+  --primary: #667eea;
+  --primary-dark: #764ba2;
+  --secondary: #38b2ac;
+  --text: #2d3748;
+  --text-light: #718096;
+  --bg: #ffffff;
+  --bg-alt: #f7fafc;
+  --border: #e2e8f0;
+  --shadow: rgba(0, 0, 0, 0.1);
   --background: #f8f9fa;
   --background-dark: #181824;
-  --text: #181824;
   --text-dark: #f1f1f1;
   --highlight: #fbbf24;
   --radius: 16px;
   --shadow-sm: 0 1px 4px rgba(60, 50, 100, 0.05);
-  --shadow: 0 2px 8px rgba(60, 50, 100, 0.06);
   --transition: 0.2s all ease;
   --bg-secondary: #fff;
   --text-secondary: #666;

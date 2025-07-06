@@ -1,8 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<link rel="stylesheet" href="${ctx}/assets/css/style.css" />
+<%@ page pageEncoding="UTF-8" %>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css" />
 
 <a href="#main" class="skip-link">Bỏ qua và tới nội dung chính</a>
 <header class="header" id="top">
@@ -38,7 +38,7 @@
     
     <!-- Upload Button (only for logged in users) -->
     <c:if test="${not empty sessionScope.user}">
-        <a class="nav-link upload-btn" href="${ctx}/book?action=upload" style="
+        <a class="nav-link upload-btn" href="${ctx}/book-upload" style="
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 8px 16px;
@@ -46,9 +46,19 @@
             font-weight: 600;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
             transition: all 0.3s ease;
-            margin: 0 8px;
-        ">
-            📤 Upload Truyện Mới
+            font-size: 0.9em;">
+            📤 Upload Sách
+        </a>
+        <a class="nav-link" href="${ctx}/ai-chat" style="
+            background: linear-gradient(135deg, #6a5acd 0%, #b39ddb 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(106, 90, 205, 0.2);
+            transition: all 0.3s ease;
+            font-size: 0.9em;">
+            🤖 AI Chat
         </a>
     </c:if>
     
@@ -61,6 +71,9 @@
         <a href="${ctx}/ai/chat">💬 AI Chat</a>
         <a href="${ctx}/ai/recommendations">🎯 AI Đề Xuất</a>
         <a href="${ctx}/ai/smart-recommendations">🚀 Smart AI</a>
+        <c:if test="${not empty sessionScope.user}">
+          <a href="${ctx}/ai/prompt-training" style="color: #ff6b6b; font-weight: bold;">🧠 Prompt Training Lab</a>
+        </c:if>
       </div>
     </div>
     <a class="premium-badge" href="${ctx}/premium">Premium</a>

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
@@ -15,15 +16,18 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
- *
+ * Enhanced DefaultFilter with infinite loop protection
  * @author ADMIN
  */
 @WebFilter(filterName = "DefaultFilter", urlPatterns = {"/*"})
 public class DefaultFilter implements Filter {
     
-    private static final boolean debug = true;
+    private static final boolean debug = false; // ✅ TẮTDEBUG để giảm noise
+    private static final String LOOP_PREVENTION_ATTR = "DEFAULT_FILTER_PROCESSED";
+    private static final int MAX_EXCEPTION_DEPTH = 3;
 
     // The filter configuration object we are associated with.  If
     // this value is null, this filter instance is not currently
@@ -38,27 +42,9 @@ public class DefaultFilter implements Filter {
         if (debug) {
             log("DefaultFilter:DoBeforeProcessing");
         }
-
-        // Write code here to process the request and/or response before
-        // the rest of the filter chain is invoked.
-        // For example, a logging filter might log items on the request object,
-        // such as the parameters.
-        /*
-	for (Enumeration en = request.getParameterNames(); en.hasMoreElements(); ) {
-	    String name = (String)en.nextElement();
-	    String values[] = request.getParameterValues(name);
-	    int n = values.length;
-	    StringBuffer buf = new StringBuffer();
-	    buf.append(name);
-	    buf.append("=");
-	    for(int i=0; i < n; i++) {
-	        buf.append(values[i]);
-	        if (i < n-1)
-	            buf.append(",");
-	    }
-	    log(buf.toString());
-	}
-         */
+        
+        // ✅ THÊM: Đánh dấu request đã được xử lý để tránh vòng lặp
+        request.setAttribute(LOOP_PREVENTION_ATTR, Boolean.TRUE);
     }
     
     private void doAfterProcessing(ServletRequest request, ServletResponse response)
@@ -66,38 +52,23 @@ public class DefaultFilter implements Filter {
         if (debug) {
             log("DefaultFilter:DoAfterProcessing");
         }
-
-        // Write code here to process the request and/or response after
-        // the rest of the filter chain is invoked.
-        // For example, a logging filter might log the attributes on the
-        // request object after the request has been processed.
-        /*
-	for (Enumeration en = request.getAttributeNames(); en.hasMoreElements(); ) {
-	    String name = (String)en.nextElement();
-	    Object value = request.getAttribute(name);
-	    log("attribute: " + name + "=" + value.toString());
-
-	}
-         */
-        // For example, a filter might append something to the response.
-        /*
-	PrintWriter respOut = new PrintWriter(response.getWriter());
-	respOut.println("<P><B>This has been appended by an intrusive filter.</B>");
-         */
     }
 
     /**
-     *
-     * @param request The servlet request we are processing
-     * @param response The servlet response we are creating
-     * @param chain The filter chain we are processing
-     *
-     * @exception IOException if an input/output error occurs
-     * @exception ServletException if a servlet error occurs
+     * ✅ ENHANCED: doFilter với cơ chế ngăn vòng lặp
      */
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain)
             throws IOException, ServletException {
+        
+        // ✅ KIỂM TRA: Ngăn vòng lặp filter
+        if (request.getAttribute(LOOP_PREVENTION_ATTR) != null) {
+            if (debug) {
+                log("DefaultFilter: Loop detected, skipping processing");
+            }
+            chain.doFilter(request, response);
+            return;
+        }
         
         if (debug) {
             log("DefaultFilter:doFilter()");
@@ -109,25 +80,88 @@ public class DefaultFilter implements Filter {
         try {
             chain.doFilter(request, response);
         } catch (Throwable t) {
-            // If an exception is thrown somewhere down the filter chain,
-            // we still want to execute our after processing, and then
-            // rethrow the problem after that.
+            // ✅ ENHANCED: Kiểm tra độ sâu exception để tránh vòng lặp
+            int exceptionDepth = getExceptionDepth(t);
+            if (exceptionDepth > MAX_EXCEPTION_DEPTH) {
+                log("DefaultFilter: Exception depth exceeded (" + exceptionDepth + "), breaking loop");
+                sendSimpleError(response, "Internal server error - loop detected");
+                return;
+            }
+            
             problem = t;
-            t.printStackTrace();
+            if (debug) {
+                t.printStackTrace();
+            }
         }
         
         doAfterProcessing(request, response);
 
-        // If there was a problem, we want to rethrow it if it is
-        // a known type, otherwise log it.
+        // ✅ ENHANCED: Xử lý exception an toàn hơn
         if (problem != null) {
             if (problem instanceof ServletException) {
-                throw (ServletException) problem;
+                ServletException se = (ServletException) problem;
+                // Kiểm tra nếu là vòng lặp ServletException
+                if (isLoopingServletException(se)) {
+                    log("DefaultFilter: Looping ServletException detected, sending simple error");
+                    sendSimpleError(response, "Internal server error - servlet loop");
+                    return;
+                }
+                throw se;
             }
             if (problem instanceof IOException) {
                 throw (IOException) problem;
             }
             sendProcessingError(problem, response);
+        }
+    }
+
+    /**
+     * ✅ MỚI: Kiểm tra ServletException có đang lặp không
+     */
+    private boolean isLoopingServletException(ServletException se) {
+        String message = se.getMessage();
+        if (message != null && message.contains("jakarta.servlet.ServletException:")) {
+            // Đếm số lần "ServletException" xuất hiện trong message
+            int count = 0;
+            int index = 0;
+            while ((index = message.indexOf("ServletException", index)) != -1) {
+                count++;
+                index += "ServletException".length();
+                if (count > 5) { // Nếu xuất hiện quá 5 lần = vòng lặp
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * ✅ MỚI: Đếm độ sâu exception
+     */
+    private int getExceptionDepth(Throwable t) {
+        int depth = 0;
+        Throwable current = t;
+        while (current != null && depth < 50) { // Giới hạn để tránh vòng lặp vô hạn
+            depth++;
+            current = current.getCause();
+        }
+        return depth;
+    }
+
+    /**
+     * ✅ MỚI: Gửi lỗi đơn giản để tránh vòng lặp
+     */
+    private void sendSimpleError(ServletResponse response, String message) {
+        try {
+            if (response instanceof HttpServletResponse) {
+                HttpServletResponse httpResponse = (HttpServletResponse) response;
+                if (!httpResponse.isCommitted()) {
+                    httpResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message);
+                }
+            }
+        } catch (Exception e) {
+            // Nếu không gửi được error response, chỉ log
+            log("DefaultFilter: Failed to send simple error: " + e.getMessage());
         }
     }
 
@@ -184,27 +218,32 @@ public class DefaultFilter implements Filter {
         
         if (stackTrace != null && !stackTrace.equals("")) {
             try {
-                response.setContentType("text/html");
-                PrintStream ps = new PrintStream(response.getOutputStream());
-                PrintWriter pw = new PrintWriter(ps);
-                pw.print("<html>\n<head>\n<title>Error</title>\n</head>\n<body>\n"); //NOI18N
+                if (!response.isCommitted()) {
+                    response.setContentType("text/html");
+                    PrintStream ps = new PrintStream(response.getOutputStream());
+                    PrintWriter pw = new PrintWriter(ps);
+                    pw.print("<html>\n<head>\n<title>Error</title>\n</head>\n<body>\n");
 
-                // PENDING! Localize this for next official release
-                pw.print("<h1>The resource did not process correctly</h1>\n<pre>\n");
-                pw.print(stackTrace);
-                pw.print("</pre></body>\n</html>"); //NOI18N
-                pw.close();
-                ps.close();
-                response.getOutputStream().close();
+                    pw.print("<h1>The resource did not process correctly</h1>\n<pre>\n");
+                    pw.print(stackTrace);
+                    pw.print("</pre></body>\n</html>");
+                    pw.close();
+                    ps.close();
+                    response.getOutputStream().close();
+                }
             } catch (Exception ex) {
+                log("DefaultFilter: Failed to send processing error: " + ex.getMessage());
             }
         } else {
             try {
-                PrintStream ps = new PrintStream(response.getOutputStream());
-                t.printStackTrace(ps);
-                ps.close();
-                response.getOutputStream().close();
+                if (!response.isCommitted()) {
+                    PrintStream ps = new PrintStream(response.getOutputStream());
+                    t.printStackTrace(ps);
+                    ps.close();
+                    response.getOutputStream().close();
+                }
             } catch (Exception ex) {
+                log("DefaultFilter: Failed to send stack trace: " + ex.getMessage());
             }
         }
     }
@@ -224,7 +263,8 @@ public class DefaultFilter implements Filter {
     }
     
     public void log(String msg) {
-        filterConfig.getServletContext().log(msg);
+        if (filterConfig != null) {
+            filterConfig.getServletContext().log(msg);
+        }
     }
-    
 }

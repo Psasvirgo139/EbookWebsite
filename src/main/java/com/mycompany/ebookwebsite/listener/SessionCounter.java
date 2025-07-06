@@ -4,14 +4,13 @@
  */
 package com.mycompany.ebookwebsite.listener;
 
-import com.mycompany.ebookwebsite.bean.CounterBean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
+
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.annotation.WebListener;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 @WebListener
 public class SessionCounter implements HttpSessionListener {
@@ -22,22 +21,17 @@ public class SessionCounter implements HttpSessionListener {
     @Override
     public void sessionCreated(HttpSessionEvent se) {
         ServletContext ctx = se.getSession().getServletContext();
-        CounterBean counter = (CounterBean) ctx.getAttribute("counter");
-        if (counter == null) {
-            counter = new CounterBean();
-            ctx.setAttribute("counter", counter);
-        }
-        counter.increment();
+        AtomicInteger counter = getCounter(ctx);
+        counter.incrementAndGet();
+        LOG.info("Session created. Online users: " + counter.get());
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
-        CounterBean counter = (CounterBean) se.getSession()
-                .getServletContext()
-                .getAttribute("counter");
-        if (counter != null) {
-            counter.decrement();
-        }
+        ServletContext ctx = se.getSession().getServletContext();
+        AtomicInteger counter = getCounter(ctx);
+        counter.decrementAndGet();
+        LOG.info("Session destroyed. Online users: " + counter.get());
     }
 
     /**
@@ -45,11 +39,21 @@ public class SessionCounter implements HttpSessionListener {
      */
     private AtomicInteger getCounter(ServletContext ctx) {
         synchronized (ctx) {          // đồng bộ ngắn gọn cho thao tác init
-            AtomicInteger counter = (AtomicInteger) ctx.getAttribute(ONLINE_USERS_ATTR);
-            if (counter == null) {
+            Object attr = ctx.getAttribute(ONLINE_USERS_ATTR);
+            AtomicInteger counter;
+            
+            if (attr == null) {
+                counter = new AtomicInteger(0);
+                ctx.setAttribute(ONLINE_USERS_ATTR, counter);
+            } else if (attr instanceof AtomicInteger) {
+                counter = (AtomicInteger) attr;
+            } else {
+                // Nếu có giá trị cũ không phải AtomicInteger, tạo mới
+                LOG.warning("Found non-AtomicInteger value for " + ONLINE_USERS_ATTR + ", creating new counter");
                 counter = new AtomicInteger(0);
                 ctx.setAttribute(ONLINE_USERS_ATTR, counter);
             }
+            
             return counter;
         }
     }

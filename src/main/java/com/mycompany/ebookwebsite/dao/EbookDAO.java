@@ -24,6 +24,9 @@ public class EbookDAO {
     private static final String DELETE = "UPDATE Ebooks SET status = 'deleted' WHERE id = ?";
     private static final String INCREMENT_VIEW = "UPDATE Ebooks SET view_count = view_count + 1 WHERE id = ?";
     
+
+
+    
     public void insertEbook(Ebook ebook) throws SQLException {
         try (Connection con = DBConnection.getConnection(); 
              PreparedStatement ps = con.prepareStatement(INSERT)) {

@@ -1,49 +1,29 @@
 ############################
-#  IDE & BUILD DIRECTORIES #
+# IDE Directories
 ############################
-
-# NetBeans
-nbproject/
-nbproject/private/
-nbbuild/
-build/
-dist/
-nbdist/
-nbactions.xml
-nb-configuration.xml
-
-# IntelliJ IDEA
 .idea/
 *.iml
-
-# Eclipse
+nbproject/
+nbproject/private/
+*.code-workspace
+.vscode/
 .settings/
 .classpath
 .project
 
-# VS Code
-.vscode/
-*.code-workspace
-
-# Gradle (nếu lỡ import)
-.gradle/
+############################
+# Maven / Gradle / Build
+############################
+target/
 build/
-
-############################
-#  MAVEN & WRAPPER         #
-############################
-/target/
+dist/
+.gradle/
 .mvn/
 mvnw
 mvnw.cmd
-dependency-reduced-pom.xml
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-release.properties
 
 ############################
-#  JAVA / JVM              #
+# Java Artifacts
 ############################
 *.class
 *.jar
@@ -52,7 +32,7 @@ release.properties
 *.nar
 
 ############################
-#  LOGS & REPORTS          #
+# Logs & Reports
 ############################
 *.log
 log/
@@ -62,23 +42,21 @@ surefire-reports/
 target/jacoco*
 
 ############################
-#  TEMP / CACHE / EDITOR   #
+# Editor / Temp
 ############################
 *.tmp
 *.swp
 *.bak
 *.cache
 *~
-.idea/
 .DS_Store
 Thumbs.db
 desktop.ini
 
 ############################
-#  CONFIG / SECRETS        #
+# Secrets / Config
 ############################
 *.env
-*.secret
 *.key
 *.pem
 *.keystore
@@ -87,63 +65,12 @@ application.properties
 application.yml
 
 ############################
-#  DATABASE / UPLOADS      #
+# Uploads / DB
 ############################
+uploads/
 *.db
 *.h2.db
-*.derby
 *.sqlite
-uploads/
-
-############################
-#  OTHER                   #
-############################
-# Ignore user-specific Maven repo (optional; giữ lại nếu bạn CHIA SẺ cache)
-# .m2/
-
-# Ignore everything by default
-/*
-
-# Allow Maven config
-!pom.xml
-
-# Allow AI-related Java source code
-!src/main/java/com/mycompany/ebookwebsite/ai/
-!src/main/java/com/mycompany/ebookwebsite/agent/
-!src/main/java/com/mycompany/ebookwebsite/service/OpenAIChatService.java
-!src/main/java/com/mycompany/ebookwebsite/service/OpenAIContentFilterService.java
-!src/main/java/com/mycompany/ebookwebsite/service/OpenAIContentSummaryService.java
-!src/main/java/com/mycompany/ebookwebsite/service/RealOpenAISummaryService.java
-!src/main/java/com/mycompany/ebookwebsite/service/AIChatService.java
-!src/main/java/com/mycompany/ebookwebsite/service/ContentFilterFactory.java
-!src/main/java/com/mycompany/ebookwebsite/service/RuleBasedContentFilterService.java
-!src/main/java/com/mycompany/ebookwebsite/service/AIRecommendationService.java
-!src/main/java/com/mycompany/ebookwebsite/dao/AIRecommendationDAO.java
-!src/main/java/com/mycompany/ebookwebsite/utils/AIValidation.java
-!src/main/java/com/mycompany/ebookwebsite/controller/AIChatServlet.java
-!src/main/java/com/mycompany/ebookwebsite/controller/AIRecommendationServlet.java
-!src/main/java/com/mycompany/ebookwebsite/controller/SmartRecommendationServlet.java
-!src/main/java/com/mycompany/ebookwebsite/model/UserAI.java
-
-# Allow AI-related frontend files
-!src/main/webapp/ai/
-!src/main/webapp/assets/js/app.js
-!src/main/webapp/assets/css/style.css
-
-# Allow AI-related test files
-!src/main/java/com/mycompany/ebookwebsite/test/RealAIApiTest.java
-!src/main/java/com/mycompany/ebookwebsite/test/ComprehensiveAITest.java
-!src/main/java/com/mycompany/ebookwebsite/test/SimpleAITest.java
-!src/main/java/com/mycompany/ebookwebsite/test/UpdatedAITest.java
-!src/main/java/com/mycompany/ebookwebsite/test/OpenAIApiTest.java
-!src/main/java/com/mycompany/ebookwebsite/test/InteractiveAISummaryTest.java
-!src/main/java/com/mycompany/ebookwebsite/test/ManualAIUploadTest.java
-!src/main/java/com/mycompany/ebookwebsite/test/IndividualAITest.java
-!src/main/java/com/mycompany/ebookwebsite/test/TestChatAI.java
-
-# Allow config and web.xml for servlet mapping
-!src/main/webapp/WEB-INF/web.xml
-
-# Ignore all uploads and build output
-uploads/
-target/
+*.derby
+# Không upload file kết nối cơ sở dữ liệu
+src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
