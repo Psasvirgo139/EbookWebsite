@@ -14,7 +14,7 @@ import com.mycompany.ebookwebsite.model.UserBehavior;
 
 public class UserBehaviorDAO {
 
-    public boolean trackUserAction(UserBehavior behavior) {
+    public boolean trackUserAction(UserBehavior behavior) throws SQLException {
         String sql = "INSERT INTO UserBehavior (user_id, action_type, target_id, target_type, action_data) " +
                     "VALUES (?, ?, ?, ?, ?)";
         
@@ -32,13 +32,10 @@ public class UserBehaviorDAO {
             stmt.setString(5, behavior.getActionData());
             
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
-    public List<UserBehavior> getUserRecentActions(int userId, int days) {
+    public List<UserBehavior> getUserRecentActions(int userId, int days) throws SQLException {
         List<UserBehavior> actions = new ArrayList<>();
         String sql = "SELECT * FROM UserBehavior WHERE user_id = ? AND " +
                     "created_at >= DATEADD(DAY, ?, GETDATE()) ORDER BY created_at DESC";
@@ -61,14 +58,12 @@ public class UserBehaviorDAO {
                 behavior.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                 actions.add(behavior);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return actions;
     }
 
-    public Map<String, Integer> getUserPreferences(int userId, int days) {
+    public Map<String, Integer> getUserPreferences(int userId, int days) throws SQLException {
         Map<String, Integer> preferences = new HashMap<>();
         
         // Get genre preferences
@@ -88,8 +83,6 @@ public class UserBehaviorDAO {
             while (rs.next()) {
                 preferences.put("genre_" + rs.getString("genre"), rs.getInt("count"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         // Get author preferences
@@ -109,14 +102,12 @@ public class UserBehaviorDAO {
             while (rs.next()) {
                 preferences.put("author_" + rs.getString("author"), rs.getInt("count"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return preferences;
     }
 
-    public List<Integer> getUserFavoriteBooks(int userId, int limit) {
+    public List<Integer> getUserFavoriteBooks(int userId, int limit) throws SQLException {
         List<Integer> favoriteBooks = new ArrayList<>();
         String sql = "SELECT target_id, COUNT(*) as interaction_count FROM UserBehavior " +
                     "WHERE user_id = ? AND target_type = 'book' AND action_type IN ('view_book', 'read', 'favorite') " +
@@ -140,14 +131,12 @@ public class UserBehaviorDAO {
                     favoriteBooks.add(bookId);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return favoriteBooks;
     }
 
-    public Map<String, Object> getUserChatBehavior(int userId, int days) {
+    public Map<String, Object> getUserChatBehavior(int userId, int days) throws SQLException {
         Map<String, Object> chatBehavior = new HashMap<>();
         
         String sql = "SELECT action_data, COUNT(*) as count FROM UserBehavior " +
@@ -169,14 +158,12 @@ public class UserBehaviorDAO {
                 topics.put(data, count);
             }
             chatBehavior.put("frequent_topics", topics);
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return chatBehavior;
     }
 
-    public boolean cleanOldBehaviorData(int daysToKeep) {
+    public boolean cleanOldBehaviorData(int daysToKeep) throws SQLException {
         String sql = "DELETE FROM UserBehavior WHERE created_at < DATEADD(DAY, ?, GETDATE())";
         
         try (Connection conn = DBConnection.getConnection();
@@ -185,9 +172,6 @@ public class UserBehaviorDAO {
             stmt.setInt(1, -daysToKeep);
             
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 } 

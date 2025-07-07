@@ -12,7 +12,7 @@ import com.mycompany.ebookwebsite.model.ChatMessage;
 
 public class ChatHistoryDAO {
 
-    public boolean saveChatMessage(ChatMessage chatMessage) {
+    public boolean saveChatMessage(ChatMessage chatMessage) throws SQLException {
         String sql = "INSERT INTO ChatHistory (user_id, session_id, message, response, context_type, context_id, embedding_used) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
         
@@ -32,13 +32,10 @@ public class ChatHistoryDAO {
             stmt.setBoolean(7, chatMessage.isEmbeddingUsed());
             
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
-    public List<ChatMessage> getChatHistory(int userId, String sessionId, int limit) {
+    public List<ChatMessage> getChatHistory(int userId, String sessionId, int limit) throws SQLException {
         List<ChatMessage> messages = new ArrayList<>();
         String sql = "SELECT TOP (?) * FROM ChatHistory WHERE user_id = ? AND session_id = ? " +
                     "ORDER BY created_at DESC";
@@ -64,8 +61,6 @@ public class ChatHistoryDAO {
                 msg.setEmbeddingUsed(rs.getBoolean("embedding_used"));
                 messages.add(msg);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         // Reverse để có thứ tự chronological
@@ -77,7 +72,7 @@ public class ChatHistoryDAO {
         return chronological;
     }
 
-    public List<ChatMessage> getRecentChatHistory(int userId, int hours) {
+    public List<ChatMessage> getRecentChatHistory(int userId, int hours) throws SQLException {
         List<ChatMessage> messages = new ArrayList<>();
         String sql = "SELECT * FROM ChatHistory WHERE user_id = ? AND created_at >= DATEADD(HOUR, ?, GETDATE()) " +
                     "ORDER BY created_at ASC";
@@ -102,14 +97,12 @@ public class ChatHistoryDAO {
                 msg.setEmbeddingUsed(rs.getBoolean("embedding_used"));
                 messages.add(msg);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return messages;
     }
 
-    public boolean deleteChatHistory(int userId, String sessionId) {
+    public boolean deleteChatHistory(int userId, String sessionId) throws SQLException {
         String sql = "DELETE FROM ChatHistory WHERE user_id = ? AND session_id = ?";
         
         try (Connection conn = DBConnection.getConnection();
@@ -119,9 +112,6 @@ public class ChatHistoryDAO {
             stmt.setString(2, sessionId);
             
             return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 } 
