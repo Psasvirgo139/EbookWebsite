@@ -19,8 +19,9 @@ public class CommentAddServlet extends HttpServlet {
         throws ServletException, IOException {
 
         try {
-            int ebookId = EbookValidation.validateId(request.getParameter("ebookId"));
+            int ebookId = EbookValidation.validateId(request.getParameter("bookId"));
             String content = request.getParameter("content");
+            String chapterIdStr = request.getParameter("chapterId");
 
             HttpSession session = request.getSession(false);
             Integer userId = (session != null) ? (Integer) session.getAttribute("userId") : null;
@@ -32,6 +33,9 @@ public class CommentAddServlet extends HttpServlet {
             Comment comment = new Comment();
             comment.setUserID(userId);
             comment.setEbookID(ebookId);
+            if (chapterIdStr != null && !chapterIdStr.isEmpty()) {
+                comment.setChapterID(Integer.parseInt(chapterIdStr));
+            }
             comment.setContent(content);
             comment.setCreatedAt(LocalDateTime.now());
 

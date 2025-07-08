@@ -49,7 +49,24 @@ public class BookDetailServlet extends HttpServlet {
             }
 
             ebookService.incrementViewCount(id);
-            List<Comment> comments = commentService.getCommentsByEbookId(id);
+            
+            // Lấy toàn bộ comment (cả cha và con)
+            List<Comment> bookComments = commentService.getCommentsByEbookId(id);
+            
+            // Lấy comment tổng hợp từ các chapter (top comments)
+            List<Comment> aggregatedComments = commentService.getTopChapterComments(id, 10);
+
+            // Lấy userId từ cả 2 list
+            java.util.Set<Integer> userIds = new java.util.HashSet<>();
+            for (Comment c : bookComments) userIds.add(c.getUserID());
+            for (Comment c : aggregatedComments) userIds.add(c.getUserID());
+            java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
+            com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+            for (Integer uid : userIds) {
+                com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
+                userMap.put(uid, user != null ? user.getUsername() : "Unknown");
+            }
+            request.setAttribute("userMap", userMap);
 
             // Authors
             List<com.mycompany.ebookwebsite.model.EbookAuthor> eaList = ebookAuthorDAO.getAuthorsByEbook(id);
@@ -79,7 +96,8 @@ public class BookDetailServlet extends HttpServlet {
                 java.util.Date cDate = java.sql.Timestamp.valueOf(ebook.getCreatedAt());
                 request.setAttribute("ebookCreatedDate", cDate);
             }
-            request.setAttribute("comments", comments);
+            request.setAttribute("bookComments", bookComments);
+            request.setAttribute("aggregatedComments", aggregatedComments);
             request.setAttribute("volumes", volumes);
             request.setAttribute("chapters", chapters);
             request.setAttribute("isMultiVolume", isMultiVolume);

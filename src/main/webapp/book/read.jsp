@@ -7,15 +7,6 @@
     <h2>${ebook.title}</h2>
     <h4>Chương ${currentChapter}: ${chapter.title}</h4>
 
-    <div class="d-flex justify-content-between mb-3">
-        <c:if test="${prevChapter != null}">
-            <a class="btn btn-outline-primary" href="read?id=${ebook.id}&chapter=${prevChapter}">← Ch ${prevChapter}</a>
-        </c:if>
-        <c:if test="${nextChapter != null}">
-            <a class="btn btn-outline-primary ms-auto" href="read?id=${ebook.id}&chapter=${nextChapter}">Ch ${nextChapter} →</a>
-        </c:if>
-    </div>
-
     <c:choose>
         <c:when test="${hasAccess}">
             <hr>
@@ -40,7 +31,7 @@
                     <c:forEach var="ch" items="${chapters}">
                         <c:if test="${ch.volumeID == vol.id}">
                             <li class="page-item ${ch.number == currentChapter ? 'active' : ''}">
-                                <a class="page-link" href="read?id=${ebook.id}&chapter=${ch.number}">
+                                <a class="page-link" href="read?bookId=${ebook.id}&chapterId=${ch.number}">
                                     Ch ${ch.number}
                                 </a>
                                 <c:choose>
@@ -63,7 +54,7 @@
             <ul class="pagination">
                 <c:forEach var="ch" items="${chapters}">
                     <li class="page-item ${ch.number == currentChapter ? 'active' : ''}">
-                        <a class="page-link" href="read?id=${ebook.id}&chapter=${ch.number}">
+                        <a class="page-link" href="read?bookId=${ebook.id}&chapterId=${ch.number}">
                             Ch ${ch.number}
                         </a>
                         <c:choose>
@@ -82,11 +73,17 @@
 
     <div class="d-flex justify-content-between mt-4">
         <c:if test="${prevChapter != null}">
-            <a class="btn btn-outline-primary" href="read?id=${ebook.id}&chapter=${prevChapter}">← Ch ${prevChapter}</a>
+            <a class="btn btn-outline-primary" href="read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
         </c:if>
         <c:if test="${nextChapter != null}">
-            <a class="btn btn-outline-primary ms-auto" href="read?id=${ebook.id}&chapter=${nextChapter}">Ch ${nextChapter} →</a>
+            <a class="btn btn-outline-primary ms-auto" href="read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
+    </div>
+
+    <!-- ======= Bình luận về chương ======= -->
+    <div class="mt-5">
+        <c:set var="bookId" value="${ebook.id}" />
+        <jsp:include page="comments-chapter.jsp" />
     </div>
 </div>
 

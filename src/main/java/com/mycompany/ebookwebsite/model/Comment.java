@@ -19,6 +19,7 @@ public class Comment {
     private LocalDateTime createdAt;
     private Integer parentCommentID;
     private int likeCount;
+    private java.util.Date contentDate;
 
     public Comment() {
     }
@@ -96,6 +97,14 @@ public class Comment {
 
     public void setLikeCount(int likeCount) {
         this.likeCount = likeCount;
+    }
+
+    public java.util.Date getContentDate() {
+        return contentDate;
+    }
+
+    public void setContentDate(java.util.Date contentDate) {
+        this.contentDate = contentDate;
     }
 
     @Override

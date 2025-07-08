@@ -79,6 +79,7 @@ public class LoginServlet extends HttpServlet {
         // Đăng nhập thành công, lưu user vào session
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
+        session.setAttribute("userId", user.getId());
 
         // Kiểm tra xem có URL gốc cần quay lại không
         String redirect = (String) session.getAttribute("redirectAfterLogin");
