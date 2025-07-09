@@ -4,10 +4,13 @@ import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.Chapter;
 import com.mycompany.ebookwebsite.model.Volume;
 import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.model.Comment;
 import com.mycompany.ebookwebsite.service.EbookService;
 import com.mycompany.ebookwebsite.service.ChapterService;
 import com.mycompany.ebookwebsite.service.CoinService;
 import com.mycompany.ebookwebsite.service.VolumeService;
+import com.mycompany.ebookwebsite.service.CommentService;
+import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -22,20 +25,24 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet("/book/read")
 public class BookReadServlet extends HttpServlet {
     private EbookService ebookService;
     private ChapterService chapterService;
-    private CoinService coinService;
     private VolumeService volumeService;
+    private CommentService commentService;
+    private CommentVoteService voteService;
 
     @Override
     public void init() {
         ebookService = new EbookService();
         chapterService = new ChapterService();
-        coinService = new CoinService();
         volumeService = new VolumeService();
+        commentService = new CommentService();
+        voteService = new CommentVoteService();
     }
 
     @Override
@@ -114,32 +121,36 @@ public class BookReadServlet extends HttpServlet {
             throws ServletException, IOException {
 
         try {
-            int bookId = EbookValidation.validateId(request.getParameter("id"));
-            double chapterIndex;
-            if (request.getParameter("chapter") != null) {
+            int bookId = EbookValidation.validateId(request.getParameter("bookId"));
+            String chapParam = request.getParameter("chapterId");
+            int chapterIndex;
+            if (chapParam == null) {
+                chapterIndex = 1;
+            } else {
                 try {
-                    chapterIndex = Double.parseDouble(request.getParameter("chapter"));
-                    if (chapterIndex < 1) throw new NumberFormatException();
+                    double val = Double.parseDouble(chapParam);
+                    if (val < 1) throw new NumberFormatException();
+                    chapterIndex = (int) val;
                 } catch (NumberFormatException ex) {
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid chapter number");
                     return;
                 }
-            } else {
-                chapterIndex = 1;
             }
 
+            double chapterNumber = chapterIndex; // convert to match DB decimal format
+
             Ebook ebook = ebookService.getEbookById(bookId);
-            Chapter chapter = chapterService.getChapterByBookAndIndex(bookId, chapterIndex);
+            Chapter chapter = chapterService.getChapterByBookAndIndex(bookId, chapterNumber);
             List<Chapter> chapters = chapterService.getChaptersByBookId(bookId);
             List<Volume> volumes = volumeService.getVolumesByEbook(bookId);
 
             // Tìm chương trước và sau
-            Double prevNum = null, nextNum = null;
+            Integer prevNum = null, nextNum = null;
             for (Chapter ch : chapters) {
-                double num = ch.getNumber();
-                if (num < chapter.getNumber()) {
+                int num = (int) ch.getNumber();
+                if (num < chapterIndex) {
                     if (prevNum == null || num > prevNum) prevNum = num;
-                } else if (num > chapter.getNumber()) {
+                } else if (num > chapterIndex) {
                     if (nextNum == null || num < nextNum) nextNum = num;
                 }
             }
@@ -224,6 +235,28 @@ public class BookReadServlet extends HttpServlet {
                 }
             }
 
+            // Lấy comment của chapter này
+            List<Comment> chapterComments = commentService.getCommentsByChapter(bookId, chapter.getId());
+            java.util.Set<Integer> userIds = new java.util.HashSet<>();
+            for (Comment c : chapterComments) userIds.add(c.getUserID());
+            java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
+            com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+            for (Integer uid : userIds) {
+                com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
+                userMap.put(uid, user != null ? user.getUsername() : "Unknown");
+            }
+            request.setAttribute("userMap", userMap);
+
+            CommentVoteService voteService = new CommentVoteService();
+            Map<Integer, Integer> likeMap = new HashMap<>();
+            Map<Integer, Integer> dislikeMap = new HashMap<>();
+            for (Comment c : chapterComments) {
+                likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+                dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+            }
+            request.setAttribute("likeMap", likeMap);
+            request.setAttribute("dislikeMap", dislikeMap);
+
             // Set attributes cho JSP
             request.setAttribute("ebook", ebook);
             request.setAttribute("chapter", chapter);
@@ -242,9 +275,9 @@ public class BookReadServlet extends HttpServlet {
                 request.setAttribute("user", user);
             }
             request.setAttribute("unlockCost", CoinService.getUnlockChapterCost());
+            request.setAttribute("chapterComments", chapterComments);
 
             request.getRequestDispatcher("/book/read.jsp").forward(request, response);
-
         } catch (IllegalArgumentException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
         } catch (SQLException e) {

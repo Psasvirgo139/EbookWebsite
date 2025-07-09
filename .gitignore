@@ -106,3 +106,4 @@ surefire-reports/
 # .m2/
 
 src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
+main\java\com\mycompany\ebookwebsite\dao\DBConnection.java

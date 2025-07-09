@@ -25,39 +25,51 @@
         </p>
         <p><strong>Mô tả:</strong> ${ebook.description}</p>
         <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
-        <a href="read?id=${ebook.id}" class="btn btn-success mt-2">Đọc ngay</a>
+        <a href="read?bookId=${ebook.id}&chapterId=1" class="btn btn-success mt-2">Đọc ngay</a>
     </div>
 
-    <!-- Form thêm bình luận -->
-    <div class="mt-4">
-        <h5>Thêm bình luận</h5>
-        <form action="${pageContext.request.contextPath}/add-comment" method="post">
-            <input type="hidden" name="ebookId" value="${ebook.id}" />
-            <div class="mb-3">
-                <textarea name="content" class="form-control" rows="3" placeholder="Viết bình luận..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary">Gửi bình luận</button>
-        </form>
-    </div>
-
-    <!-- ======= Danh sách bình luận ======= -->
+    <!-- ======= Bình luận về sách ======= -->
     <div class="mt-5">
-        <h4 class="mb-3">Bình luận</h4>
-
-        <c:if test="${empty comments}">
-            <p class="text-muted fst-italic">Chưa có bình luận nào.</p>
+        <c:if test="${not empty ebook and not empty ebook.id}">
+            <c:set var="bookId" value="${ebook.id}" />
+            <jsp:include page="comments-book.jsp" />
         </c:if>
+        <c:if test="${empty ebook or empty ebook.id}">
+            <div class="alert alert-danger">Không tìm thấy sách hoặc ID không hợp lệ!</div>
+        </c:if>
+    </div>
 
-        <c:if test="${not empty comments}">
-            <ul class="list-group">
-                <c:forEach var="comment" items="${comments}">
-                    <li class="list-group-item">
-                        <div class="fw-bold mb-1">Người dùng ID: ${comment.userID}</div>
-                        <div>${comment.content}</div>
-                        <small class="text-muted">Lúc: ${comment.createdAt}</small>
-                    </li>
+    <!-- ======= Bình luận tổng hợp từ các chương ======= -->
+    <div class="mt-5">
+        <h4 class="mb-3">Bình luận từ các chương</h4>
+        <c:if test="${empty aggregatedComments}">
+            <p class="text-muted fst-italic">Chưa có bình luận nào từ các chương.</p>
+        </c:if>
+        <c:if test="${not empty aggregatedComments}">
+            <div class="comments-list">
+                <c:forEach var="comment" items="${aggregatedComments}">
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">User ${comment.userID}</span>
+                            <span class="comment-date">
+                                ${comment.createdAt}
+                            </span>
+                        </div>
+                        <div class="comment-content">
+                            ${comment.content}
+                        </div>
+                        <div class="comment-actions">
+                            <!-- Like button only (no reply for chapter comments) -->
+                            <form method="post" style="display: inline;">
+                                <input type="hidden" name="commentId" value="${comment.id}">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    ❤️ ${comment.likeCount}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </c:forEach>
-            </ul>
+            </div>
         </c:if>
     </div>
 
@@ -73,7 +85,7 @@
                     <c:forEach var="ch" items="${chapters}">
                         <c:if test="${ch.volumeID == vol.id}">
                             <li class="list-group-item p-2">
-                                <a href="read?id=${ebook.id}&chapter=${ch.number}">
+                                <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
                                     Ch ${ch.number}
                                 </a>
                                 <c:choose>
@@ -96,7 +108,7 @@
             <ul class="list-group list-group-horizontal flex-wrap">
                 <c:forEach var="ch" items="${chapters}">
                     <li class="list-group-item p-2">
-                        <a href="read?id=${ebook.id}&chapter=${ch.number}">
+                        <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
                             Ch ${ch.number}
                         </a>
                         <c:choose>
