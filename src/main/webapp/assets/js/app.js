@@ -2,6 +2,8 @@
 // scroll - main bundle JS
 // ============================
 // tiny helper
+
+console.log('=== app.js loaded ===');
 const $ = (sel, par = document) => par.querySelector(sel);
 const $$ = (sel, par = document) => par.querySelectorAll(sel);
 const LS = {
@@ -44,14 +46,19 @@ let favorites = LS.get('scroll_fav', []);
   const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const isDark = saved ? saved==='dark' : prefers;
   document.documentElement.dataset.theme = isDark?'dark':'';
-  $('#themeIcon').textContent = isDark?'☀️':'🌙';
+  const themeIcon = $('#themeIcon');
+  if (themeIcon) themeIcon.textContent = isDark?'☀️':'🌙';
 })();
-$('#toggleTheme').addEventListener('click',()=>{
-  const dark = document.documentElement.dataset.theme==='dark';
-  document.documentElement.dataset.theme = dark?'':'dark';
-  $('#themeIcon').textContent = dark?'🌙':'☀️';
-  LS.set('scroll_theme', dark?'light':'dark');
-});
+const toggleThemeBtn = $('#toggleTheme');
+if (toggleThemeBtn) {
+  toggleThemeBtn.addEventListener('click',()=>{
+    const dark = document.documentElement.dataset.theme==='dark';
+    document.documentElement.dataset.theme = dark?'':'dark';
+    const themeIcon = $('#themeIcon');
+    if (themeIcon) themeIcon.textContent = dark?'🌙':'☀️';
+    LS.set('scroll_theme', dark?'light':'dark');
+  });
+}
 
 // ----------------------------
 // 3. Render helpers
@@ -185,6 +192,20 @@ function hideBackdrop() {
     backdropEl = null;
   }
 }
+// ==== COMMENT SYSTEM LOGIC DISABLED FOR SERVLET VERSION ====
+// (Toàn bộ logic comment bằng JS đã bị vô hiệu hóa, chỉ dùng servlet truyền thống)
+
+// Remove any JavaScript vote handling to avoid conflicts with servlet
+document.addEventListener('DOMContentLoaded', function() {
+    // Disable any JavaScript vote handling
+    const voteBtns = document.querySelectorAll('.like-btn, .dislike-btn');
+    voteBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Let the form submit naturally to servlet
+        });
+    });
+});
+
 // 1. Lấy tất cả section có id, lấy tất cả nav-link
 const sections = document.querySelectorAll('main section[id]');
 const navLinks = document.querySelectorAll('.main-nav a');
@@ -227,4 +248,113 @@ genreLink.addEventListener('click', e => {
     e.preventDefault();
     genreItem.classList.toggle('open');
   }
+});
+
+// 9. Comment System - Advanced (like/dislike, edit, delete, realtime)
+class AdvancedCommentSystem extends CommentSystem {
+    constructor() {
+        super();
+        this.deleteCommentId = null;
+        this.initAdvancedEvents();
+    }
+
+    initAdvancedEvents() {
+        // Like/Dislike - DISABLED FOR SERVLET VERSION
+        // document.addEventListener('submit', (e) => {
+        //     if (e.target.matches('.like-btn') || e.target.matches('.dislike-btn')) {
+        //         e.preventDefault();
+        //         const form = e.target.closest('form');
+        //         const commentId = form.querySelector('input[name="commentId"]').value;
+        //         const type = form.querySelector('button[type="submit"]').dataset.type;
+        //         this.voteComment(commentId, type);
+        //     }
+        // });
+
+        // Delete
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.delete-btn')) {
+                e.preventDefault();
+                this.deleteCommentId = e.target.dataset.commentId;
+                this.showDeleteModal();
+            }
+        });
+        document.getElementById('cancelDeleteBtn').onclick = () => this.hideDeleteModal();
+        document.getElementById('confirmDeleteBtn').onclick = () => this.confirmDelete();
+
+        // Edit (simple inline, không popup)
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.edit-btn')) {
+                e.preventDefault();
+                this.showEditForm(e.target.dataset.commentId);
+            }
+        });
+    }
+
+    voteComment(commentId, type) {
+        // DISABLED: Use servlet form submission instead
+        console.log('Vote comment disabled in favor of servlet');
+    }
+
+    showDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    hideDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        this.deleteCommentId = null;
+    }
+    confirmDelete() {
+        if (!this.deleteCommentId) return;
+        fetch('/api/comment/delete', {
+            method: 'POST',
+            body: new URLSearchParams({ commentId: this.deleteCommentId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Đánh dấu đã xóa trên giao diện
+                document.getElementById(`content-${this.deleteCommentId}`).textContent = 'Bình luận này đã bị xóa.';
+                document.getElementById(`deleted-flag-${this.deleteCommentId}`).textContent = ' (Đã xóa)';
+            } else {
+                this.showMessage(data.message || 'Có lỗi khi xóa', 'error');
+            }
+            this.hideDeleteModal();
+        });
+    }
+
+    showEditForm(commentId) {
+        const contentDiv = document.getElementById(`content-${commentId}`);
+        if (!contentDiv) return;
+        const oldContent = contentDiv.textContent;
+        contentDiv.innerHTML = `<textarea id="edit-textarea-${commentId}" class="form-control" style="width:100%; min-height:60px;">${oldContent}</textarea>
+            <button class="btn btn-sm btn-success" id="saveEditBtn-${commentId}">Lưu</button>
+            <button class="btn btn-sm btn-secondary" id="cancelEditBtn-${commentId}">Hủy</button>`;
+        document.getElementById(`saveEditBtn-${commentId}`).onclick = () => this.saveEdit(commentId, oldContent);
+        document.getElementById(`cancelEditBtn-${commentId}`).onclick = () => { contentDiv.textContent = oldContent; };
+    }
+
+    saveEdit(commentId, oldContent) {
+        const textarea = document.getElementById(`edit-textarea-${commentId}`);
+        const newContent = textarea.value.trim();
+        if (!newContent || newContent === oldContent) return;
+        fetch('/api/comment/edit', {
+            method: 'POST',
+            body: new URLSearchParams({ commentId, oldContent })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`content-${commentId}`).textContent = newContent;
+                document.getElementById(`edited-flag-${commentId}`).textContent = ' (Đã sửa)';
+            } else {
+                this.showMessage(data.message || 'Có lỗi khi sửa', 'error');
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.querySelector('.comments-section')) {
+        console.log('Initializing AdvancedCommentSystem...');
+        new AdvancedCommentSystem();
+    }
 });

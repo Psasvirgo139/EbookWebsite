@@ -8,7 +8,7 @@ import java.util.List;
 
 public class CommentDAO {
 
-    private static final String SELECT_BY_EBOOK = "SELECT * FROM Comments WHERE ebook_id = ? ORDER BY created_at DESC";
+    private static final String SELECT_BY_EBOOK = "SELECT * FROM Comments WHERE ebook_id = ? AND chapter_id IS NULL ORDER BY created_at DESC";
     private static final String INSERT = "INSERT INTO Comments (user_id, ebook_id, chapter_id, content, created_at) VALUES (?, ?, ?, ?, GETDATE())";
     private static final String DELETE = "DELETE FROM Comments WHERE id = ?";
     private static final String SELECT_BY_CHAPTER = "SELECT * FROM Comments WHERE ebook_id = ? AND chapter_id = ? ORDER BY created_at DESC";
@@ -129,5 +129,88 @@ public class CommentDAO {
         if (rs.wasNull()) c.setParentCommentID(null);
         c.setLikeCount(rs.getInt("like_count"));
         return c;
+    }
+
+    // === New methods for book detail comments ===
+    public List<Comment> getBookComments(int ebookId) throws SQLException {
+        String sql = "SELECT * FROM Comments WHERE ebook_id=? AND chapter_id IS NULL AND parent_comment_id IS NULL ORDER BY created_at DESC";
+        try(Connection con=DBConnection.getConnection();PreparedStatement ps=con.prepareStatement(sql)){
+            ps.setInt(1,ebookId);
+            ResultSet rs=ps.executeQuery();
+            java.util.List<Comment> list=new java.util.ArrayList<>();
+            while(rs.next()) {
+                Comment c = mapRow(rs);
+                list.add(c);
+            }
+            return list;
+        }
+    }
+    public List<Comment> getReplies(int parentId) throws SQLException {
+        String sql="SELECT * FROM Comments WHERE parent_comment_id=? ORDER BY created_at";
+        try(Connection con=DBConnection.getConnection();PreparedStatement ps=con.prepareStatement(sql)){
+            ps.setInt(1,parentId);
+            ResultSet rs=ps.executeQuery();
+            java.util.List<Comment> list=new java.util.ArrayList<>();
+            while(rs.next()) {
+                Comment c = mapRow(rs);
+                list.add(c);
+            }
+            return list;
+        }
+    }
+    public List<Comment> getTopChapterComments(int ebookId,int limit) throws SQLException {
+        String sql="SELECT TOP("+limit+") * FROM Comments WHERE ebook_id=? AND chapter_id IS NOT NULL AND parent_comment_id IS NULL ORDER BY like_count DESC";
+        try(Connection con=DBConnection.getConnection();PreparedStatement ps=con.prepareStatement(sql)){
+            ps.setInt(1,ebookId);
+            ResultSet rs=ps.executeQuery();
+            java.util.List<Comment> list=new java.util.ArrayList<>();
+            while(rs.next()) {
+                Comment c = mapRow(rs);
+                list.add(c);
+            }
+            return list;
+        }
+    }
+    public void insertReply(Comment c) throws SQLException {
+        String sql = "INSERT INTO Comments (user_id, ebook_id, chapter_id, parent_comment_id, content, created_at, like_count) VALUES (?,?,?,?,?,?,0)";
+        try(Connection con=DBConnection.getConnection();PreparedStatement ps=con.prepareStatement(sql)){
+            ps.setInt(1,c.getUserID());
+            ps.setInt(2,c.getEbookID());
+            if (c.getChapterID() != null) {
+                ps.setInt(3, c.getChapterID());
+            } else {
+                ps.setNull(3, java.sql.Types.INTEGER);
+            }
+            ps.setInt(4,c.getParentCommentID());
+            ps.setString(5,c.getContent());
+            ps.setTimestamp(6, java.sql.Timestamp.valueOf(java.time.LocalDateTime.now()));
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateCommentContent(int commentId, String content) throws SQLException {
+        String sql = "UPDATE Comments SET content = ? WHERE id = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, content);
+            ps.setInt(2, commentId);
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Comment> getCommentsByBook(int ebookId) {
+        List<Comment> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM Comments WHERE ebook_id = ? AND (chapter_id IS NULL) ORDER BY created_at ASC";
+        try (java.sql.Connection con = DBConnection.getConnection();
+             java.sql.PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, ebookId);
+            try (java.sql.ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapRow(rs));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
