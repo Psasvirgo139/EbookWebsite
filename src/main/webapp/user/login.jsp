@@ -1,7 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<jsp:useBean id="login" class="com.mycompany.ebookwebsite.bean.LoginBean" scope="request"/>
-<jsp:setProperty name="login" property="*"/>
 
 <%@ include file="/common/header.jsp" %>
 
@@ -31,6 +29,10 @@
         color: #e74c3c;
         margin-bottom: 12px;
         text-align: center;
+        padding: 10px;
+        background: #ffeaa7;
+        border: 1px solid #fdcb6e;
+        border-radius: 5px;
     }
     label{
         font-weight: bold;
@@ -42,6 +44,7 @@
         border: 1px solid #ccc;
         border-radius: 5px;
         font-family: 'Inter', Arial, sans-serif;
+        box-sizing: border-box;
     }
     button{
         width: 100%;
@@ -53,6 +56,7 @@
         font-size: 1rem;
         font-family: 'Inter', Arial, sans-serif;
         transition: background 0.2s;
+        cursor: pointer;
     }
     button:hover{
         background: #3498db;
@@ -86,18 +90,21 @@
 </style>
 
 <div class="login-form">
-    <meta charset="UTF-8" />
     <h2>Đăng nhập</h2>
+    
     <!-- Hiển thị lỗi nếu có -->
-    <c:if test="${not empty login.error}">
-        <div class="error-msg">${login.error}</div>
+    <c:if test="${not empty error}">
+        <div class="error-msg">${error}</div>
     </c:if>
+    
     <form action="${pageContext.request.contextPath}/login" method="post">
         <label for="usernameOrEmail">Tên đăng nhập hoặc Email:</label>
         <input type="text" id="usernameOrEmail" name="usernameOrEmail"
-               value="${login.usernameOrEmail != null ? login.usernameOrEmail : ''}" required />
+               value="${param.usernameOrEmail}" required />
+               
         <label for="password">Mật khẩu:</label>
         <input type="password" id="password" name="password" required />
+        
         <button type="submit">Đăng nhập</button>
     </form>
     

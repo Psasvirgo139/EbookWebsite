@@ -127,7 +127,16 @@
     <nav class="sidebar">
         <h2>Quản trị</h2>
         <a href="#" class="active">Dashboard</a>
-        <a href="#">Quản lý sách</a>
+        <a href="${pageContext.request.contextPath}/book?action=upload" style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            margin: 8px 16px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #fbbf24;
+        ">📤 Upload Truyện Mới</a>
+        <a href="${pageContext.request.contextPath}/book?action=list">Quản lý sách</a>
         <a href="#">Quản lý người dùng</a>
         <a href="#">Quản lý tác giả</a>
         <a href="#">Quản lý bình luận</a>

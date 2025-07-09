@@ -122,6 +122,20 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Login method for compatibility - tries both username and email
+     */
+    public User login(String usernameOrEmail, String passwordHash) throws SQLException {
+        // First try username
+        User user = findByUsernameAndPassword(usernameOrEmail, passwordHash);
+        if (user != null) {
+            return user;
+        }
+        
+        // If not found, try email
+        return findByEmailAndPassword(usernameOrEmail, passwordHash);
+    }
+
     public List<User> searchByUsername(String searchName) throws SQLException {
         List<User> list = new ArrayList<>();
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SEARCH_BY_NAME)) {

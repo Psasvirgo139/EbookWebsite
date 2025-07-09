@@ -1,49 +1,29 @@
 ############################
-#  IDE & BUILD DIRECTORIES #
+# IDE Directories
 ############################
-
-# NetBeans
-nbproject/
-nbproject/private/
-nbbuild/
-build/
-dist/
-nbdist/
-nbactions.xml
-nb-configuration.xml
-
-# IntelliJ IDEA
 .idea/
 *.iml
-
-# Eclipse
+nbproject/
+nbproject/private/
+*.code-workspace
+.vscode/
 .settings/
 .classpath
 .project
 
-# VS Code
-.vscode/
-*.code-workspace
-
-# Gradle (nếu lỡ import)
-.gradle/
+############################
+# Maven / Gradle / Build
+############################
+target/
 build/
-
-############################
-#  MAVEN & WRAPPER         #
-############################
-/target/
+dist/
+.gradle/
 .mvn/
 mvnw
 mvnw.cmd
-dependency-reduced-pom.xml
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-release.properties
 
 ############################
-#  JAVA / JVM              #
+# Java Artifacts
 ############################
 *.class
 *.jar
@@ -52,7 +32,7 @@ release.properties
 *.nar
 
 ############################
-#  LOGS & REPORTS          #
+# Logs & Reports
 ############################
 *.log
 log/
@@ -62,23 +42,21 @@ surefire-reports/
 target/jacoco*
 
 ############################
-#  TEMP / CACHE / EDITOR   #
+# Editor / Temp
 ############################
 *.tmp
 *.swp
 *.bak
 *.cache
 *~
-.idea/
 .DS_Store
 Thumbs.db
 desktop.ini
 
 ############################
-#  CONFIG / SECRETS        #
+# Secrets / Config
 ############################
 *.env
-*.secret
 *.key
 *.pem
 *.keystore
@@ -87,12 +65,14 @@ application.properties
 application.yml
 
 ############################
-#  DATABASE / UPLOADS      #
+# Uploads / DB
 ############################
+uploads/
 *.db
 *.h2.db
-*.derby
 *.sqlite
+
+*.derby
 uploads/
 
 test-output/

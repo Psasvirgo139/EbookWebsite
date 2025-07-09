@@ -6,8 +6,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EbookDAO {
+import com.mycompany.ebookwebsite.model.Ebook;
 
+public class EbookDAO {
     private static final String INSERT = "INSERT INTO Ebooks (title, description, release_type, language, status, visibility, uploader_id, created_at, view_count, cover_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_BY_ID = "SELECT * FROM Ebooks WHERE id = ?";
     private static final String COUNT_ALL = "SELECT COUNT(*) FROM Ebooks";
@@ -108,6 +109,7 @@ public class EbookDAO {
             ps.setInt(9, ebook.getViewCount());
             ps.setString(10, ebook.getCoverUrl());
             ps.setInt(11, ebook.getId());
+          
             return ps.executeUpdate() > 0;
         }
     }
@@ -118,5 +120,4 @@ public class EbookDAO {
             return ps.executeUpdate() > 0;
         }
     }
-
 }

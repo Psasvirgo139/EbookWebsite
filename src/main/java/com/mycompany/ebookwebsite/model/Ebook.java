@@ -22,6 +22,11 @@ public class Ebook {
     private LocalDateTime createdAt;
     private int viewCount;
     private String coverUrl;
+    private String summary;
+    
+    // ✅ Thêm field để mapping file
+    private String fileName;        // Tên file thực tế trong thư mục uploads (normalized)
+    private String originalFileName; // Tên file gốc khi user upload
 
     public Ebook() {
     }
@@ -39,6 +44,8 @@ public class Ebook {
         this.viewCount = viewCount;
         this.coverUrl = coverUrl;
     }
+
+    // ========== Getters và Setters ==========
 
     public int getId() {
         return id;
@@ -128,8 +135,75 @@ public class Ebook {
         this.coverUrl = coverUrl;
     }
 
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    // ✅ Getter và Setter cho fileName
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+    
+    // ✅ Getter và Setter cho originalFileName
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public void setOriginalFileName(String originalFileName) {
+        this.originalFileName = originalFileName;
+    }
+    
+    // Alias methods cho compatibility với Book model
+    public String getContentUrl() {
+        return fileName != null ? "uploads/" + fileName : null;
+    }
+    
+    public void setContentUrl(String contentUrl) {
+        if (contentUrl != null && contentUrl.startsWith("uploads/")) {
+            this.fileName = contentUrl.substring(8);
+        } else {
+            this.fileName = contentUrl;
+        }
+    }
+    
+    // Alias cho genre field
+    public String getGenre() {
+        return releaseType;
+    }
+
+    public void setGenre(String genre) {
+        this.releaseType = genre;
+    }
+    
+    // Default author getter cho compatibility  
+    public String getAuthor() {
+        return "Unknown Author";  // Có thể extend sau để lấy từ bảng Authors
+    }
+
     @Override
     public String toString() {
-        return "Ebook{" + "id=" + id + ", title=" + title + ", description=" + description + ", releaseType=" + releaseType + ", language=" + language + ", status=" + status + ", visibility=" + visibility + ", uploaderId=" + uploaderId + ", createdAt=" + createdAt + ", viewCount=" + viewCount + ", coverUrl=" + coverUrl + '}';
+        return "Ebook{" + 
+               "id=" + id + 
+               ", title='" + title + '\'' + 
+               ", description='" + description + '\'' + 
+               ", releaseType='" + releaseType + '\'' + 
+               ", language='" + language + '\'' + 
+               ", status='" + status + '\'' + 
+               ", visibility='" + visibility + '\'' + 
+               ", uploaderId=" + uploaderId + 
+               ", createdAt=" + createdAt + 
+               ", viewCount=" + viewCount + 
+               ", coverUrl='" + coverUrl + '\'' + 
+               ", fileName='" + fileName + '\'' + 
+               ", originalFileName='" + originalFileName + '\'' +
+               '}';
     }
 }

@@ -2,7 +2,6 @@ package com.mycompany.ebookwebsite.controller;
 
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.UserService;
-import com.mycompany.ebookwebsite.utils.UserValidation;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -13,6 +12,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+/**
+ * UserServlet - Comprehensive user management for admin and authentication
+ * Replaces UserController with full admin functionality
+ */
 @WebServlet("/user")
 public class UserServlet extends HttpServlet {
     
@@ -94,199 +97,161 @@ public class UserServlet extends HttpServlet {
     }
     
     /**
-     * Hiển thị danh sách users
+     * Admin: List all users
      */
     private void listUsers(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         List<User> users = userService.getAllUsers();
         request.setAttribute("users", users);
-        
-        // CHUYỂN HƯỚNG: Forward tới trang danh sách users
-        request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin/user/list.jsp").forward(request, response);
     }
     
     /**
-     * Hiển thị chi tiết user
+     * Admin: View user details
      */
     private void viewUser(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
             int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
-            
             User user = userService.getUserById(userId);
+            
             if (user == null) {
                 request.setAttribute("error", "User không tồn tại");
-                // CHUYỂN HƯỚNG: Forward về trang danh sách khi user không tồn tại
-                request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+                listUsers(request, response);
                 return;
             }
             
             request.setAttribute("user", user);
-            // CHUYỂN HƯỚNG: Forward tới trang chi tiết user
-            request.getRequestDispatcher("/views/user/view.jsp").forward(request, response);
+            request.getRequestDispatcher("/admin/user/view.jsp").forward(request, response);
             
-        } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
-            // CHUYỂN HƯỚNG: Forward về trang danh sách khi có lỗi validation
-            request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID user không hợp lệ");
+            listUsers(request, response);
         }
     }
     
     /**
-     * Hiển thị form tạo user mới
+     * Admin: Show create user form
      */
     private void showNewForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        // CHUYỂN HƯỚNG: Forward tới trang form tạo user
-        request.getRequestDispatcher("/views/user/new.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin/user/new.jsp").forward(request, response);
     }
     
     /**
-     * Hiển thị form chỉnh sửa user
+     * Admin: Show edit user form
      */
     private void showEditForm(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
             int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
-            
             User user = userService.getUserById(userId);
+            
             if (user == null) {
                 request.setAttribute("error", "User không tồn tại");
-                // CHUYỂN HƯỚNG: Forward về trang danh sách khi user không tồn tại
-                request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+                listUsers(request, response);
                 return;
             }
             
             request.setAttribute("user", user);
-            // CHUYỂN HƯỚNG: Forward tới trang form chỉnh sửa
-            request.getRequestDispatcher("/views/user/edit.jsp").forward(request, response);
+            request.getRequestDispatcher("/admin/user/edit.jsp").forward(request, response);
             
-        } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
-            // CHUYỂN HƯỚNG: Forward về trang danh sách khi có lỗi validation
-            request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID user không hợp lệ");
+            listUsers(request, response);
         }
     }
     
     /**
-     * Tạo user mới
+     * Admin: Create new user
      */
     private void createUser(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
-            // Lấy dữ liệu từ form
             String username = request.getParameter("username");
             String email = request.getParameter("email");
             String password = request.getParameter("password");
             String role = request.getParameter("role");
             String status = request.getParameter("status");
             
-            // Tạo đối tượng User
+            // Basic validation
+            if (username == null || username.trim().isEmpty()) {
+                throw new IllegalArgumentException("Username không được để trống");
+            }
+            if (email == null || email.trim().isEmpty()) {
+                throw new IllegalArgumentException("Email không được để trống");
+            }
+            if (password == null || password.length() < 6) {
+                throw new IllegalArgumentException("Password phải có ít nhất 6 ký tự");
+            }
+            
             User user = new User();
-            user.setUsername(username);
-            user.setEmail(email);
-            user.setPasswordHash(password);
-            user.setRole(role);
-            user.setStatus(status);
+            user.setUsername(username.trim());
+            user.setEmail(email.trim());
+            user.setPasswordHash(password); // UserService will handle hashing
+            user.setRole(role != null ? role : "user");
+            user.setStatus(status != null ? status : "active");
             
-            // Validate dữ liệu
-            UserValidation.validateUserData(user, true);
-            
-            // Gọi service để tạo user
             User createdUser = userService.createUser(user);
+            response.sendRedirect(request.getContextPath() + "/user?action=list&success=created");
             
-            request.setAttribute("success", "Tạo user thành công");
-            
-            // CHUYỂN HƯỚNG: Redirect về trang danh sách sau khi tạo thành công
-            response.sendRedirect(request.getContextPath() + "/user?action=list");
-            
-        } catch (IllegalArgumentException e) {
-            // Validation hoặc business logic error
+        } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-            
-            // Giữ lại dữ liệu đã nhập
             request.setAttribute("username", request.getParameter("username"));
             request.setAttribute("email", request.getParameter("email"));
             request.setAttribute("role", request.getParameter("role"));
             request.setAttribute("status", request.getParameter("status"));
-            
-            // CHUYỂN HƯỚNG: Forward về trang form khi có lỗi (giữ nguyên trang)
-            request.getRequestDispatcher("/views/user/new.jsp").forward(request, response);
+            request.getRequestDispatcher("/admin/user/new.jsp").forward(request, response);
         }
     }
     
     /**
-     * Cập nhật thông tin user
+     * Admin: Update user information
      */
     private void updateUser(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
-            // Lấy dữ liệu từ form
             int userId = Integer.parseInt(request.getParameter("id"));
             String username = request.getParameter("username");
             String email = request.getParameter("email");
             String role = request.getParameter("role");
             String status = request.getParameter("status");
             
-            // Validate user ID
-            UserValidation.validateUserId(userId);
+            User user = userService.getUserById(userId);
+            if (user == null) {
+                request.setAttribute("error", "User không tồn tại");
+                response.sendRedirect(request.getContextPath() + "/user?action=list");
+                return;
+            }
             
-            // Tạo đối tượng User
-            User user = new User();
-            user.setId(userId);
-            user.setUsername(username);
-            user.setEmail(email);
+            user.setUsername(username.trim());
+            user.setEmail(email.trim());
             user.setRole(role);
             user.setStatus(status);
             
-            // Validate dữ liệu
-            UserValidation.validateUserData(user, false);
-            
-            // Gọi service để cập nhật user
             boolean updated = userService.updateUser(user);
             
             if (updated) {
-                request.setAttribute("success", "Cập nhật user thành công");
-                // CHUYỂN HƯỚNG: Redirect về trang chi tiết user sau khi cập nhật thành công
-                response.sendRedirect(request.getContextPath() + "/user?action=view&id=" + userId);
+                response.sendRedirect(request.getContextPath() + "/user?action=view&id=" + userId + "&success=updated");
             } else {
                 request.setAttribute("error", "Không thể cập nhật user");
                 request.setAttribute("user", user);
-                // CHUYỂN HƯỚNG: Forward về trang form khi cập nhật thất bại (giữ nguyên trang)
-                request.getRequestDispatcher("/views/user/edit.jsp").forward(request, response);
+                request.getRequestDispatcher("/admin/user/edit.jsp").forward(request, response);
             }
             
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-            
-            // Giữ lại dữ liệu đã nhập
-            User user = new User();
-            try {
-                user.setId(Integer.parseInt(request.getParameter("id")));
-            } catch (NumberFormatException ex) {
-                user.setId(0);
-            }
-            user.setUsername(request.getParameter("username"));
-            user.setEmail(request.getParameter("email"));
-            user.setRole(request.getParameter("role"));
-            user.setStatus(request.getParameter("status"));
-            request.setAttribute("user", user);
-            
-            // CHUYỂN HƯỚNG: Forward về trang form khi có lỗi validation (giữ nguyên trang)
-            request.getRequestDispatcher("/views/user/edit.jsp").forward(request, response);
+            response.sendRedirect(request.getContextPath() + "/user?action=list");
         }
     }
     
     /**
-     * Cập nhật mật khẩu user
+     * Admin: Update user password
      */
     private void updatePassword(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
@@ -296,145 +261,133 @@ public class UserServlet extends HttpServlet {
             String newPassword = request.getParameter("newPassword");
             String confirmPassword = request.getParameter("confirmPassword");
             
-            // Validate
-            UserValidation.validateUserId(userId);
-            UserValidation.validatePassword(newPassword);
+            if (newPassword == null || newPassword.length() < 6) {
+                throw new IllegalArgumentException("Mật khẩu phải có ít nhất 6 ký tự");
+            }
             
             if (!newPassword.equals(confirmPassword)) {
                 throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
             }
             
-            // Gọi service để cập nhật mật khẩu
             boolean updated = userService.updatePassword(userId, newPassword);
             
             if (updated) {
-                request.setAttribute("success", "Cập nhật mật khẩu thành công");
-                // CHUYỂN HƯỚNG: Redirect về trang chi tiết user sau khi cập nhật thành công
-                response.sendRedirect(request.getContextPath() + "/user?action=view&id=" + userId);
+                response.sendRedirect(request.getContextPath() + "/user?action=view&id=" + userId + "&success=password_updated");
             } else {
                 request.setAttribute("error", "Không thể cập nhật mật khẩu");
-                // CHUYỂN HƯỚNG: Forward về trang đổi mật khẩu khi thất bại (giữ nguyên trang)
-                request.getRequestDispatcher("/views/user/changepassword.jsp").forward(request, response);
+                request.getRequestDispatcher("/admin/user/changepassword.jsp").forward(request, response);
             }
             
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-            // CHUYỂN HƯỚNG: Forward về trang đổi mật khẩu khi có lỗi (giữ nguyên trang)
-            request.getRequestDispatcher("/views/user/changepassword.jsp").forward(request, response);
+            request.getRequestDispatcher("/admin/user/changepassword.jsp").forward(request, response);
         }
     }
     
     /**
-     * Xóa user
+     * Admin: Delete user
      */
     private void deleteUser(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
             int userId = Integer.parseInt(request.getParameter("id"));
-            UserValidation.validateUserId(userId);
-            
             boolean deleted = userService.deleteUser(userId);
             
             if (deleted) {
-                request.setAttribute("success", "Xóa user thành công");
+                response.sendRedirect(request.getContextPath() + "/user?action=list&success=deleted");
             } else {
-                request.setAttribute("error", "Không thể xóa user");
+                response.sendRedirect(request.getContextPath() + "/user?action=list&error=delete_failed");
             }
             
-            // CHUYỂN HƯỚNG: Redirect về trang danh sách sau khi xóa
-            response.sendRedirect(request.getContextPath() + "/user?action=list");
-            
-        } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
-            // CHUYỂN HƯỚNG: Redirect về trang danh sách khi có lỗi
-            response.sendRedirect(request.getContextPath() + "/user?action=list");
+        } catch (Exception e) {
+            response.sendRedirect(request.getContextPath() + "/user?action=list&error=" + e.getMessage());
         }
     }
     
     /**
-     * Tìm kiếm users
+     * Admin: Search users
      */
     private void searchUsers(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
             String searchTerm = request.getParameter("search");
-            UserValidation.validateSearchTerm(searchTerm);
             
-            List<User> users = userService.searchUsers(searchTerm);
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                listUsers(request, response);
+                return;
+            }
+            
+            List<User> users = userService.searchUsers(searchTerm.trim());
             request.setAttribute("users", users);
-            request.setAttribute("searchTerm", searchTerm);
+            request.setAttribute("searchTerm", searchTerm.trim());
+            request.getRequestDispatcher("/admin/user/list.jsp").forward(request, response);
             
-            // CHUYỂN HƯỚNG: Forward tới trang danh sách với kết quả tìm kiếm
-            request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
-            
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-            List<User> users = userService.getAllUsers();
-            request.setAttribute("users", users);
-            // CHUYỂN HƯỚNG: Forward về trang danh sách khi có lỗi tìm kiếm (giữ nguyên trang)
-            request.getRequestDispatcher("/views/user/list.jsp").forward(request, response);
+            listUsers(request, response);
         }
     }
     
     /**
-     * Hiển thị form đăng nhập
+     * Show login form
      */
     private void showLoginForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        
-        // CHUYỂN HƯỚNG: Forward tới trang đăng nhập
-        request.getRequestDispatcher("/views/user/login.jsp").forward(request, response);
+        request.getRequestDispatcher("/user/login.jsp").forward(request, response);
     }
     
     /**
-     * Xác thực đăng nhập
+     * Authenticate user login
      */
     private void authenticateUser(HttpServletRequest request, HttpServletResponse response) 
             throws SQLException, ServletException, IOException {
         
         try {
-            String username = request.getParameter("username");
+            String usernameOrEmail = request.getParameter("usernameOrEmail");
             String password = request.getParameter("password");
             
-            // Validate dữ liệu đăng nhập
-            UserValidation.validateLoginCredentials(username, password);
+            if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty()) {
+                throw new IllegalArgumentException("Tên đăng nhập không được để trống");
+            }
             
-            // Gọi service để xác thực
-            User user = userService.authenticateUser(username, password);
+            if (password == null || password.trim().isEmpty()) {
+                throw new IllegalArgumentException("Mật khẩu không được để trống");
+            }
+            
+            User user = userService.authenticateUserByUsernameOrEmail(usernameOrEmail.trim(), password);
             
             if (user != null) {
-                // Đăng nhập thành công
+                // Login successful
                 HttpSession session = request.getSession();
-                session.setAttribute("loggedInUser", user);
+                session.setAttribute("user", user);
                 session.setAttribute("userId", user.getId());
                 session.setAttribute("username", user.getUsername());
                 session.setAttribute("role", user.getRole());
                 
-                // CHUYỂN HƯỚNG: Redirect tới trang chủ sau khi đăng nhập thành công
-                response.sendRedirect(request.getContextPath() + "/home");
+                // Redirect based on role
+                if ("admin".equals(user.getRole())) {
+                    response.sendRedirect(request.getContextPath() + "/user?action=list");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/index.jsp");
+                }
                 
             } else {
-                // Đăng nhập thất bại
                 request.setAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
-                request.setAttribute("username", username); // Giữ lại username đã nhập
-                
-                // CHUYỂN HƯỚNG: Forward về trang đăng nhập khi thất bại (giữ nguyên trang)
-                request.getRequestDispatcher("/views/user/login.jsp").forward(request, response);
+                request.setAttribute("usernameOrEmail", usernameOrEmail);
+                request.getRequestDispatcher("/user/login.jsp").forward(request, response);
             }
             
-        } catch (IllegalArgumentException e) {
+        } catch (Exception e) {
             request.setAttribute("error", e.getMessage());
-            request.setAttribute("username", request.getParameter("username")); // Giữ lại username đã nhập
-            
-            // CHUYỂN HƯỚNG: Forward về trang đăng nhập khi có lỗi validation (giữ nguyên trang)
-            request.getRequestDispatcher("/views/user/login.jsp").forward(request, response);
+            request.setAttribute("usernameOrEmail", request.getParameter("usernameOrEmail"));
+            request.getRequestDispatcher("/user/login.jsp").forward(request, response);
         }
     }
     
     /**
-     * Đăng xuất
+     * Logout user
      */
     private void logout(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
@@ -444,7 +397,6 @@ public class UserServlet extends HttpServlet {
             session.invalidate();
         }
         
-        // CHUYỂN HƯỚNG: Redirect về trang đăng nhập sau khi đăng xuất
         response.sendRedirect(request.getContextPath() + "/user?action=login");
     }
-}
+} 

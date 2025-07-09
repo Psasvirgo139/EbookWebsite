@@ -3,7 +3,6 @@ package com.mycompany.ebookwebsite.controller;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import com.mycompany.ebookwebsite.bean.LoginBean;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.UserService;
 import com.mycompany.ebookwebsite.utils.UserValidation;
@@ -22,7 +21,7 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        // Khởi tạo UserService (nếu dùng DI có thể thay thế)
+        // Khởi tạo UserService
         userService = new UserService();
     }
 
@@ -37,20 +36,15 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Lấy LoginBean đã được binding (nếu có)
-        LoginBean login = (LoginBean) request.getAttribute("login");
-        if (login == null) { // fallback khi POST trực tiếp không qua JSP
-            login = new LoginBean();
-            login.setUsernameOrEmail(request.getParameter("usernameOrEmail"));
-            login.setPassword(request.getParameter("password"));
-        }
+        // Lấy thông tin từ form
+        String usernameOrEmail = request.getParameter("usernameOrEmail");
+        String password = request.getParameter("password");
 
         // Validate dữ liệu đầu vào
         try {
-            UserValidation.validateLoginCredentials(login.getUsernameOrEmail(), login.getPassword());
+            UserValidation.validateLoginCredentials(usernameOrEmail, password);
         } catch (IllegalArgumentException e) {
-            login.setError(e.getMessage());
-            request.setAttribute("login", login);
+            request.setAttribute("error", e.getMessage());
             request.getRequestDispatcher("user/login.jsp").forward(request, response);
             return;
         }
@@ -58,20 +52,17 @@ public class LoginServlet extends HttpServlet {
         // Gọi service kiểm tra đăng nhập
         User user = null;
         try {
-            user = userService.authenticateUserByUsernameOrEmail(
-                    login.getUsernameOrEmail(), login.getPassword());
+            user = userService.authenticateUserByUsernameOrEmail(usernameOrEmail, password);
         } catch (SQLException e) {
             e.printStackTrace();
-            login.setError("Lỗi hệ thống, vui lòng thử lại sau!");
-            request.setAttribute("login", login);
+            request.setAttribute("error", "Lỗi hệ thống, vui lòng thử lại sau!");
             request.getRequestDispatcher("user/login.jsp").forward(request, response);
             return;
         }
 
         if (user == null) {
             // Sai thông tin
-            login.setError("Sai tài khoản hoặc mật khẩu!");
-            request.setAttribute("login", login);
+            request.setAttribute("error", "Sai tài khoản hoặc mật khẩu!");
             request.getRequestDispatcher("user/login.jsp").forward(request, response);
             return;
         }
