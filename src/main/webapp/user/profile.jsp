@@ -177,6 +177,18 @@
                 box-shadow: 0 10px 25px rgba(79, 172, 254, 0.4);
             }
             
+            .btn-warning {
+                background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+                color: #333;
+                font-weight: 700;
+            }
+            
+            .btn-warning:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+                color: #333;
+            }
+            
             .btn-danger {
                 background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
                 color: white;
@@ -517,6 +529,10 @@
                             <a href="${pageContext.request.contextPath}/change-password" class="btn btn-secondary">
                                 <i class="fas fa-key"></i>
                                 Đổi mật khẩu
+                            </a>
+                            <a href="${pageContext.request.contextPath}/coin/payment" class="btn btn-warning">
+                                <i class="fas fa-coins"></i>
+                                Nạp coin
                             </a>
                             <form action="${pageContext.request.contextPath}/logout" method="post" style="display: inline;">
                                 <button class="btn btn-danger" type="submit">

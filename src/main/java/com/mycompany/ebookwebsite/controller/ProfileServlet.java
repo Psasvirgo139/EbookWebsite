@@ -238,7 +238,7 @@ public class ProfileServlet extends HttpServlet {
         }
 
         // Redirect về trang profile với thông báo
-        response.sendRedirect(request.getContextPath() + "/profile?message=" + 
+                        response.sendRedirect(request.getContextPath() + "/profile?message=" + 
                             java.net.URLEncoder.encode(message, "UTF-8") + 
                             "&type=" + messageType);
     }

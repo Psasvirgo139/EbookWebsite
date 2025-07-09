@@ -50,10 +50,13 @@ public class CoinHeaderListener implements HttpSessionAttributeListener {
     
     @Override
     public void attributeRemoved(HttpSessionBindingEvent event) {
-        // Khi user logout
         if ("user".equals(event.getName())) {
-            event.getSession().removeAttribute("userCoins");
-            LOGGER.info("Removed coin info from session");
+            try {
+                event.getSession().removeAttribute("userCoins");
+                LOGGER.info("Removed coin info from session");
+            } catch (IllegalStateException e) {
+                LOGGER.warning("Session already invalidated; cannot remove userCoins.");
+            }
         }
     }
 } 
