@@ -5,9 +5,6 @@
 <div class="comments-section">
     <h3>Bình Luận Về Chương</h3>
     
-    <p>DEBUG bookId: ${ebook.id}</p>
-    <p>DEBUG chapterId: ${chapter.id}</p>
-    
     <!-- Form thêm comment mới -->
     <c:if test="${not empty sessionScope.user}">
         <div class="comment-form">
@@ -55,14 +52,16 @@
                         ${comment.content}
                     </div>
                     <div class="comment-actions">
-                        <form method="post" action="${pageContext.request.contextPath}/comment/like" style="display: inline;">
+                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
                             <input type="hidden" name="commentId" value="${comment.id}">
+                            <input type="hidden" name="type" value="like">
                             <button type="submit" class="btn btn-sm btn-outline-primary like-btn" data-type="like">
                                 👍 <span class="like-count" id="like-count-${comment.id}">${likeMap[comment.id] != null ? likeMap[comment.id] : 0}</span>
                             </button>
                         </form>
-                        <form method="post" action="${pageContext.request.contextPath}/comment/dislike" style="display: inline;">
+                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
                             <input type="hidden" name="commentId" value="${comment.id}">
+                            <input type="hidden" name="type" value="dislike">
                             <button type="submit" class="btn btn-sm btn-outline-secondary dislike-btn" data-type="dislike">
                                 👎 <span class="dislike-count" id="dislike-count-${comment.id}">${dislikeMap[comment.id] != null ? dislikeMap[comment.id] : 0}</span>
                             </button>
@@ -123,14 +122,16 @@
                                         ${reply.content}
                                     </div>
                                     <div class="comment-actions">
-                                        <form method="post" action="${pageContext.request.contextPath}/comment/like" style="display: inline;">
+                                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
                                             <input type="hidden" name="commentId" value="${reply.id}">
+                                            <input type="hidden" name="type" value="like">
                                             <button type="submit" class="btn btn-sm btn-outline-primary like-btn" data-type="like">
                                                 👍 <span class="like-count" id="like-count-${reply.id}">${likeMap[reply.id] != null ? likeMap[reply.id] : 0}</span>
                                             </button>
                                         </form>
-                                        <form method="post" action="${pageContext.request.contextPath}/comment/dislike" style="display: inline;">
+                                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
                                             <input type="hidden" name="commentId" value="${reply.id}">
+                                            <input type="hidden" name="type" value="dislike">
                                             <button type="submit" class="btn btn-sm btn-outline-secondary dislike-btn" data-type="dislike">
                                                 👎 <span class="dislike-count" id="dislike-count-${reply.id}">${dislikeMap[reply.id] != null ? dislikeMap[reply.id] : 0}</span>
                                             </button>
@@ -170,8 +171,3 @@
         </div>
     </div>
 </div>
-
-<form method="post" action="${pageContext.request.contextPath}/test-log">
-  <button type="submit">Test Log</button>
-</form> 
-

@@ -13,10 +13,12 @@ public class CommentService {
 
     public List<Comment> getCommentsByEbookId(int ebookId) {
         List<Comment> comments = commentDAO.getCommentsByEbookId(ebookId);
+        CommentVoteService voteService = new CommentVoteService();
         for (Comment c : comments) {
             if (c.getCreatedAt() != null) {
                 c.setContentDate(java.util.Date.from(c.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             }
+            c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return comments;
     }
@@ -65,30 +67,36 @@ public class CommentService {
 
     public List<Comment> getBookComments(int ebookId) throws SQLException {
         List<Comment> bookComments = commentDAO.getBookComments(ebookId);
+        CommentVoteService voteService = new CommentVoteService();
         for (Comment c : bookComments) {
             if (c.getCreatedAt() != null) {
                 c.setContentDate(java.util.Date.from(c.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             }
+            c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return bookComments;
     }
 
     public List<Comment> getReplies(int parentId) throws SQLException {
         List<Comment> replies = commentDAO.getReplies(parentId);
+        CommentVoteService voteService = new CommentVoteService();
         for (Comment c : replies) {
             if (c.getCreatedAt() != null) {
                 c.setContentDate(java.util.Date.from(c.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             }
+            c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return replies;
     }
 
     public List<Comment> getTopChapterComments(int ebookId, int limit) throws SQLException {
         List<Comment> topComments = commentDAO.getTopChapterComments(ebookId, limit);
+        CommentVoteService voteService = new CommentVoteService();
         for (Comment c : topComments) {
             if (c.getCreatedAt() != null) {
                 c.setContentDate(java.util.Date.from(c.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             }
+            c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return topComments;
     }
@@ -111,10 +119,12 @@ public class CommentService {
 
     public List<Comment> getCommentsByBook(int ebookId) {
         List<Comment> bookComments = commentDAO.getCommentsByBook(ebookId);
+        CommentVoteService voteService = new CommentVoteService();
         for (Comment c : bookComments) {
             if (c.getCreatedAt() != null) {
                 c.setContentDate(java.util.Date.from(c.getCreatedAt().atZone(java.time.ZoneId.systemDefault()).toInstant()));
             }
+            c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return bookComments;
     }

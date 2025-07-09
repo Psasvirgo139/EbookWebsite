@@ -195,6 +195,17 @@ function hideBackdrop() {
 // ==== COMMENT SYSTEM LOGIC DISABLED FOR SERVLET VERSION ====
 // (Toàn bộ logic comment bằng JS đã bị vô hiệu hóa, chỉ dùng servlet truyền thống)
 
+// Remove any JavaScript vote handling to avoid conflicts with servlet
+document.addEventListener('DOMContentLoaded', function() {
+    // Disable any JavaScript vote handling
+    const voteBtns = document.querySelectorAll('.like-btn, .dislike-btn');
+    voteBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Let the form submit naturally to servlet
+        });
+    });
+});
+
 // 1. Lấy tất cả section có id, lấy tất cả nav-link
 const sections = document.querySelectorAll('main section[id]');
 const navLinks = document.querySelectorAll('.main-nav a');
@@ -248,16 +259,16 @@ class AdvancedCommentSystem extends CommentSystem {
     }
 
     initAdvancedEvents() {
-        // Like/Dislike
-        document.addEventListener('submit', (e) => {
-            if (e.target.matches('.like-btn') || e.target.matches('.dislike-btn')) {
-                e.preventDefault();
-                const form = e.target.closest('form');
-                const commentId = form.querySelector('input[name="commentId"]').value;
-                const type = form.querySelector('button[type="submit"]').dataset.type;
-                this.voteComment(commentId, type);
-            }
-        });
+        // Like/Dislike - DISABLED FOR SERVLET VERSION
+        // document.addEventListener('submit', (e) => {
+        //     if (e.target.matches('.like-btn') || e.target.matches('.dislike-btn')) {
+        //         e.preventDefault();
+        //         const form = e.target.closest('form');
+        //         const commentId = form.querySelector('input[name="commentId"]').value;
+        //         const type = form.querySelector('button[type="submit"]').dataset.type;
+        //         this.voteComment(commentId, type);
+        //     }
+        // });
 
         // Delete
         document.addEventListener('click', (e) => {
@@ -280,19 +291,8 @@ class AdvancedCommentSystem extends CommentSystem {
     }
 
     voteComment(commentId, type) {
-        fetch(`/api/comment/vote/${type}`, {
-            method: 'POST',
-            body: new URLSearchParams({ commentId })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById(`like-count-${commentId}`).textContent = data.likeCount;
-                document.getElementById(`dislike-count-${commentId}`).textContent = data.dislikeCount;
-            } else {
-                this.showMessage(data.message || 'Có lỗi khi vote', 'error');
-            }
-        });
+        // DISABLED: Use servlet form submission instead
+        console.log('Vote comment disabled in favor of servlet');
     }
 
     showDeleteModal() {

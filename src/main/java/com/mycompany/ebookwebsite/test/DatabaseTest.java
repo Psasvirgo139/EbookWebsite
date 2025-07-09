@@ -1,121 +1,135 @@
 package com.mycompany.ebookwebsite.test;
 
 import com.mycompany.ebookwebsite.dao.DBConnection;
-import com.mycompany.ebookwebsite.dao.UserDAO;
-import com.mycompany.ebookwebsite.dao.UserInforDAO;
-import com.mycompany.ebookwebsite.model.User;
-import com.mycompany.ebookwebsite.model.UserInfor;
 import java.sql.*;
 
 public class DatabaseTest {
-    
+
     public static void main(String[] args) {
-        testDatabaseConnection();
-        testUserInforTable();
-        testUserTable();
-    }
-    
-    public static void testDatabaseConnection() {
-        System.out.println("=== Testing Database Connection ===");
+        System.out.println("=== DATABASE VOTE SYSTEM TEST ===");
+        
         try (Connection con = DBConnection.getConnection()) {
-            if (con != null) {
-                System.out.println("✅ Database connection successful!");
-                
-                // Test UserInfor table structure
-                DatabaseMetaData metaData = con.getMetaData();
-                ResultSet columns = metaData.getColumns(null, null, "UserInfor", null);
-                
-                System.out.println("\n=== UserInfor Table Structure ===");
-                while (columns.next()) {
-                    String columnName = columns.getString("COLUMN_NAME");
-                    String dataType = columns.getString("TYPE_NAME");
-                    System.out.println(columnName + " - " + dataType);
-                }
-                
-                // Test Users table structure
-                ResultSet userColumns = metaData.getColumns(null, null, "Users", null);
-                
-                System.out.println("\n=== Users Table Structure ===");
-                while (userColumns.next()) {
-                    String columnName = userColumns.getString("COLUMN_NAME");
-                    String dataType = userColumns.getString("TYPE_NAME");
-                    System.out.println(columnName + " - " + dataType);
-                }
-                
-            } else {
-                System.out.println("❌ Database connection failed!");
-            }
-        } catch (Exception e) {
-            System.out.println("❌ Database connection error: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    public static void testUserInforTable() {
-        System.out.println("\n=== Testing UserInfor Table ===");
-        try {
-            UserInforDAO userInforDAO = new UserInforDAO();
+            System.out.println("✅ Database connection successful");
             
-            // Test select all
-            System.out.println("Testing select all UserInfor...");
-            var allUserInfor = userInforDAO.selectAllUserInfor();
-            System.out.println("Found " + allUserInfor.size() + " UserInfor records");
-            
-            for (UserInfor ui : allUserInfor) {
-                System.out.println("ID: " + ui.getId() + 
-                                 ", Phone: " + ui.getPhone() + 
-                                 ", Birthday: " + ui.getBirthDay() + 
-                                 ", Gender: " + ui.getGender());
+            // 1. Check if CommentVotes table exists
+            System.out.println("\n--- Checking CommentVotes table ---");
+            try {
+                String checkVotesTable = "SELECT COUNT(*) FROM CommentVotes";
+                try (PreparedStatement ps = con.prepareStatement(checkVotesTable)) {
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        System.out.println("✅ CommentVotes table exists with " + rs.getInt(1) + " records");
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("❌ CommentVotes table NOT FOUND: " + e.getMessage());
+                
+                // Try to create the table
+                System.out.println("--- Creating CommentVotes table ---");
+                String createTableSQL = "CREATE TABLE CommentVotes (" +
+                    "user_id INT NOT NULL, " +
+                    "comment_id INT NOT NULL, " +
+                    "value INT NOT NULL, " +
+                    "created_at DATETIME DEFAULT GETDATE(), " +
+                    "PRIMARY KEY (user_id, comment_id), " +
+                    "FOREIGN KEY (comment_id) REFERENCES Comments(id) ON DELETE CASCADE" +
+                    ")";
+                
+                try (Statement stmt = con.createStatement()) {
+                    stmt.executeUpdate(createTableSQL);
+                    System.out.println("✅ CommentVotes table created successfully");
+                } catch (SQLException ex) {
+                    System.out.println("❌ Failed to create CommentVotes table: " + ex.getMessage());
+                }
             }
             
-            // Test select by ID
-            if (!allUserInfor.isEmpty()) {
-                System.out.println("\nTesting select UserInfor by ID...");
-                UserInfor userInfor = userInforDAO.selectUserInfor(allUserInfor.get(0).getId());
-                if (userInfor != null) {
-                    System.out.println("✅ Found UserInfor: " + userInfor.getPhone());
+            // 2. Check if CommentLikes table exists (old system)
+            System.out.println("\n--- Checking CommentLikes table (old system) ---");
+            try {
+                String checkLikesTable = "SELECT COUNT(*) FROM CommentLikes";
+                try (PreparedStatement ps = con.prepareStatement(checkLikesTable)) {
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        System.out.println("⚠️ CommentLikes table exists with " + rs.getInt(1) + " records (old system)");
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("✅ CommentLikes table not found (good, using new system)");
+            }
+            
+            // 3. Test vote operations
+            System.out.println("\n--- Testing Vote Operations ---");
+            
+            // Get a test comment ID
+            String getCommentSQL = "SELECT TOP 1 id FROM Comments WHERE ebook_id IS NOT NULL";
+            int testCommentId = 0;
+            try (PreparedStatement ps = con.prepareStatement(getCommentSQL)) {
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    testCommentId = rs.getInt("id");
+                    System.out.println("Using test comment ID: " + testCommentId);
                 } else {
-                    System.out.println("❌ UserInfor not found");
+                    System.out.println("❌ No comments found for testing");
+                    return;
                 }
             }
             
-        } catch (Exception e) {
-            System.out.println("❌ UserInfor test error: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    public static void testUserTable() {
-        System.out.println("\n=== Testing Users Table ===");
-        try {
-            UserDAO userDAO = new UserDAO();
+            // Test insert vote
+            int testUserId = 1; // Assuming user ID 1 exists
+            System.out.println("Testing vote insert for userId=" + testUserId + ", commentId=" + testCommentId);
             
-            // Test select all
-            System.out.println("Testing select all Users...");
-            var allUsers = userDAO.findAll();
-            System.out.println("Found " + allUsers.size() + " User records");
-            
-            for (User user : allUsers) {
-                System.out.println("ID: " + user.getId() + 
-                                 ", Username: " + user.getUsername() + 
-                                 ", Email: " + user.getEmail() + 
-                                 ", UserInforID: " + user.getUserinforId());
-            }
-            
-            // Test select by ID
-            if (!allUsers.isEmpty()) {
-                System.out.println("\nTesting select User by ID...");
-                User user = userDAO.findById(allUsers.get(0).getId());
-                if (user != null) {
-                    System.out.println("✅ Found User: " + user.getUsername());
-                } else {
-                    System.out.println("❌ User not found");
+            String insertVoteSQL = "INSERT INTO CommentVotes (user_id, comment_id, value) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = con.prepareStatement(insertVoteSQL)) {
+                ps.setInt(1, testUserId);
+                ps.setInt(2, testCommentId);
+                ps.setInt(3, 1); // Like
+                int affected = ps.executeUpdate();
+                System.out.println("✅ Vote insert successful, affected rows: " + affected);
+                
+                // Test count votes
+                String countSQL = "SELECT COUNT(*) FROM CommentVotes WHERE comment_id = ? AND value = ?";
+                try (PreparedStatement countPs = con.prepareStatement(countSQL)) {
+                    countPs.setInt(1, testCommentId);
+                    countPs.setInt(2, 1);
+                    ResultSet countRs = countPs.executeQuery();
+                    if (countRs.next()) {
+                        System.out.println("✅ Like count for comment " + testCommentId + ": " + countRs.getInt(1));
+                    }
                 }
+                
+                // Clean up test data
+                String deleteSQL = "DELETE FROM CommentVotes WHERE user_id = ? AND comment_id = ?";
+                try (PreparedStatement deletePs = con.prepareStatement(deleteSQL)) {
+                    deletePs.setInt(1, testUserId);
+                    deletePs.setInt(2, testCommentId);
+                    deletePs.executeUpdate();
+                    System.out.println("✅ Test data cleaned up");
+                }
+                
+            } catch (SQLException e) {
+                System.out.println("❌ Vote test failed: " + e.getMessage());
+                e.printStackTrace();
             }
             
-        } catch (Exception e) {
-            System.out.println("❌ Users test error: " + e.getMessage());
+            // 4. Check Comments table structure
+            System.out.println("\n--- Checking Comments table structure ---");
+            try {
+                String metaSQL = "SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Comments'";
+                try (PreparedStatement ps = con.prepareStatement(metaSQL)) {
+                    ResultSet rs = ps.executeQuery();
+                    while (rs.next()) {
+                        System.out.println("Column: " + rs.getString("COLUMN_NAME") + " - Type: " + rs.getString("DATA_TYPE"));
+                    }
+                }
+            } catch (SQLException e) {
+                System.out.println("❌ Error checking Comments table: " + e.getMessage());
+            }
+            
+        } catch (SQLException e) {
+            System.out.println("❌ Database connection failed: " + e.getMessage());
             e.printStackTrace();
         }
+        
+        System.out.println("\n=== TEST COMPLETED ===");
     }
 } 

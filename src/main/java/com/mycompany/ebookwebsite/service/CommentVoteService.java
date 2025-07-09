@@ -8,7 +8,6 @@ public class CommentVoteService {
     private final CommentVoteDAO voteDAO = new CommentVoteDAO();
 
     public boolean like(int userId, int commentId) {
-        System.out.println("[DEBUG] like called: userId=" + userId + ", commentId=" + commentId);
         return voteDAO.upsertVote(userId, commentId, 1);
     }
 
@@ -46,13 +45,11 @@ public class CommentVoteService {
     }
 
     public Integer getVoteValue(int userId, int commentId) {
-        System.out.println("[DEBUG] getVoteValue called: userId=" + userId + ", commentId=" + commentId);
         Optional<CommentVote> vote = voteDAO.getVote(userId, commentId);
         return vote.map(CommentVote::getValue).orElse(null);
     }
 
     public void setVote(int userId, int commentId, int value) {
-        System.out.println("[DEBUG] setVote called: userId=" + userId + ", commentId=" + commentId + ", value=" + value);
         voteDAO.upsertVote(userId, commentId, value);
     }
 

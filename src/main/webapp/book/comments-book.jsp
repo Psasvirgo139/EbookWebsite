@@ -25,7 +25,6 @@
         <div class="comment-form">
             <form method="post" action="${pageContext.request.contextPath}/add-comment">
                 <input type="hidden" name="bookId" value="${ebook.id}">
-                <p>DEBUG bookId: ${ebook.id}</p>
                 <textarea name="content" placeholder="Viết bình luận của bạn..." required></textarea>
                 <button type="submit" class="btn btn-primary">Gửi bình luận</button>
             </form>
@@ -34,7 +33,7 @@
     
     <!-- Danh sách comment -->
     <div class="comments-list">
-        <c:forEach var="comment" items="${bookComments}">
+        <c:forEach var="comment" items="${bookComments}" varStatus="loopStatus">
             <c:if test="${comment.parentCommentID == null}">
                 <div class="comment-item" data-comment-id="${comment.id}">
                     <div class="comment-header">
@@ -139,20 +138,21 @@
                                         </c:otherwise>
                                     </c:choose>
                                     <div class="comment-actions">
-                                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
-                                            <input type="hidden" name="commentId" value="${reply.id}">
-                                            <input type="hidden" name="type" value="like">
-                                            <button type="submit" class="btn btn-sm btn-outline-primary like-btn" data-type="like">
-                                                👍 <span class="like-count" id="like-count-${reply.id}">${likeMap[reply.id] != null ? likeMap[reply.id] : 0}</span>
-                                            </button>
-                                        </form>
-                                        <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
-                                            <input type="hidden" name="commentId" value="${reply.id}">
-                                            <input type="hidden" name="type" value="dislike">
-                                            <button type="submit" class="btn btn-sm btn-outline-secondary dislike-btn" data-type="dislike">
-                                                👎 <span class="dislike-count" id="dislike-count-${reply.id}">${dislikeMap[reply.id] != null ? dislikeMap[reply.id] : 0}</span>
-                                            </button>
-                                        </form>
+                                        <div class="comment-actions">
+                                            <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
+                                                <input type="hidden" name="commentId" value="${reply.id}">
+                                                <input type="hidden" name="type" value="like">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary like-btn" data-type="like">
+                                                    👍 <span class="like-count" id="like-count-${reply.id}">${likeMap[reply.id] != null ? likeMap[reply.id] : 0}</span>
+                                                </button>
+                                            </form>
+                                            <form method="post" action="${pageContext.request.contextPath}/comment/vote" style="display: inline;">
+                                                <input type="hidden" name="commentId" value="${reply.id}">
+                                                <input type="hidden" name="type" value="dislike">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary dislike-btn" data-type="dislike">
+                                                    👎 <span class="dislike-count" id="dislike-count-${reply.id}">${dislikeMap[reply.id] != null ? dislikeMap[reply.id] : 0}</span>
+                                                </button>
+                                            </form>
                                         <c:if test="${sessionScope.userId == reply.userID || sessionScope.role == 'admin'}">
                                             <form method="get" action="">
                                                 <input type="hidden" name="id" value="${ebook.id}">

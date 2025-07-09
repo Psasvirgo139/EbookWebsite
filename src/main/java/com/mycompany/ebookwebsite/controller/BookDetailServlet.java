@@ -8,6 +8,7 @@ import com.mycompany.ebookwebsite.service.EbookService;
 import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.VolumeService;
 import com.mycompany.ebookwebsite.service.ChapterService;
+import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -22,6 +23,8 @@ import com.mycompany.ebookwebsite.model.Tag;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @WebServlet("/book/detail")
 public class BookDetailServlet extends HttpServlet {
@@ -50,11 +53,20 @@ public class BookDetailServlet extends HttpServlet {
 
             ebookService.incrementViewCount(id);
             
-            // Lấy toàn bộ comment (cả cha và con)
-            List<Comment> bookComments = commentService.getCommentsByEbookId(id);
+            // Get book comments
+            List<Comment> bookComments = commentService.getCommentsByBook(id);
+            if (bookComments == null) {
+                bookComments = new java.util.ArrayList<>();
+            }
             
-            // Lấy comment tổng hợp từ các chapter (top comments)
-            List<Comment> aggregatedComments = commentService.getTopChapterComments(id, 10);
+            // Get top chapter comments
+            List<Comment> aggregatedComments;
+            try {
+                aggregatedComments = commentService.getTopChapterComments(id, 10);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                aggregatedComments = new java.util.ArrayList<>();
+            }
 
             // Lấy userId từ cả 2 list
             java.util.Set<Integer> userIds = new java.util.HashSet<>();
@@ -67,6 +79,26 @@ public class BookDetailServlet extends HttpServlet {
                 userMap.put(uid, user != null ? user.getUsername() : "Unknown");
             }
             request.setAttribute("userMap", userMap);
+
+            // Create vote maps
+            CommentVoteService voteService = new CommentVoteService();
+            Map<Integer, Integer> likeMap = new HashMap<>();
+            Map<Integer, Integer> dislikeMap = new HashMap<>();
+            
+            // Process book comments
+            for (Comment c : bookComments) {
+                likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+                dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+            }
+            
+            // Process aggregated comments
+            for (Comment c : aggregatedComments) {
+                likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+                dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+            }
+            
+            request.setAttribute("likeMap", likeMap);
+            request.setAttribute("dislikeMap", dislikeMap);
 
             // Authors
             List<com.mycompany.ebookwebsite.model.EbookAuthor> eaList = ebookAuthorDAO.getAuthorsByEbook(id);
