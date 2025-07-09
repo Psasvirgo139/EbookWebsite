@@ -4,7 +4,7 @@
  */
 package com.mycompany.ebookwebsite.model;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -19,7 +19,7 @@ public class Ebook {
     private String status;
     private String visibility;
     private Integer uploaderId;
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     private int viewCount;
     private String coverUrl;
     private String summary;
@@ -31,7 +31,7 @@ public class Ebook {
     public Ebook() {
     }
 
-    public Ebook(int id, String title, String description, String releaseType, String language, String status, String visibility, Integer uploaderId, LocalDate createdAt, int viewCount, String coverUrl) {
+    public Ebook(int id, String title, String description, String releaseType, String language, String status, String visibility, Integer uploaderId, LocalDateTime createdAt, int viewCount, String coverUrl) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -111,11 +111,11 @@ public class Ebook {
         this.uploaderId = uploaderId;
     }
 
-    public LocalDate getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

@@ -4,10 +4,21 @@
  */
 package com.mycompany.ebookwebsite.listener;
 
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
+
 /**
  * Web application lifecycle listener.
  *
  * @author ADMIN
  */
-public class DefaultContextListener {
+public class DefaultContextListener implements ServletContextListener {
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+    }
 }

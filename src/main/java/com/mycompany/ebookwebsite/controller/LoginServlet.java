@@ -71,9 +71,14 @@ public class LoginServlet extends HttpServlet {
         HttpSession session = request.getSession();
         session.setAttribute("user", user);
 
-        // Chuyển hướng về trang chủ cho cả user và admin
-        String target = "/index.jsp";
-        response.sendRedirect(request.getContextPath() + target);
+        // Kiểm tra xem có URL gốc cần quay lại không
+        String redirect = (String) session.getAttribute("redirectAfterLogin");
+        if (redirect != null) {
+            session.removeAttribute("redirectAfterLogin");
+            response.sendRedirect(request.getContextPath() + redirect);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/");
+        }
     }
 
     @Override

@@ -16,14 +16,13 @@ import com.mycompany.ebookwebsite.utils.Utils;
  *
  * @author ADMIN
  */
+
+// sử lại database nè m
 public class DBConnection {
     public static String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    public static String dbURL = Utils.getEnv("DB_URL") != null ? 
-        Utils.getEnv("DB_URL") : "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
-    public static String userDB = Utils.getEnv("DB_USER") != null ? 
-        Utils.getEnv("DB_USER") : "sa";
-    public static String passDB = Utils.getEnv("DB_PASSWORD") != null ? 
-        Utils.getEnv("DB_PASSWORD") : "123";
+    public static String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
+    public static String userDB = "sa";
+    public static String passDB = "Danh24092004@";
 
     public static Connection getConnection() throws SQLException {
         try {

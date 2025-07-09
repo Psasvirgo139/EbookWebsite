@@ -1,0 +1,3 @@
+Chương 1: Tổng quan về Servlet
+
+Servlet là một thành phần chạy phía server, giúp tạo ứng dụng web động trong Java. Nó xử lý request từ client và trả về response.
