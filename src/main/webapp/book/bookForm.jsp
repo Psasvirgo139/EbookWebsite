@@ -24,8 +24,7 @@
                 </c:forEach>
             </ul>
         </c:if>
-        <form method="post" action="${ctx}/book">
-            <input type="hidden" name="action" value="<%= editMode ? "update" : "create" %>" />
+        <form method="post" action="${ctx}/book/upload">
             <c:if test="${editMode}">
                 <input type="hidden" name="id" value="${book.id}" />
             </c:if>
@@ -63,7 +62,7 @@
             </div>
             <div style="margin-top:16px;">
                 <button type="submit" class="btn btn-primary"><%= editMode ? "Cập nhật" : "Tạo mới" %></button>
-                <a href="${ctx}/book?action=list" class="btn btn-secondary">Hủy</a>
+                <a href="${ctx}/book-list" class="btn btn-secondary">Hủy</a>
             </div>
         </form>
     </div>

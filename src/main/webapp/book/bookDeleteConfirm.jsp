@@ -19,11 +19,11 @@
             <div><strong>ID:</strong> ${book.id}</div>
             <div><strong>Tiêu đề:</strong> ${book.title}</div>
             <div><strong>Mô tả:</strong> ${book.description}</div>
-            <form method="post" action="${ctx}/book">
+            <form method="post" action="${ctx}/book/detail">
                 <input type="hidden" name="action" value="delete" />
                 <input type="hidden" name="id" value="${book.id}" />
                 <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
-                <a href="${ctx}/book?action=list" class="btn btn-secondary">Hủy</a>
+                <a href="${ctx}/book-list" class="btn btn-secondary">Hủy</a>
             </form>
         </c:if>
     </div>

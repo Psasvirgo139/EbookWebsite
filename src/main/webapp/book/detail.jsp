@@ -47,11 +47,11 @@
             
             <!-- Admin actions (if user has permission) -->
             <c:if test="${sessionScope.user != null && (sessionScope.user.role == 'admin' || sessionScope.user.id == ebook.uploaderId)}">
-                <a href="${pageContext.request.contextPath}/book?action=editSummary&id=${ebook.id}" class="btn btn-outline-primary btn-sm ms-2">📝 Sửa tóm tắt</a>
-                <a href="${pageContext.request.contextPath}/book?action=delete&id=${ebook.id}" class="btn btn-outline-danger btn-sm ms-1">🗑️ Xóa</a>
+                <a href="${pageContext.request.contextPath}/book/detail?action=editSummary&id=${ebook.id}" class="btn btn-outline-primary btn-sm ms-2">📝 Sửa tóm tắt</a>
+                <a href="${pageContext.request.contextPath}/book/detail?action=delete&id=${ebook.id}" class="btn btn-outline-danger btn-sm ms-1">🗑️ Xóa</a>
             </c:if>
             
-            <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary btn-sm ms-2">← Quay lại</a>
+            <a href="${pageContext.request.contextPath}/book-list" class="btn btn-outline-secondary btn-sm ms-2">← Quay lại danh sách</a>
         </div>
     </div>
 

@@ -300,7 +300,7 @@
                 <!-- Upload Button for logged in users -->
                 <c:if test="${not empty sessionScope.user}">
                     <div class="upload-section" style="margin-top: 20px;">
-                        <a href="${ctx}/book?action=upload" class="upload-btn-main" style="
+                        <a href="${ctx}/book/upload" class="upload-btn-main" style="
                             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                             color: white;
                             padding: 12px 24px;
@@ -407,7 +407,7 @@
                                 <div class="upload-suggestion">
                                     <h4>📤 Hãy là người đầu tiên!</h4>
                                     <p>Chia sẻ truyện hay của bạn với cộng đồng</p>
-                                    <a href="${ctx}/book?action=upload" class="upload-btn-main" style="
+                                    <a href="${ctx}/book/upload" class="upload-btn-main" style="
                                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                                         color: white;
                                         padding: 12px 24px;

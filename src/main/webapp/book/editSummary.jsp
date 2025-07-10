@@ -22,7 +22,7 @@
                 <span style="color:#e08bca;">🌸🤖</span> Sửa tóm tắt nội dung (AI)
             </h2>
             <form id="editSummaryForm"
-                  action="${pageContext.request.contextPath}/book?action=editSummary"
+                  action="${pageContext.request.contextPath}/book/detail?action=editSummary"
                   method="post"
                   class="form-book card-shadow"
                   style="max-width:550px;margin:0 auto;background:#fff;border-radius:18px;padding:28px 34px;">
