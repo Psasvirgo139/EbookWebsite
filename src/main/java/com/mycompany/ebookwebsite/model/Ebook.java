@@ -128,6 +128,26 @@ public class Ebook {
         this.coverUrl = coverUrl;
     }
 
+    // ===== AI COMPATIBILITY METHODS =====
+    
+    /**
+     * Compatibility method for AI services
+     * @return default author (TODO: join with Authors table)
+     */
+    public String getAuthor() {
+        // TODO: Implement proper author relationship with Authors table
+        return "Tác giả chưa xác định";
+    }
+    
+    /**
+     * Compatibility method for AI services
+     * @return genre/category (alias for releaseType)
+     * @deprecated Use getReleaseType() instead
+     */
+    public String getGenre() {
+        return this.releaseType != null ? this.releaseType : "Chưa phân loại";
+    }
+
     @Override
     public String toString() {
         return "Ebook{" + "id=" + id + ", title=" + title + ", description=" + description + ", releaseType=" + releaseType + ", language=" + language + ", status=" + status + ", visibility=" + visibility + ", uploaderId=" + uploaderId + ", createdAt=" + createdAt + ", viewCount=" + viewCount + ", coverUrl=" + coverUrl + '}';

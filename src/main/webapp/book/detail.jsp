@@ -24,8 +24,35 @@
             </c:forEach>
         </p>
         <p><strong>Mô tả:</strong> ${ebook.description}</p>
+        
+        <!-- ===== AI SUMMARY DISPLAY ===== -->
+        <c:if test="${not empty ebook.summary}">
+            <div class="alert alert-info mt-3" style="border-left: 4px solid #17a2b8;">
+                <h6 class="alert-heading">
+                    <i class="fas fa-robot text-info"></i> 🤖 Tóm tắt AI
+                </h6>
+                <p class="mb-0" style="line-height: 1.6;">${ebook.summary}</p>
+                <hr class="mt-2 mb-2">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> Tóm tắt được tạo tự động bằng AI
+                </small>
+            </div>
+        </c:if>
+        
         <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
-        <a href="read?bookId=${ebook.id}&chapterId=1" class="btn btn-success mt-2">Đọc ngay</a>
+        
+        <!-- Action buttons -->
+        <div class="mt-3">
+            <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success">📖 Đọc ngay</a>
+            
+            <!-- Admin actions (if user has permission) -->
+            <c:if test="${sessionScope.user != null && (sessionScope.user.role == 'admin' || sessionScope.user.id == ebook.uploaderId)}">
+                <a href="${pageContext.request.contextPath}/book?action=editSummary&id=${ebook.id}" class="btn btn-outline-primary btn-sm ms-2">📝 Sửa tóm tắt</a>
+                <a href="${pageContext.request.contextPath}/book?action=delete&id=${ebook.id}" class="btn btn-outline-danger btn-sm ms-1">🗑️ Xóa</a>
+            </c:if>
+            
+            <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary btn-sm ms-2">← Quay lại</a>
+        </div>
     </div>
 
     <!-- ======= Bình luận về sách ======= -->
@@ -85,7 +112,7 @@
                     <c:forEach var="ch" items="${chapters}">
                         <c:if test="${ch.volumeID == vol.id}">
                             <li class="list-group-item p-2">
-                                <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                                <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                                     Ch ${ch.number}
                                 </a>
                                 <c:choose>
@@ -108,7 +135,7 @@
             <ul class="list-group list-group-horizontal flex-wrap">
                 <c:forEach var="ch" items="${chapters}">
                     <li class="list-group-item p-2">
-                        <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                             Ch ${ch.number}
                         </a>
                         <c:choose>
