@@ -48,13 +48,13 @@ public class BookDetailServlet extends HttpServlet {
         try {
             // validate và xử lý
             int id = EbookValidation.validateId(request.getParameter("id"));
-            EbookWithAI ebook = ebookWithAIService.getEbookWithAI(id);
+            Ebook ebook = ebookService.getEbookById(id);
             if (ebook == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Book not found");
                 return;
             }
 
-            ebookWithAIService.incrementViewCount(id);
+            ebookService.incrementViewCount(id);
             
             // Get book comments
             List<Comment> bookComments = commentService.getCommentsByBook(id);
