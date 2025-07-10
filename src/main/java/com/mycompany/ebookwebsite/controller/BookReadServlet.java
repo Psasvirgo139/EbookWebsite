@@ -35,13 +35,15 @@ public class BookReadServlet extends HttpServlet {
     private VolumeService volumeService;
     private CommentService commentService;
     private CommentVoteService voteService;
-
+    private CoinService coinService;
+    
     @Override
     public void init() {
         ebookService = new EbookService();
         chapterService = new ChapterService();
         volumeService = new VolumeService();
         commentService = new CommentService();
+        coinService = new CoinService();
         voteService = new CommentVoteService();
     }
 
@@ -242,8 +244,8 @@ public class BookReadServlet extends HttpServlet {
             java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
             com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
             for (Integer uid : userIds) {
-                com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
-                userMap.put(uid, user != null ? user.getUsername() : "Unknown");
+                com.mycompany.ebookwebsite.model.User user1 = userDAO.findById(uid);
+                userMap.put(uid, user1 != null ? user1.getUsername() : "Unknown");
             }
             request.setAttribute("userMap", userMap);
 

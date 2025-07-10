@@ -34,6 +34,12 @@ public class AuthFilter implements Filter {
             uri.endsWith("/") ||
             uri.endsWith("/index.jsp") ||
             uri.endsWith("/index.html") ||
+            uri.endsWith("/book/home") ||        // Trang chủ sách - user có thể browse
+            uri.endsWith("/book/detail") ||      // Chi tiết sách - xem thông tin trước khi đăng ký
+            uri.endsWith("/book/read") ||        // Đọc sách - cho phép xem chapter public, premium chapter tự redirect
+            uri.endsWith("/tag") ||              // Tags - để filter/search sách
+            uri.endsWith("/comment/list") ||     // Xem comments - đọc review từ users khác
+            uri.equals(ctx + "") ||              // Landing page
             uri.startsWith(ctx + "/assets/") ||
             uri.matches(".*(\\.css|\\.js|\\.png|\\.jpg|\\.gif|\\.woff2|\\.woff|\\.ttf)$")
         ) {

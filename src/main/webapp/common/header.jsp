@@ -41,7 +41,7 @@
     📚 <span>scroll</span>
   </div>
   <nav class="main-nav" id="mainNav" aria-label="Điều hướng chính">
-    <a class="nav-link" href="${ctx}/index.jsp">Trang chủ</a>
+    <a class="nav-link" href="${ctx}/">Trang chủ</a>
     <div class="nav-item genres-dropdown">
       <a class="nav-link" href="#" aria-haspopup="true" aria-expanded="false">
         Thể loại ▾
