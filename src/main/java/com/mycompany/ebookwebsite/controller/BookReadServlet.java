@@ -13,6 +13,8 @@ import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.service.OpenAIContentSummaryService;
 import com.mycompany.ebookwebsite.dao.EbookDAO;
+import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -45,6 +47,7 @@ public class BookReadServlet extends HttpServlet {
     private CommentService commentService;
     private CommentVoteService voteService;
     private EbookDAO ebookDAO;
+    private EbookWithAIService ebookWithAIService;
     
     // Upload folder configuration from ReadBookServlet
     private static final String UPLOAD_FOLDER = "uploads";
@@ -58,6 +61,7 @@ public class BookReadServlet extends HttpServlet {
         commentService = new CommentService();
         voteService = new CommentVoteService();
         ebookDAO = new EbookDAO();
+        ebookWithAIService = new EbookWithAIService();
     }
 
     @Override
@@ -128,7 +132,7 @@ public class BookReadServlet extends HttpServlet {
         
         try {
             int bookId = Integer.parseInt(bookIdStr);
-            Ebook book = ebookDAO.selectEbook(bookId);
+            EbookWithAI book = ebookWithAIService.getEbookWithAI(bookId);
             
             if (book == null) {
                 response.sendRedirect(request.getContextPath() + "/");
@@ -150,19 +154,31 @@ public class BookReadServlet extends HttpServlet {
             }
             
             // Increment view count
-            ebookDAO.incrementViewCount(bookId);
+            ebookWithAIService.incrementViewCount(bookId);
             
             // Read book content
             String bookContent = readBookContent(book);
             
-            // AI summary integration
+            // AI summary integration with database persistence
             if (book.getSummary() == null || book.getSummary().trim().isEmpty()) {
                 try {
+                    System.out.println("🤖 Generating AI summary for book: " + book.getTitle());
                     OpenAIContentSummaryService summaryService = new OpenAIContentSummaryService();
                     String summary = summaryService.summarize(bookContent);
-                    book.setSummary(summary);
+                    
+                    // Save AI summary to database using service
+                    boolean saved = ebookWithAIService.updateSummary(book.getId(), summary);
+                    if (saved) {
+                        System.out.println("✅ AI summary saved to database for book ID: " + book.getId());
+                        book.setSummary(summary); // Update in-memory object for JSP
+                    } else {
+                        System.out.println("⚠️ Failed to save AI summary to database. Check migration status.");
+                    }
+                    
                 } catch (Exception ex) {
-                    book.setSummary("Không thể tạo tóm tắt AI: " + ex.getMessage());
+                    String errorMsg = "Không thể tạo tóm tắt AI: " + ex.getMessage();
+                    System.err.println("❌ AI Summary Error: " + errorMsg);
+                    book.setSummary(errorMsg);
                 }
             }
             
@@ -408,6 +424,23 @@ public class BookReadServlet extends HttpServlet {
     }
 
     /**
+     * Helper method to get fileName from AI data
+     */
+    private String getFileNameFromBook(Ebook book) {
+        if (book instanceof EbookWithAI) {
+            return ((EbookWithAI) book).getFileName();
+        }
+        // Fallback: try to get from AI service
+        try {
+            EbookWithAI ebookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+            return ebookWithAI != null ? ebookWithAI.getFileName() : null;
+        } catch (Exception e) {
+            System.err.println("⚠️ Cannot get fileName from AI data: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Read full book content (from ReadBookServlet)
      */
     private String readBookContent(Ebook book) {
@@ -415,7 +448,7 @@ public class BookReadServlet extends HttpServlet {
         String bookTitle = book.getTitle();
         
         // Primary method: use fileName from database
-        String fileName = book.getFileName();
+        String fileName = getFileNameFromBook(book);
         
         if (fileName != null && !fileName.trim().isEmpty()) {
             Path filePath = Paths.get(uploadsPath, fileName);
@@ -465,8 +498,8 @@ public class BookReadServlet extends HttpServlet {
                 System.out.println("🔍 Tìm thấy file bằng fuzzy search: " + possibleFileName);
                 
                 try {
-                    book.setFileName(possibleFileName);
-                    ebookDAO.updateEbook(book);
+                    // Update file info using EbookWithAIService
+                    ebookWithAIService.updateFileInfo(book.getId(), possibleFileName, null);
                     System.out.println("💾 Đã cập nhật fileName vào database: " + possibleFileName);
                 } catch (Exception e) {
                     System.out.println("⚠️ Không thể cập nhật fileName vào database: " + e.getMessage());
@@ -490,7 +523,8 @@ public class BookReadServlet extends HttpServlet {
         debugInfo.append("📋 Thông tin debug:\n");
         debugInfo.append("- ID sách: ").append(book.getId()).append("\n");
         debugInfo.append("- Tên sách: ").append(book.getTitle()).append("\n");
-        debugInfo.append("- FileName từ DB: ").append(book.getFileName() != null ? book.getFileName() : "NULL").append("\n");
+        String fileName = getFileNameFromBook(book);
+        debugInfo.append("- FileName từ DB: ").append(fileName != null ? fileName : "NULL").append("\n");
         debugInfo.append("- Thư mục uploads: ").append(uploadsPath).append("\n\n");
         
         debugInfo.append("📝 Các tên file đã thử:\n");

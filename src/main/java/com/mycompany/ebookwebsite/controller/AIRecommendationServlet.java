@@ -9,6 +9,7 @@ import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.BookService;
 import com.mycompany.ebookwebsite.service.InternalAIChatService;
 import com.mycompany.ebookwebsite.service.AIRecommendationService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -101,17 +102,20 @@ public class AIRecommendationServlet extends HttpServlet {
     private InternalAIChatService aiChatService;
     private AIRecommendationService recommendationService;
     private BookService bookService;
+    private EbookWithAIService ebookWithAIService;
     
     @Override
     public void init() throws ServletException {
         try {
-            aiChatService = new InternalAIChatService();
-            recommendationService = new AIRecommendationService();
-            bookService = new BookService();
+            this.aiChatService = new InternalAIChatService();
+            this.recommendationService = new AIRecommendationService();
+            this.bookService = new BookService();
+            this.ebookWithAIService = new EbookWithAIService();
             System.out.println("✅ AIRecommendationServlet initialized successfully");
         } catch (Exception e) {
-            System.err.println("❌ Failed to initialize AI Recommendation service: " + e.getMessage());
-            throw new ServletException("Failed to initialize AI services", e);
+            System.err.println("❌ Failed to initialize AIRecommendationServlet: " + e.getMessage());
+            e.printStackTrace();
+            throw new ServletException("Failed to initialize AI recommendation services", e);
         }
     }
     
@@ -250,8 +254,10 @@ public class AIRecommendationServlet extends HttpServlet {
         context.append("Các sách hiện có trên hệ thống: ");
         
         for (int i = 0; i < Math.min(10, availableBooks.size()); i++) {
-            Ebook Ebook = availableBooks.get(i);
-            context.append(Ebook.getTitle()).append(" (").append(Ebook.getAuthor()).append("), ");
+            Ebook book = availableBooks.get(i);
+            context.append(book.getTitle());
+            // Note: getAuthor() method doesn't exist in Ebook model, use other fields
+            context.append(" (").append(book.getReleaseType()).append("), ");
         }
         
         // Tạo prompt cho AI
@@ -259,7 +265,7 @@ public class AIRecommendationServlet extends HttpServlet {
                          "' và danh sách sách có sẵn: " + context.toString() +
                          ". Hãy đề xuất 3-5 cuốn sách phù hợp nhất và giải thích tại sao.";
         
-        String aiResponse = aiChatService.chat(aiPrompt, null);
+        String aiResponse = aiChatService.processChat(user.getId(), "rec_" + System.currentTimeMillis(), aiPrompt, null);
         
         // Log recommendation
         System.out.println("[AI Recommendation] User: " + user.getUsername() + 
@@ -294,16 +300,23 @@ public class AIRecommendationServlet extends HttpServlet {
             return;
         }
         
-        // Format kết quả
+        // Format kết quả with AI data support
         StringBuilder result = new StringBuilder();
         result.append("Sách thể loại ").append(genre).append(":\\n");
         
         for (int i = 0; i < Math.min(5, genreBooks.size()); i++) {
-            Ebook Ebook = genreBooks.get(i);
-            result.append("• ").append(Ebook.getTitle())
-                  .append(" - ").append(Ebook.getAuthor());
-            if (Ebook.getSummary() != null && !Ebook.getSummary().isEmpty()) {
-                result.append("\\n  Tóm tắt: ").append(Ebook.getSummary().substring(0, Math.min(100, Ebook.getSummary().length()))).append("...");
+            Ebook book = genreBooks.get(i);
+            result.append("• ").append(book.getTitle())
+                  .append(" - ").append(book.getReleaseType());
+            
+            // Get AI summary through EbookWithAI service
+            try {
+                EbookWithAIService.EbookWithAI bookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+                if (bookWithAI != null && bookWithAI.getSummary() != null && !bookWithAI.getSummary().isEmpty()) {
+                    result.append("\\n  Tóm tắt: ").append(bookWithAI.getSummary().substring(0, Math.min(100, bookWithAI.getSummary().length()))).append("...");
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Cannot get AI summary for book " + book.getId() + ": " + e.getMessage());
             }
             result.append("\\n\\n");
         }
@@ -339,12 +352,19 @@ public class AIRecommendationServlet extends HttpServlet {
             result.append("Kết quả tìm kiếm cho '").append(query).append("':\\n\\n");
             
             for (int i = 0; i < Math.min(5, searchResults.size()); i++) {
-                Ebook Ebook = searchResults.get(i);
-                result.append("📚 ").append(Ebook.getTitle())
-                      .append("\\n👤 Tác giả: ").append(Ebook.getAuthor())
-                      .append("\\n🏷️ Thể loại: ").append(Ebook.getGenre());
-                if (Ebook.getSummary() != null && !Ebook.getSummary().isEmpty()) {
-                    result.append("\\n📝 ").append(Ebook.getSummary().substring(0, Math.min(150, Ebook.getSummary().length()))).append("...");
+                Ebook book = searchResults.get(i);
+                result.append("📚 ").append(book.getTitle())
+                      .append("\\n🏷️ Thể loại: ").append(book.getReleaseType())
+                      .append("\\n📅 Ngày tạo: ").append(book.getCreatedAt() != null ? book.getCreatedAt().toString() : "N/A");
+                
+                // Get AI summary through EbookWithAI service
+                try {
+                    EbookWithAIService.EbookWithAI bookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+                    if (bookWithAI != null && bookWithAI.getSummary() != null && !bookWithAI.getSummary().isEmpty()) {
+                        result.append("\\n📝 ").append(bookWithAI.getSummary().substring(0, Math.min(150, bookWithAI.getSummary().length()))).append("...");
+                    }
+                } catch (Exception e) {
+                    System.err.println("⚠️ Cannot get AI summary for book " + book.getId() + ": " + e.getMessage());
                 }
                 result.append("\\n\\n");
             }
@@ -378,12 +398,19 @@ public class AIRecommendationServlet extends HttpServlet {
         
         // Lấy 5 sách đầu tiên làm đề xuất
         for (int i = 0; i < Math.min(5, allBooks.size()); i++) {
-            Ebook Ebook = allBooks.get(i);
-            result.append("🌟 ").append(Ebook.getTitle())
-                  .append("\\n👤 ").append(Ebook.getAuthor())
-                  .append("\\n📚 ").append(Ebook.getGenre());
-            if (Ebook.getSummary() != null && !Ebook.getSummary().isEmpty()) {
-                result.append("\\n📖 ").append(Ebook.getSummary().substring(0, Math.min(120, Ebook.getSummary().length()))).append("...");
+            Ebook book = allBooks.get(i);
+            result.append("🌟 ").append(book.getTitle())
+                  .append("\\n🏷️ ").append(book.getReleaseType())
+                  .append("\\n👁️ ").append(book.getViewCount()).append(" lượt xem");
+            
+            // Get AI summary through EbookWithAI service
+            try {
+                EbookWithAIService.EbookWithAI bookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+                if (bookWithAI != null && bookWithAI.getSummary() != null && !bookWithAI.getSummary().isEmpty()) {
+                    result.append("\\n📖 ").append(bookWithAI.getSummary().substring(0, Math.min(120, bookWithAI.getSummary().length()))).append("...");
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ Cannot get AI summary for book " + book.getId() + ": " + e.getMessage());
             }
             result.append("\\n\\n");
         }

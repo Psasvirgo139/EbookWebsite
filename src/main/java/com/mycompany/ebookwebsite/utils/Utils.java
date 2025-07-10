@@ -264,8 +264,8 @@ public class Utils {
                         ebook.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         ebook.setViewCount(rs.getInt("view_count"));
                         ebook.setCoverUrl(rs.getString("cover_url"));
-                        ebook.setFileName(rs.getString("file_name"));
-                        ebook.setOriginalFileName(rs.getString("original_file_name"));
+                        // AI fields moved to EbookAI table - no longer available in Ebooks table
+                        // TODO: Use EbookWithAIService if AI data is needed
                         
                         results.add(ebook);
                     }
@@ -406,8 +406,8 @@ public class Utils {
                         ebook.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                         ebook.setViewCount(rs.getInt("view_count"));
                         ebook.setCoverUrl(rs.getString("cover_url"));
-                        ebook.setFileName(rs.getString("file_name"));
-                        ebook.setOriginalFileName(rs.getString("original_file_name"));
+                        // AI fields moved to EbookAI table - no longer available in Ebooks table
+                        // TODO: Use EbookWithAIService if AI data is needed
                         
                         relatedBooks.add(ebook);
                     }

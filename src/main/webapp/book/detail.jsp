@@ -24,6 +24,21 @@
             </c:forEach>
         </p>
         <p><strong>Mô tả:</strong> ${ebook.description}</p>
+        
+        <!-- ===== AI SUMMARY DISPLAY ===== -->
+        <c:if test="${not empty ebook.summary}">
+            <div class="alert alert-info mt-3" style="border-left: 4px solid #17a2b8;">
+                <h6 class="alert-heading">
+                    <i class="fas fa-robot text-info"></i> 🤖 Tóm tắt AI
+                </h6>
+                <p class="mb-0" style="line-height: 1.6;">${ebook.summary}</p>
+                <hr class="mt-2 mb-2">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> Tóm tắt được tạo tự động bằng AI
+                </small>
+            </div>
+        </c:if>
+        
         <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
         
         <!-- Action buttons -->

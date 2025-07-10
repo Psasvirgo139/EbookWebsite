@@ -8,6 +8,7 @@ import java.util.List;
 
 public class EbookDAO {
 
+    // ===== CORE SQL QUERIES (AI FIELDS REMOVED) =====
     private static final String INSERT = "INSERT INTO Ebooks (title, description, release_type, language, status, visibility, uploader_id, created_at, view_count, cover_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String SELECT_BY_ID = "SELECT * FROM Ebooks WHERE id = ?";
     private static final String COUNT_ALL = "SELECT COUNT(*) FROM Ebooks";
@@ -45,6 +46,7 @@ public class EbookDAO {
         }
     }
 
+    // ===== CORE MAPROW (AI FIELDS REMOVED) =====
     private Ebook mapRow(ResultSet rs) throws SQLException {
         Ebook ebook = new Ebook();
         ebook.setId(rs.getInt("id"));
@@ -58,6 +60,7 @@ public class EbookDAO {
         ebook.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         ebook.setViewCount(rs.getInt("view_count"));
         ebook.setCoverUrl(rs.getString("cover_url"));
+        
         return ebook;
     }
 
@@ -79,6 +82,7 @@ public class EbookDAO {
         }
     }
 
+    // ===== CORE INSERT (AI FIELDS REMOVED) =====
     public void insertEbook(Ebook ebook) throws SQLException {
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(INSERT)) {
             ps.setString(1, ebook.getTitle());
@@ -95,6 +99,7 @@ public class EbookDAO {
         }
     }
 
+    // ===== CORE UPDATE (AI FIELDS REMOVED) =====
     public boolean updateEbook(Ebook ebook) throws SQLException {
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(UPDATE)) {
             ps.setString(1, ebook.getTitle());

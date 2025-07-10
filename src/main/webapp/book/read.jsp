@@ -22,16 +22,69 @@
         </div>
     </c:if>
 
-    <div class="d-flex justify-content-between mb-3">
-        <c:if test="${prevChapter != null}">
-            <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
-        </c:if>
-        <c:if test="${nextChapter != null}">
-            <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
-        </c:if>
+    <!-- Reading Mode Toggle -->
+    <div class="mb-3">
+        <div class="btn-group" role="group" aria-label="Reading Mode">
+            <c:choose>
+                <c:when test="${readingMode == 'full_book'}">
+                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-outline-primary">
+                        📄 Đọc theo chương
+                    </a>
+                    <span class="btn btn-success active">
+                        📚 Đọc toàn bộ (Có AI Summary)
+                    </span>
+                </c:when>
+                <c:otherwise>
+                    <span class="btn btn-primary active">
+                        📄 Đọc theo chương
+                    </span>
+                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&mode=full_book" class="btn btn-outline-success">
+                        📚 Đọc toàn bộ (Có AI Summary)
+                    </a>
+                </c:otherwise>
+            </c:choose>
+        </div>
     </div>
 
+    <!-- Chapter Navigation (only for chapter mode) -->
+    <c:if test="${readingMode != 'full_book'}">
+        <div class="d-flex justify-content-between mb-3">
+            <c:if test="${prevChapter != null}">
+                <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
+            </c:if>
+            <c:if test="${nextChapter != null}">
+                <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
+            </c:if>
+        </div>
+    </c:if>
+
     <c:choose>
+        <c:when test="${readingMode == 'full_book'}">
+            <!-- ===== FULL BOOK READING MODE ===== -->
+            <hr>
+            
+            <!-- AI Summary Display for Full Book -->
+            <c:if test="${not empty ebook.summary}">
+                <div class="alert alert-success mb-4" style="border-left: 4px solid #28a745;">
+                    <h6 class="alert-heading">
+                        <i class="fas fa-robot text-success"></i> 🤖 Tóm tắt AI
+                    </h6>
+                    <p class="mb-0" style="line-height: 1.6;">${ebook.summary}</p>
+                    <hr class="mt-2 mb-2">
+                    <small class="text-muted">
+                        <i class="fas fa-magic"></i> Tóm tắt tự động từ nội dung toàn bộ sách
+                    </small>
+                </div>
+            </c:if>
+            
+            <!-- Full Book Content Display -->
+            <div class="book-content">
+                <h4 class="text-center mb-4">📖 Đọc toàn bộ sách</h4>
+                <div class="content-text" style="white-space: pre-line; line-height: 1.8; font-size: 16px;">
+                    ${bookContent}
+                </div>
+            </div>
+        </c:when>
         <c:when test="${hasAccess}">
             <hr>
             <div class="chapter-content">
@@ -116,10 +169,12 @@
         </c:otherwise>
     </c:choose>
 
-    <div class="mt-4">
-        <h5>Danh sách chương</h5>
+    <!-- Chapter List (only for chapter mode) -->
+    <c:if test="${readingMode != 'full_book'}">
+        <div class="mt-4">
+            <h5>Danh sách chương</h5>
 
-        <!-- Nếu có volumes -->
+            <!-- Nếu có volumes -->
         <c:if test="${not empty volumes and fn:length(volumes) > 1}">
             <c:forEach var="vol" items="${volumes}">
                 <h6 class="mt-2">Tập ${vol.number}: ${vol.title}</h6>
@@ -202,15 +257,19 @@
             </ul>
         </c:if>
     </div>
+    </c:if>
 
-    <div class="d-flex justify-content-between mt-4">
+    <!-- Chapter Navigation Bottom (only for chapter mode) -->
+    <c:if test="${readingMode != 'full_book'}">
+        <div class="d-flex justify-content-between mt-4">
         <c:if test="${prevChapter != null}">
             <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
         </c:if>
         <c:if test="${nextChapter != null}">
             <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
-    </div>
+            </div>
+    </c:if>
 
     <!-- ======= Bình luận về chương ======= -->
     <div class="mt-5">

@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mycompany.ebookwebsite.dao.EbookDAO;
+import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.model.BookMetadata;
 import com.mycompany.ebookwebsite.model.BookStatus;
 import com.mycompany.ebookwebsite.model.Ebook;
@@ -41,6 +43,7 @@ public class BookServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(BookServlet.class);
     private EbookDAO ebookDAO;
+    private EbookWithAIService ebookWithAIService;
     private OpenAIContentFilterService contentFilterService;
     private EnhancedRAGService ragService;
 
@@ -52,6 +55,7 @@ public class BookServlet extends HttpServlet {
     public void init() throws ServletException {
         try {
             ebookDAO = new EbookDAO();
+            ebookWithAIService = new EbookWithAIService();
             contentFilterService = new OpenAIContentFilterService();
             ragService = new EnhancedRAGService();
             logger.info("✅ BookServlet initialized with LangChain4j RAG Service");
@@ -225,7 +229,7 @@ public class BookServlet extends HttpServlet {
             throws SQLException, ServletException, IOException {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
-            Ebook book = ebookDAO.selectEbook(id);
+            EbookWithAI book = ebookWithAIService.getEbookWithAI(id);
             if (book == null) {
                 request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
                 safeForward(request, response, "/book/list.jsp");
@@ -304,15 +308,13 @@ public class BookServlet extends HttpServlet {
                 return;
             }
             
-            Ebook book = ebookDAO.selectEbook(id);
-            if (book == null) {
+            // Use EbookWithAIService to update summary
+            boolean success = ebookWithAIService.updateSummary(id, summary.trim());
+            if (!success) {
                 request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
                 safeForward(request, response, "/book/list.jsp");
                 return;
             }
-            
-            book.setSummary(summary.trim());
-            ebookDAO.updateEbook(book);
             
             logger.info("📝 Updated summary for book ID: " + id);
             response.sendRedirect(request.getContextPath() + "/book/detail?id=" + id);

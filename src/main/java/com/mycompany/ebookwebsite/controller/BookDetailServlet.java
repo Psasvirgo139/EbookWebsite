@@ -5,6 +5,8 @@ import com.mycompany.ebookwebsite.model.Comment;
 import com.mycompany.ebookwebsite.model.Volume;
 import com.mycompany.ebookwebsite.model.Chapter;
 import com.mycompany.ebookwebsite.service.EbookService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.VolumeService;
 import com.mycompany.ebookwebsite.service.ChapterService;
@@ -30,6 +32,7 @@ import java.util.HashMap;
 public class BookDetailServlet extends HttpServlet {
 
     private final EbookService ebookService = new EbookService();
+    private final EbookWithAIService ebookWithAIService = new EbookWithAIService();
     private final CommentService commentService = new CommentService();
     private final VolumeService volumeService = new VolumeService();
     private final ChapterService chapterService = new ChapterService();
@@ -45,13 +48,13 @@ public class BookDetailServlet extends HttpServlet {
         try {
             // validate và xử lý
             int id = EbookValidation.validateId(request.getParameter("id"));
-            Ebook ebook = ebookService.getEbookById(id);
+            EbookWithAI ebook = ebookWithAIService.getEbookWithAI(id);
             if (ebook == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Book not found");
                 return;
             }
 
-            ebookService.incrementViewCount(id);
+            ebookWithAIService.incrementViewCount(id);
             
             // Get book comments
             List<Comment> bookComments = commentService.getCommentsByBook(id);
