@@ -25,7 +25,7 @@
         </p>
         <p><strong>Mô tả:</strong> ${ebook.description}</p>
         <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
-        <a href="read?bookId=${ebook.id}&chapterId=1" class="btn btn-success mt-2">Đọc ngay</a>
+        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success mt-2">Đọc ngay</a>
     </div>
 
     <!-- ======= Bình luận về sách ======= -->
@@ -85,7 +85,7 @@
                     <c:forEach var="ch" items="${chapters}">
                         <c:if test="${ch.volumeID == vol.id}">
                             <li class="list-group-item p-2">
-                                <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                                <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                                     Ch ${ch.number}
                                 </a>
                                 <c:choose>
@@ -108,7 +108,7 @@
             <ul class="list-group list-group-horizontal flex-wrap">
                 <c:forEach var="ch" items="${chapters}">
                     <li class="list-group-item p-2">
-                        <a href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                             Ch ${ch.number}
                         </a>
                         <c:choose>

@@ -24,10 +24,10 @@
 
     <div class="d-flex justify-content-between mb-3">
         <c:if test="${prevChapter != null}">
-            <a class="btn btn-outline-primary" href="read?id=${ebook.id}&chapter=${prevChapter}">← Ch ${prevChapter}</a>
+            <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
         </c:if>
         <c:if test="${nextChapter != null}">
-            <a class="btn btn-outline-primary ms-auto" href="read?id=${ebook.id}&chapter=${nextChapter}">Ch ${nextChapter} →</a>
+            <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
     </div>
 
@@ -127,7 +127,7 @@
                     <c:forEach var="ch" items="${chapters}">
                         <c:if test="${ch.volumeID == vol.id}">
                             <li class="page-item ${ch.number == currentChapter ? 'active' : ''}">
-                                <a class="page-link" href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                                <a class="page-link" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                                     Ch ${ch.number}
                                     <c:choose>
                                         <c:when test="${ch.accessLevel == 'free' || ch.accessLevel == 'public'}">
@@ -168,7 +168,7 @@
             <ul class="pagination">
                 <c:forEach var="ch" items="${chapters}">
                     <li class="page-item ${ch.number == currentChapter ? 'active' : ''}">
-                        <a class="page-link" href="read?bookId=${ebook.id}&chapterId=${ch.number}">
+                        <a class="page-link" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
                             Ch ${ch.number}
                             <c:choose>
                                 <c:when test="${ch.accessLevel == 'free' || ch.accessLevel == 'public'}">
@@ -205,10 +205,10 @@
 
     <div class="d-flex justify-content-between mt-4">
         <c:if test="${prevChapter != null}">
-            <a class="btn btn-outline-primary" href="read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
+            <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
         </c:if>
         <c:if test="${nextChapter != null}">
-            <a class="btn btn-outline-primary ms-auto" href="read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
+            <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
     </div>
 

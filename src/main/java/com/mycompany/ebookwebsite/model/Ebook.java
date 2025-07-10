@@ -22,6 +22,11 @@ public class Ebook {
     private LocalDateTime createdAt;
     private int viewCount;
     private String coverUrl;
+    
+    // ===== NEW FIELDS FOR AI FUNCTIONALITY =====
+    private String fileName;           // File path/name for content reading
+    private String originalFileName;   // Original uploaded file name
+    private String summary;           // AI-generated summary (separate from description)
 
     public Ebook() {
     }
@@ -128,8 +133,54 @@ public class Ebook {
         this.coverUrl = coverUrl;
     }
 
+    // ===== NEW GETTERS/SETTERS FOR AI FUNCTIONALITY =====
+    
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getOriginalFileName() {
+        return originalFileName;
+    }
+
+    public void setOriginalFileName(String originalFileName) {
+        this.originalFileName = originalFileName;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    // ===== AI COMPATIBILITY METHODS =====
+    
+    /**
+     * Compatibility method for AI services
+     * @return default author (TODO: join with Authors table)
+     */
+    public String getAuthor() {
+        // TODO: Implement proper author relationship with Authors table
+        return "Tác giả chưa xác định";
+    }
+    
+    /**
+     * Compatibility method for AI services
+     * @return genre/category (alias for releaseType)
+     * @deprecated Use getReleaseType() instead
+     */
+    public String getGenre() {
+        return this.releaseType != null ? this.releaseType : "Chưa phân loại";
+    }
+
     @Override
     public String toString() {
-        return "Ebook{" + "id=" + id + ", title=" + title + ", description=" + description + ", releaseType=" + releaseType + ", language=" + language + ", status=" + status + ", visibility=" + visibility + ", uploaderId=" + uploaderId + ", createdAt=" + createdAt + ", viewCount=" + viewCount + ", coverUrl=" + coverUrl + '}';
+        return "Ebook{" + "id=" + id + ", title=" + title + ", description=" + description + ", releaseType=" + releaseType + ", language=" + language + ", status=" + status + ", visibility=" + visibility + ", uploaderId=" + uploaderId + ", createdAt=" + createdAt + ", viewCount=" + viewCount + ", coverUrl=" + coverUrl + ", fileName=" + fileName + ", originalFileName=" + originalFileName + ", summary=" + summary + '}';
     }
 }

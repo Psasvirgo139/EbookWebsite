@@ -119,4 +119,75 @@ public class EbookDAO {
         }
     }
 
+    // ===== AI Compatibility aliases (redirect to existing methods) =====
+    
+    public Ebook selectEbook(int id) throws SQLException {
+        return getEbookById(id); // Use existing method
+    }
+    
+    // Note: selectAllEbooks(), search(), selectEbooksByVisibility() 
+    // should use BookService layer instead of duplicating here
+    
+    // ===== Temporary compatibility methods - should refactor to use BookService =====
+    
+    public List<Ebook> selectAllEbooks() throws SQLException {
+        // TODO: Refactor to use BookService.getAllBooks() instead
+        String sql = "SELECT * FROM Ebooks WHERE status != 'deleted' OR status IS NULL ORDER BY created_at DESC";
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                ebooks.add(mapRow(rs));
+            }
+        }
+        return ebooks;
+    }
+    
+    public List<Ebook> selectEbooksByVisibility(String visibility) throws SQLException {
+        // TODO: Refactor to use BookService.getBooksByCategory() instead
+        String sql = "SELECT * FROM Ebooks WHERE visibility = ? AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, visibility);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+    
+    public List<Ebook> search(String keyword) throws SQLException {
+        // TODO: Refactor to use BookService.searchBooks() instead
+        String sql = "SELECT * FROM Ebooks WHERE (title LIKE ? OR description LIKE ?) AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            String searchPattern = "%" + keyword + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+    
+    public List<Ebook> selectEbooksByUploader(int uploaderId) throws SQLException {
+        String sql = "SELECT * FROM Ebooks WHERE uploader_id = ? AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, uploaderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+
 }

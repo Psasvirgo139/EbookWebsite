@@ -64,6 +64,7 @@
     </div>
     <a class="nav-link" href="${ctx}/latest">Truyện mới</a>
     <a class="nav-link" href="${ctx}/recommend">Đề xuất</a>
+    <a class="nav-link" href="${ctx}/ai.jsp">🤖 AI Hub</a>
     <a class="nav-link" href="${ctx}/favorites">Yêu thích</a>
     <a class="premium-badge" href="${ctx}/premium">Premium</a>
   </nav>

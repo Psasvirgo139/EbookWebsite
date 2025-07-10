@@ -335,4 +335,24 @@ public class UserDAO {
         }
     }
 
+    // ===== COMPATIBILITY METHOD FOR UserServiceImpl =====
+    
+    /**
+     * Login method for UserServiceImpl compatibility
+     * @param usernameOrEmail username or email
+     * @param passwordHash hashed password
+     * @return User if found, null otherwise
+     * @throws SQLException if database error
+     */
+    public User login(String usernameOrEmail, String passwordHash) throws SQLException {
+        // Try username first
+        User user = findByUsernameAndPassword(usernameOrEmail, passwordHash);
+        if (user != null) {
+            return user;
+        }
+        
+        // Try email if username fails
+        return findByEmailAndPassword(usernameOrEmail, passwordHash);
+    }
+
 }
