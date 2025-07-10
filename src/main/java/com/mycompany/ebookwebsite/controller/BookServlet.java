@@ -83,9 +83,7 @@ public class BookServlet extends HttpServlet {
                     showBookList(request, response);
                     break;
 
-                case "edit":
-                    showEditForm(request, response);
-                    break;
+
                 case "view":
                     showBookDetails(request, response);
                     break;
@@ -107,11 +105,11 @@ public class BookServlet extends HttpServlet {
         } catch (SQLException e) {
             logger.error("❌ Database error in doGet: " + e.getMessage(), e);
             request.setAttribute("error", "Lỗi cơ sở dữ liệu: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         } catch (Exception e) {
             logger.error("❌ Unexpected error in doGet: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi không mong muốn: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -143,7 +141,7 @@ public class BookServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("❌ Error in doPost: " + e.getMessage(), e);
             request.setAttribute("errorMessage", "Có lỗi khi xử lý: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -173,35 +171,18 @@ public class BookServlet extends HttpServlet {
             request.setAttribute("totalBooks", bookList.size());
             logger.info("✅ Found " + bookList.size() + " books");
             
-            // ✅ SỬA: Đường dẫn đúng tới bookList.jsp
-            safeForward(request, response, "/book/bookList.jsp");
+            // ✅ SỬA: Đường dẫn đúng tới list.jsp
+            safeForward(request, response, "/book/list.jsp");
         } catch (SQLException e) {
             logger.error("❌ Database error in showBookList: " + e.getMessage(), e);
             request.setAttribute("error", "Không thể tải danh sách sách: " + e.getMessage());
             request.setAttribute("bookList", java.util.Collections.emptyList());
             request.setAttribute("totalBooks", 0);
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, ServletException, IOException {
-        try {
-            int id = Integer.parseInt(request.getParameter("id"));
-            Ebook book = ebookDAO.selectEbook(id);
-            if (book == null) {
-                request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
-                safeForward(request, response, "/book/bookList.jsp");
-                return;
-            }
-            request.setAttribute("book", book);
-            safeForward(request, response, "/book/bookEdit.jsp");
-        } catch (NumberFormatException e) {
-            logger.error("❌ Invalid book ID: " + request.getParameter("id"), e);
-            request.setAttribute("error", "ID sách không hợp lệ");
-            safeForward(request, response, "/book/bookList.jsp");
-        }
-    }
+
 
     private void showBookDetails(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
@@ -217,21 +198,21 @@ public class BookServlet extends HttpServlet {
             
             if (book == null) {
                 request.setAttribute("error", "Không tìm thấy sách với ID: " + bookId);
-                safeForward(request, response, "/book/bookList.jsp");
+                safeForward(request, response, "/book/list.jsp");
                 return;
             }
             
             request.setAttribute("book", book);
-            safeForward(request, response, "/book/bookDetail.jsp");
+            safeForward(request, response, "/book/detail.jsp");
             
         } catch (NumberFormatException e) {
             logger.error("❌ Invalid book ID: " + idParam, e);
             request.setAttribute("error", "ID sách không hợp lệ");
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         } catch (Exception e) {
             logger.error("❌ Error in showBookDetails: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi khi tải thông tin sách: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -247,7 +228,7 @@ public class BookServlet extends HttpServlet {
             Ebook book = ebookDAO.selectEbook(id);
             if (book == null) {
                 request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
-                safeForward(request, response, "/book/bookList.jsp");
+                safeForward(request, response, "/book/list.jsp");
                 return;
             }
             request.setAttribute("book", book);
@@ -255,7 +236,7 @@ public class BookServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             logger.error("❌ Invalid book ID: " + request.getParameter("id"), e);
             request.setAttribute("error", "ID sách không hợp lệ");
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -266,7 +247,7 @@ public class BookServlet extends HttpServlet {
             Ebook book = ebookDAO.selectEbook(id);
             if (book == null) {
                 request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
-                safeForward(request, response, "/book/bookList.jsp");
+                safeForward(request, response, "/book/list.jsp");
                 return;
             }
             request.setAttribute("book", book);
@@ -274,7 +255,7 @@ public class BookServlet extends HttpServlet {
         } catch (NumberFormatException e) {
             logger.error("❌ Invalid book ID: " + request.getParameter("id"), e);
             request.setAttribute("error", "ID sách không hợp lệ");
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -286,11 +267,11 @@ public class BookServlet extends HttpServlet {
             request.setAttribute("bookList", bookList);
             request.setAttribute("searchTitle", searchTitle);
             request.setAttribute("totalBooks", bookList.size());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         } catch (Exception e) {
             logger.error("❌ Error in searchBooks: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi khi tìm kiếm: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -305,20 +286,44 @@ public class BookServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("❌ Error in createBook: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi khi tạo sách: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
     
     private void updateSummary(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {
         try {
-            // Implementation với EbookDAO...
-            logger.info("📝 Updating book summary");
-            response.sendRedirect("book?action=list");
+            int id = Integer.parseInt(request.getParameter("id"));
+            String summary = request.getParameter("summary");
+            
+            if (summary == null || summary.trim().isEmpty()) {
+                request.setAttribute("error", "Nội dung tóm tắt không được để trống");
+                Ebook book = ebookDAO.selectEbook(id);
+                request.setAttribute("book", book);
+                safeForward(request, response, "/book/editSummary.jsp");
+                return;
+            }
+            
+            Ebook book = ebookDAO.selectEbook(id);
+            if (book == null) {
+                request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
+                safeForward(request, response, "/book/list.jsp");
+                return;
+            }
+            
+            book.setSummary(summary.trim());
+            ebookDAO.updateEbook(book);
+            
+            logger.info("📝 Updated summary for book ID: " + id);
+            response.sendRedirect(request.getContextPath() + "/book/detail?id=" + id);
+        } catch (NumberFormatException e) {
+            logger.error("❌ Invalid book ID: " + request.getParameter("id"), e);
+            request.setAttribute("error", "ID sách không hợp lệ");
+            safeForward(request, response, "/book/list.jsp");
         } catch (Exception e) {
             logger.error("❌ Error in updateSummary: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi khi cập nhật tóm tắt: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 
@@ -328,15 +333,15 @@ public class BookServlet extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             ebookDAO.deleteEbook(id);
             logger.info("🗑️ Deleted book with ID: " + id);
-            response.sendRedirect("book?action=list");
+            response.sendRedirect(request.getContextPath() + "/home");
         } catch (NumberFormatException e) {
             logger.error("❌ Invalid book ID for deletion: " + request.getParameter("id"), e);
             request.setAttribute("error", "ID sách không hợp lệ");
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         } catch (Exception e) {
             logger.error("❌ Error in deleteBook: " + e.getMessage(), e);
             request.setAttribute("error", "Có lỗi khi xóa sách: " + e.getMessage());
-            safeForward(request, response, "/book/bookList.jsp");
+            safeForward(request, response, "/book/list.jsp");
         }
     }
 } 

@@ -25,7 +25,19 @@
         </p>
         <p><strong>Mô tả:</strong> ${ebook.description}</p>
         <p><strong>Lượt xem:</strong> ${ebook.viewCount}</p>
-        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success mt-2">Đọc ngay</a>
+        
+        <!-- Action buttons -->
+        <div class="mt-3">
+            <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success">📖 Đọc ngay</a>
+            
+            <!-- Admin actions (if user has permission) -->
+            <c:if test="${sessionScope.user != null && (sessionScope.user.role == 'admin' || sessionScope.user.id == ebook.uploaderId)}">
+                <a href="${pageContext.request.contextPath}/book?action=editSummary&id=${ebook.id}" class="btn btn-outline-primary btn-sm ms-2">📝 Sửa tóm tắt</a>
+                <a href="${pageContext.request.contextPath}/book?action=delete&id=${ebook.id}" class="btn btn-outline-danger btn-sm ms-1">🗑️ Xóa</a>
+            </c:if>
+            
+            <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary btn-sm ms-2">← Quay lại</a>
+        </div>
     </div>
 
     <!-- ======= Bình luận về sách ======= -->

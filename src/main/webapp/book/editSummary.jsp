@@ -43,7 +43,7 @@
                 </c:if>
             </form>
             <div class="action-links" style="margin-top:22px;text-align:center;">
-                <a href="${pageContext.request.contextPath}/book?action=view&id=${book.id}" class="btn sakura-btn">Quay lại chi tiết sách</a>
+                <a href="${pageContext.request.contextPath}/book/detail?id=${book.id}" class="btn sakura-btn">Quay lại chi tiết sách</a>
             </div>
         </div>
     </body>
