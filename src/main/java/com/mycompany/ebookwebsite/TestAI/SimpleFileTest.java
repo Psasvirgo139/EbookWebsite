@@ -2,6 +2,7 @@ package com.mycompany.ebookwebsite.TestAI;
 
 import com.mycompany.ebookwebsite.service.OpenAIContentSummaryService;
 import com.mycompany.ebookwebsite.utils.Utils;
+import com.mycompany.ebookwebsite.utils.PathManager;
 
 import java.io.File;
 
@@ -9,6 +10,7 @@ import java.io.File;
  * 🔍 SIMPLE FILE TEST
  * 
  * Quick test to verify file path and AI summary
+ * Updated to use PathManager for better path management
  */
 public class SimpleFileTest {
     
@@ -16,8 +18,13 @@ public class SimpleFileTest {
         System.out.println("🔍 SIMPLE FILE TEST");
         System.out.println("=".repeat(40));
         
-        // Test exact file path user confirmed
-        String filePath = "D:\\EbookWebsite\\uploads\\Nhà Thờ Đức Bà Paris.pdf";
+        // 🗂️ Sử dụng PathManager để tìm file
+        String uploadsPath = PathManager.getUploadsPath();
+        System.out.println("📁 Using uploads path: " + uploadsPath);
+        
+        // Tìm file trong uploads directory
+        String targetFileName = "Nhà Thờ Đức Bà Paris.pdf";
+        String filePath = PathManager.getUploadFilePath(targetFileName);
         
         System.out.println("📁 Testing file: " + filePath);
         

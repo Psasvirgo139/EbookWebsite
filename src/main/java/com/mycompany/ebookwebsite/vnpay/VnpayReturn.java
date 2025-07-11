@@ -9,6 +9,7 @@ import com.mycompany.ebookwebsite.dao.OrderDAO;
 import com.mycompany.ebookwebsite.dao.UserDAO;
 import com.mycompany.ebookwebsite.dao.UserCoinDAO;
 import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.service.PremiumService;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -25,7 +26,9 @@ import com.mycompany.ebookwebsite.model.Order;
 import java.sql.SQLException;
 
 /**
- *
+ * 💳 VnpayReturn - Xử lý kết quả thanh toán VNPay
+ * 
+ * Updated to use PremiumService for proper expiry tracking
  * @author HP
  */
 @WebServlet("/vn_pay/vnpayReturn")
@@ -33,6 +36,7 @@ public class VnpayReturn extends HttpServlet {
     OrderDAO orderDao = new OrderDAO();
     UserDAO userDao = new UserDAO();
     UserCoinDAO userCoinDao = new UserCoinDAO();
+    PremiumService premiumService = new PremiumService();  // 👑 Thêm PremiumService
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -164,27 +168,35 @@ public class VnpayReturn extends HttpServlet {
     }// </editor-fold>
     
     /**
-     * Xử lý upgrade user lên premium
+     * 👑 Xử lý upgrade user lên premium với proper expiry tracking
      */
     private void handlePremiumUpgrade(User user, jakarta.servlet.http.HttpSession session) throws SQLException {
-        // Update role của user thành premium
-        user.setRole("premium");
-        userDao.update(user);
-        
-        // Update session
-        session.setAttribute("user", user);
-        
-        System.out.println("User " + user.getUsername() + " upgraded to premium via VNPay");
+        try {
+            // 👑 Sử dụng PremiumService thay vì chỉ set role
+            premiumService.activatePremiumForUser(user.getId(), "vnd", 100000.0);
+            
+            // Refresh user object từ database để có role mới
+            User updatedUser = userDao.findById(user.getId());
+            if (updatedUser != null) {
+                session.setAttribute("user", updatedUser);
+            }
+            
+            System.out.println("✅ User " + user.getUsername() + " upgraded to premium via VNPay with expiry tracking");
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Failed to upgrade user " + user.getUsername() + " to premium: " + e.getMessage());
+            throw e; // Re-throw để caller xử lý
+        }
     }
     
     /**
-     * Xử lý nạp coins cho user
+     * 💰 Xử lý nạp coins cho user
      */
     private void handleCoinTopup(int userId, int coinAmount) throws SQLException {
         // Thêm coins vào tài khoản user
         userCoinDao.addCoins(userId, coinAmount);
         
-        System.out.println("Added " + coinAmount + " coins to user ID: " + userId);
+        System.out.println("✅ Added " + coinAmount + " coins to user ID: " + userId);
     }
 
 }
