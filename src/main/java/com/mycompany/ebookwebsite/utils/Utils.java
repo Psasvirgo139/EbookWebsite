@@ -242,7 +242,7 @@ public class Utils {
                         "AND (e.title LIKE ? OR e.description LIKE ?) " +
                         "GROUP BY e.id, e.title, e.description, e.release_type, e.language, " +
                         "e.status, e.visibility, e.uploader_id, e.created_at, " +
-                        "e.view_count, e.cover_url, e.file_name, e.original_file_name " +
+                        "e.view_count, e.cover_url " +
                         "ORDER BY e.view_count DESC";
             
             try (PreparedStatement ps = con.prepareStatement(sql)) {
@@ -282,6 +282,60 @@ public class Utils {
     }
 
     /**
+     * 📚 Lấy danh sách sách có sẵn trong database (không tìm kiếm)
+     */
+    public static List<Ebook> getAvailableBooks(int limit) {
+        List<Ebook> results = new ArrayList<>();
+        
+        try (Connection con = DBConnection.getConnection()) {
+            String sql = "SELECT e.*, " +
+                        "STRING_AGG(t.name, ', ') as tags, " +
+                        "STRING_AGG(a.name, ', ') as authors " +
+                        "FROM Ebooks e " +
+                        "LEFT JOIN EbookTags et ON e.id = et.ebook_id " +
+                        "LEFT JOIN Tags t ON et.tag_id = t.id " +
+                        "LEFT JOIN EbookAuthors ea ON e.id = ea.ebook_id " +
+                        "LEFT JOIN Authors a ON ea.author_id = a.id " +
+                        "WHERE e.status != 'deleted' " +
+                        "GROUP BY e.id, e.title, e.description, e.release_type, e.language, " +
+                        "e.status, e.visibility, e.uploader_id, e.created_at, " +
+                        "e.view_count, e.cover_url " +
+                        "ORDER BY e.view_count DESC " +
+                        "OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+            
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setInt(1, limit);
+                
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Ebook ebook = new Ebook();
+                        ebook.setId(rs.getInt("id"));
+                        ebook.setTitle(rs.getString("title"));
+                        ebook.setDescription(rs.getString("description"));
+                        ebook.setReleaseType(rs.getString("release_type"));
+                        ebook.setLanguage(rs.getString("language"));
+                        ebook.setStatus(rs.getString("status"));
+                        ebook.setVisibility(rs.getString("visibility"));
+                        ebook.setUploaderId(rs.getInt("uploader_id"));
+                        ebook.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                        ebook.setViewCount(rs.getInt("view_count"));
+                        ebook.setCoverUrl(rs.getString("cover_url"));
+                        
+                        results.add(ebook);
+                    }
+                }
+            }
+            
+            logger.info("📚 Retrieved " + results.size() + " available books from database");
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "❌ Database error getting available books: " + e.getMessage(), e);
+        }
+        
+        return results;
+    }
+
+    /**
      * 📚 Lấy thông tin chi tiết sách từ database
      */
     public static Map<String, Object> getBookDetails(int bookId) {
@@ -304,7 +358,7 @@ public class Utils {
                             "WHERE e.id = ? AND e.status != 'deleted' " +
                             "GROUP BY e.id, e.title, e.description, e.release_type, e.language, " +
                             "e.status, e.visibility, e.uploader_id, e.created_at, " +
-                            "e.view_count, e.cover_url, e.file_name, e.original_file_name";
+                            "e.view_count, e.cover_url";
             
             try (PreparedStatement ps = con.prepareStatement(bookSql)) {
                 ps.setInt(1, bookId);
