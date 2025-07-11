@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 // TEMPORARILY DISABLED FOR DEBUG
-// @WebFilter("/*")                // áp cho mọi URL
+@WebFilter("/*")                // áp cho mọi URL
 public class AuthFilter implements Filter {
 
     @Override public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -44,6 +44,12 @@ public class AuthFilter implements Filter {
             uri.endsWith("/test-upload.jsp") ||  // Allow test upload page
             uri.endsWith("/debug-session.jsp") || // Allow debug page
             uri.contains("/book/") ||           // Allow book operations (upload will handle auth)
+            uri.endsWith("/book/home") ||        // Trang chủ sách - user có thể browse
+            uri.endsWith("/book/detail") ||      // Chi tiết sách - xem thông tin trước khi đăng ký
+            uri.endsWith("/book/read") ||        // Đọc sách - cho phép xem chapter public, premium chapter tự redirect
+            uri.endsWith("/tag") ||              // Tags - để filter/search sách
+            uri.endsWith("/comment/list") ||     // Xem comments - đọc review từ users khác
+            uri.equals(ctx + "") ||              // Landing page
             uri.startsWith(ctx + "/assets/") ||
             uri.startsWith(ctx + "/user/") ||    // Allow user directory (login.jsp, etc.)
             uri.matches(".*(\\.css|\\.js|\\.png|\\.jpg|\\.gif|\\.woff2|\\.woff|\\.ttf)$")

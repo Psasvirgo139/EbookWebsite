@@ -61,6 +61,7 @@ public class BookReadServlet extends HttpServlet {
         coinService = new CoinService();
         volumeService = new VolumeService();
         commentService = new CommentService();
+        coinService = new CoinService();
         voteService = new CommentVoteService();
         ebookDAO = new EbookDAO();
         ebookWithAIService = new EbookWithAIService();
