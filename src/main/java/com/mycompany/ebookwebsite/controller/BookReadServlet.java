@@ -15,6 +15,7 @@ import com.mycompany.ebookwebsite.service.OpenAIContentSummaryService;
 import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.service.EbookWithAIService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
+import com.mycompany.ebookwebsite.service.EbookAIFixService;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -48,6 +49,7 @@ public class BookReadServlet extends HttpServlet {
     private CommentVoteService voteService;
     private EbookDAO ebookDAO;
     private EbookWithAIService ebookWithAIService;
+    private EbookAIFixService ebookAIFixService;
     
     // Upload folder configuration from ReadBookServlet
     private static final String UPLOAD_FOLDER = "uploads";
@@ -62,6 +64,7 @@ public class BookReadServlet extends HttpServlet {
         voteService = new CommentVoteService();
         ebookDAO = new EbookDAO();
         ebookWithAIService = new EbookWithAIService();
+        ebookAIFixService = new EbookAIFixService();
     }
 
     @Override
@@ -155,6 +158,19 @@ public class BookReadServlet extends HttpServlet {
             
             // Increment view count
             ebookWithAIService.incrementViewCount(bookId);
+            
+            // 🔧 AUTO-FIX: Kiểm tra và tạo EbookAI record nếu thiếu
+            if (book.getAiData() == null) {
+                System.out.println("⚠️ EbookAI record thiếu cho book ID: " + bookId + " - Đang auto-fix...");
+                boolean fixed = ebookAIFixService.autoFixEbookAI(bookId);
+                if (fixed) {
+                    System.out.println("✅ Auto-fix thành công - Reload book data...");
+                    // Reload book data với EbookAI record mới
+                    book = ebookWithAIService.getEbookWithAI(bookId);
+                } else {
+                    System.out.println("❌ Auto-fix thất bại cho book ID: " + bookId);
+                }
+            }
             
             // Read book content
             String bookContent = readBookContent(book);
@@ -476,6 +492,15 @@ public class BookReadServlet extends HttpServlet {
                         return readFileContent(filePath.toString(), getFileExtension(fileName));
                     } else {
                         System.out.println("⚠️ File không tồn tại: " + filePath);
+                        System.out.println("🔍 Đang tìm file với encoding khác...");
+                        
+                        // 🔧 Try to find file with correct encoding
+                        String correctFileName = findFileWithCorrectEncoding(uploadsPath, fileName, bookTitle);
+                        if (correctFileName != null) {
+                            System.out.println("✅ Tìm thấy file với encoding đúng: " + correctFileName);
+                            Path correctFilePath = Paths.get(uploadsPath, correctFileName);
+                            return readFileContent(correctFilePath.toString(), getFileExtension(correctFileName));
+                        }
                     }
                 }
                 
@@ -487,6 +512,15 @@ public class BookReadServlet extends HttpServlet {
                         return readFileContent(filePath.toString(), getFileExtension(originalFileName));
                     } else {
                         System.out.println("⚠️ Original file không tồn tại: " + filePath);
+                        System.out.println("🔍 Đang tìm file với encoding khác...");
+                        
+                        // 🔧 Try to find file with correct encoding
+                        String correctFileName = findFileWithCorrectEncoding(uploadsPath, originalFileName, bookTitle);
+                        if (correctFileName != null) {
+                            System.out.println("✅ Tìm thấy file với encoding đúng: " + correctFileName);
+                            Path correctFilePath = Paths.get(uploadsPath, correctFileName);
+                            return readFileContent(correctFilePath.toString(), getFileExtension(correctFileName));
+                        }
                     }
                 }
             }
@@ -639,6 +673,117 @@ public class BookReadServlet extends HttpServlet {
         }
         
         return fileName.substring(lastDot + 1).toLowerCase();
+    }
+
+    /**
+     * Tìm file với encoding đúng khi file name trong database bị lỗi encoding
+     */
+    private String findFileWithCorrectEncoding(String uploadsPath, String corruptedFileName, String bookTitle) {
+        File uploadsDir = new File(uploadsPath);
+        if (!uploadsDir.exists() || !uploadsDir.isDirectory()) {
+            return null;
+        }
+        
+        File[] files = uploadsDir.listFiles();
+        if (files == null) {
+            return null;
+        }
+        
+        System.out.println("🔍 Tìm file cho corrupted name: " + corruptedFileName);
+        System.out.println("📚 Book title: " + bookTitle);
+        
+        // 1. Tìm file có tên gần giống với book title
+        for (File file : files) {
+            if (file.isFile()) {
+                String fileName = file.getName();
+                String fileNameWithoutExt = removeFileExtension(fileName);
+                
+                // So sánh với book title
+                if (isSimilarIgnoreEncoding(fileNameWithoutExt, bookTitle)) {
+                    System.out.println("🎯 Tìm thấy file match với book title: " + fileName);
+                    return fileName;
+                }
+            }
+        }
+        
+        // 2. Tìm file có structure tương tự với corrupted name
+        String normalizedCorrupted = normalizeForEncoding(corruptedFileName);
+        for (File file : files) {
+            if (file.isFile()) {
+                String fileName = file.getName();
+                String normalizedFile = normalizeForEncoding(fileName);
+                
+                if (isSimilarIgnoreEncoding(normalizedFile, normalizedCorrupted)) {
+                    System.out.println("🎯 Tìm thấy file match với corrupted name: " + fileName);
+                    return fileName;
+                }
+            }
+        }
+        
+        System.out.println("❌ Không tìm thấy file phù hợp");
+        return null;
+    }
+    
+    /**
+     * Loại bỏ file extension
+     */
+    private String removeFileExtension(String fileName) {
+        if (fileName == null) return "";
+        int lastDot = fileName.lastIndexOf('.');
+        return lastDot > 0 ? fileName.substring(0, lastDot) : fileName;
+    }
+    
+    /**
+     * Kiểm tra hai string có tương tự không (ignore encoding issues)
+     */
+    private boolean isSimilarIgnoreEncoding(String str1, String str2) {
+        if (str1 == null || str2 == null) {
+            return false;
+        }
+        
+        String normalized1 = normalizeForEncoding(str1);
+        String normalized2 = normalizeForEncoding(str2);
+        
+        // Tính độ tương tự
+        return calculateStringSimilarity(normalized1, normalized2) > 0.6;
+    }
+    
+    /**
+     * Normalize string để so sánh (loại bỏ encoding issues)
+     */
+    private String normalizeForEncoding(String str) {
+        if (str == null) return "";
+        
+        return str.toLowerCase()
+                  .replaceAll("[^a-z0-9\\s]", "") // Chỉ giữ chữ, số và space
+                  .replaceAll("\\s+", " ")       // Normalize space
+                  .trim();
+    }
+    
+    /**
+     * Tính độ tương tự giữa hai string
+     */
+    private double calculateStringSimilarity(String str1, String str2) {
+        if (str1 == null || str2 == null) {
+            return 0.0;
+        }
+        
+        String[] words1 = str1.split("\\s+");
+        String[] words2 = str2.split("\\s+");
+        
+        int matches = 0;
+        for (String word1 : words1) {
+            for (String word2 : words2) {
+                if (word1.length() > 2 && word2.length() > 2 && 
+                    (word1.contains(word2) || word2.contains(word1))) {
+                    matches++;
+                    break;
+                }
+            }
+        }
+        
+        int maxWords = Math.max(words1.length, words2.length);
+        return maxWords > 0 ? (double) matches / maxWords : 0.0;
     }
 
     /**

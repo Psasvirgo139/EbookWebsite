@@ -66,6 +66,9 @@
     <a class="nav-link" href="${ctx}/recommend">Đề xuất</a>
     <a class="nav-link" href="${ctx}/ai.jsp">🤖 AI Hub</a>
     <a class="nav-link" href="${ctx}/favorites">Yêu thích</a>
+    <c:if test="${not empty sessionScope.user}">
+      <a class="nav-link" href="${ctx}/book/upload" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e); color: white; padding: 6px 12px; border-radius: 15px; font-weight: 600;">📚 Upload Sách</a>
+    </c:if>
     <a class="premium-badge" href="${ctx}/premium">Premium</a>
   </nav>
   <div class="header-actions">

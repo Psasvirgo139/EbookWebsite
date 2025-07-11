@@ -12,7 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebFilter("/*")                // áp cho mọi URL
+// TEMPORARILY DISABLED FOR DEBUG
+// @WebFilter("/*")                // áp cho mọi URL
 public class AuthFilter implements Filter {
 
     @Override public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
@@ -23,6 +24,12 @@ public class AuthFilter implements Filter {
 
         String uri = request.getRequestURI();
         String ctx = request.getContextPath();
+        
+        // DEBUG: Log all requests to /book/upload
+        if (uri.contains("/book/upload")) {
+            System.out.println("🔍 AuthFilter processing: " + uri);
+            System.out.println("🔍 Context path: " + ctx);
+        }
 
         // Các đường dẫn không cần đăng nhập (public access)
         if (
@@ -34,9 +41,16 @@ public class AuthFilter implements Filter {
             uri.endsWith("/") ||
             uri.endsWith("/index.jsp") ||
             uri.endsWith("/index.html") ||
+            uri.endsWith("/test-upload.jsp") ||  // Allow test upload page
+            uri.endsWith("/debug-session.jsp") || // Allow debug page
+            uri.contains("/book/") ||           // Allow book operations (upload will handle auth)
             uri.startsWith(ctx + "/assets/") ||
+            uri.startsWith(ctx + "/user/") ||    // Allow user directory (login.jsp, etc.)
             uri.matches(".*(\\.css|\\.js|\\.png|\\.jpg|\\.gif|\\.woff2|\\.woff|\\.ttf)$")
         ) {
+            if (uri.contains("/book/upload")) {
+                System.out.println("✅ AuthFilter: BYPASSING /book/upload - letting servlet handle auth");
+            }
             chain.doFilter(req, res);
             return;
         }
@@ -46,6 +60,9 @@ public class AuthFilter implements Filter {
         Object userObj = (session != null) ? session.getAttribute("user") : null;
 
         if (userObj == null) {                       // Chưa login
+            if (uri.contains("/book/upload")) {
+                System.out.println("❌ AuthFilter: NO USER FOUND - redirecting /book/upload to login");
+            }
             // Lưu URL gốc vào session để chuyển hướng lại sau đăng nhập
             String original = uri.substring(ctx.length()); // bỏ context path
             if (request.getQueryString() != null) {

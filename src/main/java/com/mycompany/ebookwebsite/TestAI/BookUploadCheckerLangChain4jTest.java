@@ -267,24 +267,67 @@ public class BookUploadCheckerLangChain4jTest {
         System.out.println("\n💾 Đang lưu vào database...");
         
         try {
-            // TODO: Implement actual database save logic
-            // This would typically involve:
-            // 1. Creating a Book entity
-            // 2. Setting metadata (title, genre, description, summary)
-            // 3. Setting file path
-            // 4. Saving to database
-            // 5. Updating listBook
+            // Import required DAO classes
+            com.mycompany.ebookwebsite.dao.EbookDAO ebookDAO = new com.mycompany.ebookwebsite.dao.EbookDAO();
+            com.mycompany.ebookwebsite.dao.EbookAIDAO ebookAIDAO = new com.mycompany.ebookwebsite.dao.EbookAIDAO();
             
-            System.out.println("✅ Đã lưu vào database:");
-            System.out.println("   📚 Tiêu đề: " + metadata.title);
-            System.out.println("   🏷️ Thể loại: " + metadata.genre);
+            // Create Ebook entity
+            com.mycompany.ebookwebsite.model.Ebook ebook = new com.mycompany.ebookwebsite.model.Ebook();
+            ebook.setTitle(metadata.title);
+            ebook.setDescription(metadata.description);
+            ebook.setReleaseType(metadata.genre);
+            ebook.setLanguage("Tiếng Việt");
+            ebook.setStatus("active");
+            ebook.setVisibility("public");
+            ebook.setUploaderId(1); // Default uploader ID - should be passed from user session
+            ebook.setViewCount(0);
+            ebook.setCreatedAt(java.time.LocalDateTime.now());
+            ebook.setCoverUrl(null); // Will be set later if needed
+            
+            // Insert Ebook and get generated ID
+            ebookDAO.insertEbook(ebook);
+            
+            // Get the inserted ebook to retrieve the ID
+            java.util.List<com.mycompany.ebookwebsite.model.Ebook> books = ebookDAO.selectAllEbooks();
+            com.mycompany.ebookwebsite.model.Ebook insertedBook = books.get(books.size() - 1); // Get the last inserted book
+            int ebookId = insertedBook.getId();
+            
+            System.out.println("✅ Ebook inserted with ID: " + ebookId);
+            
+            // Create EbookAI entity
+            com.mycompany.ebookwebsite.model.EbookAI ebookAI = new com.mycompany.ebookwebsite.model.EbookAI();
+            ebookAI.setEbookId(ebookId);
+            ebookAI.setFileName(uploadedFile.getName());
+            ebookAI.setOriginalFileName(uploadedFile.getName());
+            ebookAI.setSummary(metadata.summary);
+            ebookAI.setStatus("completed");
+            ebookAI.setCreatedAt(java.time.LocalDateTime.now());
+            ebookAI.setUpdatedAt(java.time.LocalDateTime.now());
+            
+            // Insert EbookAI
+            ebookAIDAO.insertEbookAI(ebookAI);
+            
+            System.out.println("✅ EbookAI record created successfully");
+            System.out.println("📊 Database Summary:");
+            System.out.println("   📚 Ebook ID: " + ebookId);
+            System.out.println("   📝 Title: " + metadata.title);
+            System.out.println("   🏷️ Genre: " + metadata.genre);
             System.out.println("   📁 File: " + uploadedFile.getName());
+            System.out.println("   📏 Size: " + formatFileSize(uploadedFile.length()));
+            System.out.println("   📍 Path: uploads/" + uploadedFile.getName());
+            System.out.println("   🤖 AI Summary: " + metadata.summary.substring(0, Math.min(100, metadata.summary.length())) + "...");
+            System.out.println("   📊 AI Status: completed");
+            
+            // Note: Additional fields like metadata_json, filterStatus, fileSize, etc.
+            // are available in the database schema but not in the current EbookAI model.
+            // These can be added later if needed by extending the model.
             
         } catch (Exception e) {
-            System.out.println("❌ Lỗi lưu database: " + e.getMessage());
+            System.err.println("❌ Lỗi lưu database: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-
+    
     private static String getFileExtension(String fileName) {
         int idx = fileName.lastIndexOf('.');
         return (idx > 0) ? fileName.substring(idx + 1).toLowerCase() : "";
