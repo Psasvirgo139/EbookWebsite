@@ -158,28 +158,56 @@ public class BookReadServlet extends HttpServlet {
             
             // Read book content
             String bookContent = readBookContent(book);
+            System.out.println("📖 Book content result: " + (bookContent != null ? bookContent.length() + " chars" : "NULL"));
+            System.out.println("📝 First 200 chars: " + (bookContent != null && bookContent.length() > 200 ? bookContent.substring(0, 200) + "..." : bookContent));
             
             // AI summary integration with database persistence
-            if (book.getSummary() == null || book.getSummary().trim().isEmpty()) {
-                try {
-                    System.out.println("🤖 Generating AI summary for book: " + book.getTitle());
-                    OpenAIContentSummaryService summaryService = new OpenAIContentSummaryService();
-                    String summary = summaryService.summarize(bookContent);
-                    
-                    // Save AI summary to database using service
-                    boolean saved = ebookWithAIService.updateSummary(book.getId(), summary);
-                    if (saved) {
-                        System.out.println("✅ AI summary saved to database for book ID: " + book.getId());
-                        book.setSummary(summary); // Update in-memory object for JSP
-                    } else {
-                        System.out.println("⚠️ Failed to save AI summary to database. Check migration status.");
-                    }
-                    
-                } catch (Exception ex) {
-                    String errorMsg = "Không thể tạo tóm tắt AI: " + ex.getMessage();
-                    System.err.println("❌ AI Summary Error: " + errorMsg);
+            String currentSummary = book.getSummary();
+            System.out.println("🔍 Current summary in database: " + (currentSummary != null ? "'" + currentSummary + "'" : "NULL"));
+            
+            if (currentSummary == null || currentSummary.trim().isEmpty()) {
+                System.out.println("🤖 Starting AI summary generation...");
+                
+                // Check if we have valid content to summarize
+                if (bookContent == null || bookContent.trim().isEmpty()) {
+                    String errorMsg = "❌ Không thể tạo tóm tắt AI: Không có nội dung sách để tóm tắt";
+                    System.err.println(errorMsg);
                     book.setSummary(errorMsg);
+                } else if (bookContent.startsWith("❌ Không tìm thấy file") || bookContent.startsWith("💥 Lỗi đọc file")) {
+                    String errorMsg = "❌ Không thể tạo tóm tắt AI: " + bookContent;
+                    System.err.println(errorMsg);
+                    book.setSummary(errorMsg);
+                } else {
+                    try {
+                        System.out.println("🤖 Generating AI summary for book: " + book.getTitle());
+                        System.out.println("📄 Content to summarize: " + bookContent.length() + " characters");
+                        
+                        OpenAIContentSummaryService summaryService = new OpenAIContentSummaryService();
+                        String summary = summaryService.summarize(bookContent);
+                        
+                        System.out.println("✅ AI summary generated: " + (summary != null ? summary.length() + " chars" : "NULL"));
+                        System.out.println("📝 Generated summary: " + summary);
+                        
+                        // Save AI summary to database using service
+                        boolean saved = ebookWithAIService.updateSummary(book.getId(), summary);
+                        if (saved) {
+                            System.out.println("✅ AI summary saved to database for book ID: " + book.getId());
+                            book.setSummary(summary); // Update in-memory object for JSP
+                        } else {
+                            System.err.println("⚠️ Failed to save AI summary to database. Check migration status.");
+                            // Still set the summary for display even if save failed
+                            book.setSummary(summary + " (⚠️ Lưu database thất bại)");
+                        }
+                        
+                    } catch (Exception ex) {
+                        String errorMsg = "❌ Không thể tạo tóm tắt AI: " + ex.getMessage();
+                        System.err.println("❌ AI Summary Error: " + errorMsg);
+                        ex.printStackTrace(); // Print full stack trace for debugging
+                        book.setSummary(errorMsg);
+                    }
                 }
+            } else {
+                System.out.println("✅ Summary already exists: " + currentSummary.substring(0, Math.min(100, currentSummary.length())) + "...");
             }
             
             // Set attributes for JSP
@@ -423,137 +451,133 @@ public class BookReadServlet extends HttpServlet {
         request.setAttribute("chapterComments", chapterComments);
     }
 
-    /**
-     * Helper method to get fileName from AI data
-     */
-    private String getFileNameFromBook(Ebook book) {
-        if (book instanceof EbookWithAI) {
-            return ((EbookWithAI) book).getFileName();
-        }
-        // Fallback: try to get from AI service
-        try {
-            EbookWithAI ebookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
-            return ebookWithAI != null ? ebookWithAI.getFileName() : null;
-        } catch (Exception e) {
-            System.err.println("⚠️ Cannot get fileName from AI data: " + e.getMessage());
-            return null;
-        }
-    }
+
 
     /**
-     * Read full book content (from ReadBookServlet)
+     * Read full book content (simplified approach using EbookAI)
      */
     private String readBookContent(Ebook book) {
         String uploadsPath = getUploadsPath();
         String bookTitle = book.getTitle();
         
-        // Primary method: use fileName from database
-        String fileName = getFileNameFromBook(book);
-        
-        if (fileName != null && !fileName.trim().isEmpty()) {
-            Path filePath = Paths.get(uploadsPath, fileName);
+        try {
+            // Get EbookAI data
+            EbookWithAI ebookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
             
-            if (Files.exists(filePath)) {
-                System.out.println("✅ Load file từ DB mapping: " + fileName);
+            if (ebookWithAI != null && ebookWithAI.getAiData() != null) {
+                String fileName = ebookWithAI.getAiData().getFileName();
+                String originalFileName = ebookWithAI.getAiData().getOriginalFileName();
                 
-                try {
-                    String content = com.mycompany.ebookwebsite.utils.Utils.readAnyTextFile(filePath.toString(), getFileExtension(fileName));
-                    
-                    if (content != null && !content.trim().isEmpty()) {
-                        return content;
+                // Try file_name first
+                if (fileName != null && !fileName.trim().isEmpty()) {
+                    Path filePath = Paths.get(uploadsPath, fileName);
+                    if (Files.exists(filePath)) {
+                        System.out.println("✅ Đọc file từ file_name: " + fileName);
+                        return readFileContent(filePath.toString(), getFileExtension(fileName));
                     } else {
-                        System.out.println("⚠️ File rỗng: " + fileName);
-                        return "📝 File sách tồn tại nhưng không có nội dung: " + fileName;
+                        System.out.println("⚠️ File không tồn tại: " + filePath);
                     }
-                } catch (Exception e) {
-                    System.out.println("⚠️ Lỗi đọc file: " + e.getMessage());
-                    return "💥 Lỗi đọc file: " + e.getMessage();
                 }
+                
+                // Try original_file_name as fallback
+                if (originalFileName != null && !originalFileName.trim().isEmpty()) {
+                    Path filePath = Paths.get(uploadsPath, originalFileName);
+                    if (Files.exists(filePath)) {
+                        System.out.println("✅ Đọc file từ original_file_name: " + originalFileName);
+                        return readFileContent(filePath.toString(), getFileExtension(originalFileName));
+                    } else {
+                        System.out.println("⚠️ Original file không tồn tại: " + filePath);
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            System.err.println("⚠️ Lỗi lấy thông tin EbookAI: " + e.getMessage());
+        }
+        
+        // Generate debug info if no file found
+        return generateDebugInfo(book, uploadsPath);
+    }
+    
+    /**
+     * Helper method to read file content with proper error handling
+     */
+    private String readFileContent(String filePath, String extension) {
+        try {
+            String content = com.mycompany.ebookwebsite.utils.Utils.readAnyTextFile(filePath, extension);
+            
+            if (content != null && !content.trim().isEmpty()) {
+                return content;
             } else {
-                System.out.println("❌ File không tồn tại: " + filePath);
+                return "📝 File tồn tại nhưng không có nội dung: " + filePath;
             }
-        } else {
-            System.out.println("⚠️ Sách chưa có fileName trong database: " + bookTitle);
+        } catch (Exception e) {
+            System.err.println("⚠️ Lỗi đọc file: " + e.getMessage());
+            return "💥 Lỗi đọc file: " + e.getMessage();
         }
-        
-        // Fallback: fuzzy search
-        System.out.println("🔍 Fallback to fuzzy search cho sách: " + bookTitle);
-        return performFuzzySearch(book, uploadsPath, bookTitle);
     }
 
-    private String performFuzzySearch(Ebook book, String uploadsPath, String bookTitle) {
-        // Implement fuzzy search logic from ReadBookServlet
-        String[] possibleFileNames = {
-            bookTitle + ".txt",
-            bookTitle.replace("–", "-") + ".txt",
-            bookTitle.replace("—", "-") + ".txt",
-            bookTitle.replaceAll("[^a-zA-Z0-9\\s]", "-") + ".txt",
-            bookTitle.replaceAll("\\s+", "_") + ".txt",
-            bookTitle.toLowerCase().replaceAll("[–—]", "-").replaceAll("[^a-z0-9\\s\\-]", "").replaceAll("\\s+", "") + ".txt"
-        };
-        
-        for (String possibleFileName : possibleFileNames) {
-            Path filePath = Paths.get(uploadsPath, possibleFileName);
-            if (Files.exists(filePath)) {
-                System.out.println("🔍 Tìm thấy file bằng fuzzy search: " + possibleFileName);
-                
-                try {
-                    // Update file info using EbookWithAIService
-                    ebookWithAIService.updateFileInfo(book.getId(), possibleFileName, null);
-                    System.out.println("💾 Đã cập nhật fileName vào database: " + possibleFileName);
-                } catch (Exception e) {
-                    System.out.println("⚠️ Không thể cập nhật fileName vào database: " + e.getMessage());
-                }
-                
-                try {
-                    return com.mycompany.ebookwebsite.utils.Utils.readAnyTextFile(filePath.toString(), getFileExtension(possibleFileName));
-                } catch (Exception e) {
-                    System.out.println("⚠️ Lỗi đọc file: " + e.getMessage());
-                    return "💥 Lỗi đọc file: " + e.getMessage();
-                }
-            }
-        }
-        
-        return generateDebugInfo(book, uploadsPath, possibleFileNames);
-    }
-
-    private String generateDebugInfo(Ebook book, String uploadsPath, String[] possibleFileNames) {
+    private String generateDebugInfo(Ebook book, String uploadsPath) {
         StringBuilder debugInfo = new StringBuilder();
         debugInfo.append("❌ Không tìm thấy file nội dung cho sách.\n\n");
         debugInfo.append("📋 Thông tin debug:\n");
         debugInfo.append("- ID sách: ").append(book.getId()).append("\n");
         debugInfo.append("- Tên sách: ").append(book.getTitle()).append("\n");
-        String fileName = getFileNameFromBook(book);
-        debugInfo.append("- FileName từ DB: ").append(fileName != null ? fileName : "NULL").append("\n");
-        debugInfo.append("- Thư mục uploads: ").append(uploadsPath).append("\n\n");
         
-        debugInfo.append("📝 Các tên file đã thử:\n");
-        for (String possibleFileName : possibleFileNames) {
-            debugInfo.append("  • ").append(possibleFileName).append("\n");
+        try {
+            EbookWithAI ebookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+            if (ebookWithAI != null && ebookWithAI.getAiData() != null) {
+                String fileName = ebookWithAI.getAiData().getFileName();
+                String originalFileName = ebookWithAI.getAiData().getOriginalFileName();
+                
+                debugInfo.append("- file_name từ EbookAI: ").append(fileName != null ? fileName : "NULL").append("\n");
+                debugInfo.append("- original_file_name từ EbookAI: ").append(originalFileName != null ? originalFileName : "NULL").append("\n");
+            } else {
+                debugInfo.append("- EbookAI record: KHÔNG TỒN TẠI\n");
+            }
+        } catch (Exception e) {
+            debugInfo.append("- Lỗi truy vấn EbookAI: ").append(e.getMessage()).append("\n");
         }
+        
+        debugInfo.append("- Thư mục uploads: ").append(uploadsPath).append("\n\n");
         
         File dir = new File(uploadsPath);
         if (dir.exists() && dir.isDirectory()) {
             File[] files = dir.listFiles();
             if (files != null && files.length > 0) {
-                debugInfo.append("\n📁 File có sẵn trong uploads:\n");
+                debugInfo.append("📁 File có sẵn trong uploads:\n");
                 for (File file : files) {
                     if (file.isFile()) {
-                        debugInfo.append("  📄 ").append(file.getName()).append("\n");
+                        String fileName = file.getName();
+                        debugInfo.append("  📄 ").append(fileName);
+                        
+                        // Highlight if this could be the target file based on book ID
+                        if (fileName.startsWith("book_" + book.getId() + "_")) {
+                            debugInfo.append(" ⭐ (KHỚP BOOK ID)");
+                        }
+                        
+                        debugInfo.append("\n");
                     }
                 }
             } else {
-                debugInfo.append("\n📂 Thư mục uploads trống\n");
+                debugInfo.append("📂 Thư mục uploads trống\n");
             }
         } else {
-            debugInfo.append("\n❌ Thư mục uploads không tồn tại\n");
+            debugInfo.append("❌ Thư mục uploads không tồn tại\n");
         }
+        
+        debugInfo.append("\n💡 Giải pháp:\n");
+        debugInfo.append("1. Kiểm tra bảng EbookAI có record cho book ID ").append(book.getId()).append("\n");
+        debugInfo.append("2. Đảm bảo file_name hoặc original_file_name được điền đúng\n");
+        debugInfo.append("3. Kiểm tra file thực tế tồn tại trong thư mục uploads\n");
         
         return debugInfo.toString();
     }
 
     private String getUploadsPath() {
         String[] possiblePaths = {
+            // 🎯 PRIORITY: Project uploads directory (user confirmed location)
+            "D:\\EbookWebsite\\uploads",
             System.getProperty("user.dir") + File.separator + UPLOAD_FOLDER,
             UPLOAD_FOLDER,
             getServletContext().getRealPath("/") + UPLOAD_FOLDER,
@@ -563,14 +587,38 @@ public class BookReadServlet extends HttpServlet {
             File.separator + UPLOAD_FOLDER
         };
         
+        System.out.println("🔍 Tìm kiếm uploads directory...");
+        
         for (String path : possiblePaths) {
             File dir = new File(path);
+            System.out.println("📁 Kiểm tra: " + path);
+            
             if (dir.exists() && dir.isDirectory()) {
                 File[] files = dir.listFiles();
+                System.out.println("   ✅ Thư mục tồn tại với " + (files != null ? files.length : 0) + " files");
+                
                 if (files != null && files.length > 0) {
+                    // Log some files for debugging
+                    System.out.println("   📄 Sample files:");
+                    for (int i = 0; i < Math.min(5, files.length); i++) {
+                        System.out.println("     - " + files[i].getName());
+                    }
+                    
+                    // Special check for our target file
+                    boolean hasTargetFile = false;
+                    for (File file : files) {
+                        if (file.getName().equals("Nhà Thờ Đức Bà Paris.pdf")) {
+                            hasTargetFile = true;
+                            System.out.println("   🎯 FOUND TARGET FILE: " + file.getName() + " (" + file.length() + " bytes)");
+                            break;
+                        }
+                    }
+                    
                     System.out.println("✅ Sử dụng uploads path: " + path);
                     return path;
                 }
+            } else {
+                System.out.println("   ❌ Thư mục không tồn tại hoặc không phải thư mục");
             }
         }
         
