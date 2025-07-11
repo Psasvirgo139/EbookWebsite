@@ -12,11 +12,13 @@ import com.mycompany.ebookwebsite.service.VolumeService;
 import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.service.OpenAIContentSummaryService;
-import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.service.EbookWithAIService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.service.EbookAIFixService;
+import com.mycompany.ebookwebsite.service.PremiumService;
+import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
+import com.mycompany.ebookwebsite.utils.PathManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -50,9 +52,7 @@ public class BookReadServlet extends HttpServlet {
     private EbookDAO ebookDAO;
     private EbookWithAIService ebookWithAIService;
     private EbookAIFixService ebookAIFixService;
-    
-    // Upload folder configuration from ReadBookServlet
-    private static final String UPLOAD_FOLDER = "uploads";
+    private PremiumService premiumService;  // 👑 Thêm PremiumService
 
     @Override
     public void init() {
@@ -66,6 +66,10 @@ public class BookReadServlet extends HttpServlet {
         ebookDAO = new EbookDAO();
         ebookWithAIService = new EbookWithAIService();
         ebookAIFixService = new EbookAIFixService();
+        premiumService = new PremiumService();  // 👑 Khởi tạo PremiumService
+        
+        // 🗂️ Log PathManager info for debugging
+        System.out.println("📁 BookReadServlet initialized with uploads path: " + PathManager.getUploadsPath());
     }
 
     @Override
@@ -318,8 +322,9 @@ public class BookReadServlet extends HttpServlet {
                     return;
                 }
                 
-                Boolean isPremiumUser = (Boolean) session.getAttribute("isPremium");
-                if (isPremiumUser != null && isPremiumUser) {
+                // 👑 Sử dụng PremiumService thay vì session attribute
+                boolean isPremiumUser = premiumService.isPremiumUser(user.getId());
+                if (isPremiumUser) {
                     hasAccess = true;
                 } else {
                     if (coinService.isChapterAccessible(user.getId(), chapter.getId())) {
@@ -474,7 +479,8 @@ public class BookReadServlet extends HttpServlet {
      * Read full book content (simplified approach using EbookAI)
      */
     private String readBookContent(Ebook book) {
-        String uploadsPath = getUploadsPath();
+        // 🗂️ Sử dụng PathManager thay vì method hard-coded
+        String uploadsPath = PathManager.getUploadsPath();
         String bookTitle = book.getTitle();
         
         try {
@@ -609,59 +615,7 @@ public class BookReadServlet extends HttpServlet {
         return debugInfo.toString();
     }
 
-    private String getUploadsPath() {
-        String[] possiblePaths = {
-            // 🎯 PRIORITY: Project uploads directory (user confirmed location)
-            "D:\\EbookWebsite\\uploads",
-            System.getProperty("user.dir") + File.separator + UPLOAD_FOLDER,
-            UPLOAD_FOLDER,
-            getServletContext().getRealPath("/") + UPLOAD_FOLDER,
-            System.getProperty("catalina.base") + File.separator + "webapps" + 
-            File.separator + "EbookWebsite" + File.separator + UPLOAD_FOLDER,
-            System.getProperty("catalina.base") + File.separator + "bin" + 
-            File.separator + UPLOAD_FOLDER
-        };
-        
-        System.out.println("🔍 Tìm kiếm uploads directory...");
-        
-        for (String path : possiblePaths) {
-            File dir = new File(path);
-            System.out.println("📁 Kiểm tra: " + path);
-            
-            if (dir.exists() && dir.isDirectory()) {
-                File[] files = dir.listFiles();
-                System.out.println("   ✅ Thư mục tồn tại với " + (files != null ? files.length : 0) + " files");
-                
-                if (files != null && files.length > 0) {
-                    // Log some files for debugging
-                    System.out.println("   📄 Sample files:");
-                    for (int i = 0; i < Math.min(5, files.length); i++) {
-                        System.out.println("     - " + files[i].getName());
-                    }
-                    
-                    // Special check for our target file
-                    boolean hasTargetFile = false;
-                    for (File file : files) {
-                        if (file.getName().equals("Nhà Thờ Đức Bà Paris.pdf")) {
-                            hasTargetFile = true;
-                            System.out.println("   🎯 FOUND TARGET FILE: " + file.getName() + " (" + file.length() + " bytes)");
-                            break;
-                        }
-                    }
-                    
-                    System.out.println("✅ Sử dụng uploads path: " + path);
-                    return path;
-                }
-            } else {
-                System.out.println("   ❌ Thư mục không tồn tại hoặc không phải thư mục");
-            }
-        }
-        
-        String defaultPath = possiblePaths[0];
-        new File(defaultPath).mkdirs();
-        System.out.println("📁 Tạo uploads path mặc định: " + defaultPath);
-        return defaultPath;
-    }
+    // 🗂️ Đã thay thế method getUploadsPath() bằng PathManager.getUploadsPath()
 
     private String getFileExtension(String fileName) {
         if (fileName == null || fileName.trim().isEmpty()) {

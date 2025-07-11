@@ -5,6 +5,7 @@ import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.model.EbookAI;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.utils.PathManager;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -21,20 +22,24 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Servlet để fix encoding issues trong EbookAI records
+ * 🔧 FixEncodingEbookAIServlet - Fix encoding issues trong EbookAI records
+ * 
  * URL: /admin/fix-encoding-ebook-ai
+ * Updated to use PathManager for better path management
  */
 @WebServlet("/admin/fix-encoding-ebook-ai")
 public class FixEncodingEbookAIServlet extends HttpServlet {
     
     private EbookAIDAO ebookAIDAO;
     private EbookDAO ebookDAO;
-    private static final String UPLOADS_FOLDER = "D:\\EbookWebsite\\uploads";
     
     @Override
     public void init() throws ServletException {
         ebookAIDAO = new EbookAIDAO();
         ebookDAO = new EbookDAO();
+        
+        // 🗂️ Log PathManager info for debugging
+        System.out.println("📁 FixEncodingEbookAIServlet initialized with uploads path: " + PathManager.getUploadsPath());
     }
     
     @Override
@@ -192,8 +197,12 @@ public class FixEncodingEbookAIServlet extends HttpServlet {
      * Tìm file phù hợp trong uploads folder
      */
     private String findMatchingFileInUploads(String bookTitle) {
-        File uploadsDir = new File(UPLOADS_FOLDER);
+        // 🗂️ Sử dụng PathManager thay vì hard-coded path
+        String uploadsPath = PathManager.getUploadsPath();
+        File uploadsDir = new File(uploadsPath);
+        
         if (!uploadsDir.exists() || !uploadsDir.isDirectory()) {
+            System.out.println("⚠️ Uploads directory not found: " + uploadsPath);
             return null;
         }
         

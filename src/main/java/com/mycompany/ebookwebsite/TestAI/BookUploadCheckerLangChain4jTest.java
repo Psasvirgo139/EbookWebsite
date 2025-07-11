@@ -1,6 +1,8 @@
 package com.mycompany.ebookwebsite.TestAI;
 
 import com.mycompany.ebookwebsite.service.LangChain4jAIChatService;
+import com.mycompany.ebookwebsite.utils.PathManager;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,15 +20,23 @@ import com.mycompany.ebookwebsite.utils.Utils;
  * - Copy file vào uploads nếu hợp lệ
  * - AI tự động nhận biết metadata (tiêu đề, thể loại, mô tả, tóm tắt)
  * - Lưu vào database và update listBook
+ * 
+ * Updated to use PathManager for better path management
  */
 public class BookUploadCheckerLangChain4jTest {
-    private static final String UPLOADS_FOLDER = "D:\\EbookWebsite\\uploads";
+    
+    // 🗂️ Sử dụng PathManager thay vì hard-coded path
+    private static String getUploadsFolder() {
+        return PathManager.getUploadsPath();
+    }
+    
     private static LangChain4jAIChatService aiService;
     private static Scanner scanner;
-
+    
     public static void main(String[] args) {
         System.out.println("📚 BOOK UPLOAD CHECKER (LangChain4j AI)");
         System.out.println("=========================================");
+        System.out.println("📁 Using uploads path: " + getUploadsFolder());
         System.out.println("Chọn đường dẫn file sách cần upload\n");
         
         aiService = new LangChain4jAIChatService();
@@ -151,7 +161,7 @@ public class BookUploadCheckerLangChain4jTest {
         
         try {
             // Tạo thư mục uploads nếu chưa có
-            File uploadsDir = new File(UPLOADS_FOLDER);
+            File uploadsDir = new File(getUploadsFolder());
             if (!uploadsDir.exists()) {
                 uploadsDir.mkdirs();
                 System.out.println("📁 Đã tạo thư mục uploads");
@@ -159,7 +169,7 @@ public class BookUploadCheckerLangChain4jTest {
             
             // Copy file
             Path source = sourceFile.toPath();
-            Path target = Paths.get(UPLOADS_FOLDER, sourceFile.getName());
+            Path target = Paths.get(getUploadsFolder(), sourceFile.getName());
             
             Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
             

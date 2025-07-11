@@ -3,6 +3,7 @@ package com.mycompany.ebookwebsite.controller;
 import com.mycompany.ebookwebsite.dao.UserDAO;
 import com.mycompany.ebookwebsite.dao.UserCoinDAO;
 import com.mycompany.ebookwebsite.model.User;
+import com.mycompany.ebookwebsite.service.PremiumService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,7 +15,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 /**
- * Servlet để xử lý việc nạp tiền và nâng cấp premium
+ * 💳 PaymentServlet - Xử lý việc nạp tiền và nâng cấp premium
+ * 
+ * Updated to use PremiumService for proper expiry tracking
  * @author ADMIN
  */
 @WebServlet("/coin/payment")
@@ -22,6 +25,7 @@ public class PaymentServlet extends HttpServlet {
     
     private UserDAO userDao = new UserDAO();
     private UserCoinDAO userCoinDao = new UserCoinDAO();
+    private PremiumService premiumService = new PremiumService();  // 👑 Thêm PremiumService
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -69,16 +73,26 @@ public class PaymentServlet extends HttpServlet {
         String action = request.getParameter("action");
         
         if ("upgrade_premium".equals(action) || "upgrade_premium_vnd".equals(action)) {
-            // Xử lý nâng cấp premium bằng VND
-            // Trong thực tế, đây sẽ tích hợp với payment gateway
+            // 👑 Xử lý nâng cấp premium bằng VND với proper expiry tracking
+            try {
+                // Sử dụng PremiumService thay vì session attributes
+                premiumService.activatePremiumForUser(user.getId(), "vnd", 100000.0);
+                
+                // Refresh user object từ database để có role mới
+                User updatedUser = userDao.findById(user.getId());
+                if (updatedUser != null) {
+                    session.setAttribute("user", updatedUser);
+                }
+                
+                response.sendRedirect(request.getContextPath() + "/user/profile?success=premium_upgraded_vnd");
+                
+            } catch (SQLException e) {
+                e.printStackTrace();
+                response.sendRedirect(request.getContextPath() + "/coin/payment?error=premium_upgrade_failed");
+            }
             
-            // Giả lập payment thành công
-            session.setAttribute("isPremium", true);
-            session.setAttribute("premiumExpiry", System.currentTimeMillis() + (30L * 24 * 60 * 60 * 1000)); // 30 ngày
-            
-            response.sendRedirect(request.getContextPath() + "/user/profile?success=premium_upgraded_vnd");
         } else if ("upgrade_premium_coin".equals(action)) {
-            // Xử lý nâng cấp premium bằng coin
+            // 👑 Xử lý nâng cấp premium bằng coin với proper expiry tracking
             try {
                 // Kiểm tra số coin hiện tại từ database
                 int currentCoins = userCoinDao.getUserCoins(user.getId()).getCoins();
@@ -87,12 +101,14 @@ public class PaymentServlet extends HttpServlet {
                     // Trừ 100 coins từ database
                     userCoinDao.deductCoins(user.getId(), 100);
                     
-                    // Nâng cấp user thành premium
-                    user.setRole("premium");
-                    userDao.update(user);
+                    // 👑 Sử dụng PremiumService thay vì chỉ set role
+                    premiumService.activatePremiumForUser(user.getId(), "coin", 100.0);
                     
-                    // Cập nhật session
-                    session.setAttribute("user", user);
+                    // Refresh user object từ database để có role mới
+                    User updatedUser = userDao.findById(user.getId());
+                    if (updatedUser != null) {
+                        session.setAttribute("user", updatedUser);
+                    }
                     
                     response.sendRedirect(request.getContextPath() + "/profile?success=premium_upgraded_coin");
                 } else {

@@ -4,12 +4,14 @@ import com.mycompany.ebookwebsite.service.OpenAIContentSummaryService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.utils.Utils;
+import com.mycompany.ebookwebsite.utils.PathManager;
 
 /**
  * 🔍 AI SUMMARY DEBUG TEST
  * 
  * Tool để debug và test AI summary functionality
  * Chạy standalone để xác định nguyên nhân lỗi
+ * Updated to use PathManager for better path management
  */
 public class AISummaryDebugTest {
     
@@ -133,9 +135,12 @@ public class AISummaryDebugTest {
         System.out.println("-".repeat(30));
         
         try {
-            // Test exact file path user confirmed
+            // 🗂️ Sử dụng PathManager để tạo test paths
+            String uploadsPath = PathManager.getUploadsPath();
+            System.out.println("📁 Using uploads path: " + uploadsPath);
+            
             String[] possiblePaths = {
-                "D:\\EbookWebsite\\uploads\\Nhà Thờ Đức Bà Paris.pdf",
+                PathManager.getUploadFilePath("Nhà Thờ Đức Bà Paris.pdf"),
                 "uploads/Nhà Thờ Đức Bà Paris.pdf",
                 "uploads/book_47_1751596645234_nh_th_c_b_paris.pdf",
                 "uploads/nh_th_c_b_paris.pdf",
@@ -169,17 +174,17 @@ public class AISummaryDebugTest {
                 }
             }
             
-            // Check project uploads directory specifically
+            // 🗂️ Check project uploads directory specifically using PathManager
             System.out.println("\n📂 Project uploads directory scan:");
             String[] uploadsDirs = {
-                "D:\\EbookWebsite\\uploads",
+                uploadsPath,  // PathManager uploads path
                 "uploads",
                 System.getProperty("user.dir") + "\\uploads"
             };
             
-            for (String uploadsPath : uploadsDirs) {
-                java.io.File uploadsDir = new java.io.File(uploadsPath);
-                System.out.println("📁 Checking: " + uploadsPath);
+            for (String checkPath : uploadsDirs) {
+                java.io.File uploadsDir = new java.io.File(checkPath);
+                System.out.println("📁 Checking: " + checkPath);
                 
                 if (uploadsDir.exists() && uploadsDir.isDirectory()) {
                     java.io.File[] files = uploadsDir.listFiles();
