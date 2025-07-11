@@ -5,11 +5,14 @@ import com.mycompany.ebookwebsite.model.Comment;
 import com.mycompany.ebookwebsite.model.Volume;
 import com.mycompany.ebookwebsite.model.Chapter;
 import com.mycompany.ebookwebsite.service.EbookService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.EbookWithAIService.EbookWithAI;
 import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.VolumeService;
 import com.mycompany.ebookwebsite.service.ChapterService;
 import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
+import com.mycompany.ebookwebsite.dao.EbookDAO;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
@@ -30,6 +33,7 @@ import java.util.HashMap;
 public class BookDetailServlet extends HttpServlet {
 
     private final EbookService ebookService = new EbookService();
+    private final EbookWithAIService ebookWithAIService = new EbookWithAIService();
     private final CommentService commentService = new CommentService();
     private final VolumeService volumeService = new VolumeService();
     private final ChapterService chapterService = new ChapterService();
@@ -37,21 +41,58 @@ public class BookDetailServlet extends HttpServlet {
     private final AuthorDAO authorDAO = new AuthorDAO();
     private final EbookTagDAO ebookTagDAO = new EbookTagDAO();
     private final TagDAO tagDAO = new TagDAO();
+    private final EbookDAO ebookDAO = new EbookDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        String action = request.getParameter("action");
+        
         try {
+            if ("editSummary".equals(action)) {
+                showEditSummaryForm(request, response);
+            } else if ("delete".equals(action)) {
+                showDeleteConfirm(request, response);
+            } else {
+                showBookDetail(request, response);
+            }
+        } catch (SQLException e) {
+            throw new ServletException("Database error", e);
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
+        String action = request.getParameter("action");
+        
+        try {
+            if ("editSummary".equals(action)) {
+                updateSummary(request, response);
+            } else if ("delete".equals(action)) {
+                deleteBook(request, response);
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid action");
+            }
+        } catch (SQLException e) {
+            throw new ServletException("Database error", e);
+        }
+    }
+
+    private void showBookDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, SQLException {
+
             // validate và xử lý
             int id = EbookValidation.validateId(request.getParameter("id"));
-            Ebook ebook = ebookService.getEbookById(id);
+        EbookWithAI ebook = ebookWithAIService.getEbookWithAI(id);
             if (ebook == null) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND, "Book not found");
                 return;
             }
 
-            ebookService.incrementViewCount(id);
+        ebookWithAIService.incrementViewCount(id);
             
             // Get book comments
             List<Comment> bookComments = commentService.getCommentsByBook(id);
@@ -136,14 +177,75 @@ public class BookDetailServlet extends HttpServlet {
             request.setAttribute("authors", authors);
             request.setAttribute("tags", tags);
             request.getRequestDispatcher("/book/detail.jsp").forward(request, response);
+    }
 
+    private void showEditSummaryForm(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            EbookWithAI book = ebookWithAIService.getEbookWithAI(id);
+            if (book == null) {
+                request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
+                response.sendRedirect(request.getContextPath() + "/book-list");
+                return;
+            }
+            request.setAttribute("book", book);
+            request.getRequestDispatcher("/book/editSummary.jsp").forward(request, response);
         } catch (NumberFormatException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid number format");
-        } catch (IllegalArgumentException e) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid book ID");
-        } catch (SQLException e) {
-            throw new ServletException("Database error", e);
+            request.setAttribute("error", "ID sách không hợp lệ");
+            response.sendRedirect(request.getContextPath() + "/book-list");
         }
+    }
 
+    private void showDeleteConfirm(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Ebook book = ebookDAO.selectEbook(id);
+            if (book == null) {
+                request.setAttribute("error", "Không tìm thấy sách với ID: " + id);
+                response.sendRedirect(request.getContextPath() + "/book-list");
+                return;
+            }
+            request.setAttribute("book", book);
+            request.getRequestDispatcher("/book/bookDeleteConfirm.jsp").forward(request, response);
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID sách không hợp lệ");
+            response.sendRedirect(request.getContextPath() + "/book-list");
+        }
+    }
+
+    private void updateSummary(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            String summary = request.getParameter("summary");
+            
+            boolean updated = ebookWithAIService.updateSummary(id, summary);
+            if (updated) {
+                response.sendRedirect(request.getContextPath() + "/book/detail?id=" + id + "&success=summary_updated");
+            } else {
+                request.setAttribute("error", "Không thể cập nhật tóm tắt");
+                showEditSummaryForm(request, response);
+            }
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID sách không hợp lệ");
+            response.sendRedirect(request.getContextPath() + "/book-list");
+        }
+    }
+
+    private void deleteBook(HttpServletRequest request, HttpServletResponse response)
+            throws SQLException, ServletException, IOException {
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            ebookDAO.deleteEbook(id);
+            response.sendRedirect(request.getContextPath() + "/book-list?success=book_deleted");
+        } catch (NumberFormatException e) {
+            request.setAttribute("error", "ID sách không hợp lệ");
+            response.sendRedirect(request.getContextPath() + "/book-list");
+        } catch (Exception e) {
+            request.setAttribute("error", "Có lỗi khi xóa sách: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/book-list");
+        }
     }
 }

@@ -20,7 +20,8 @@ import jakarta.servlet.annotation.WebFilter;
  *
  * @author ADMIN
  */
-@WebFilter(filterName = "DefaultFilter", urlPatterns = {"/*"})
+// TEMPORARILY DISABLED FOR DEBUG  
+// @WebFilter(filterName = "DefaultFilter", urlPatterns = {"/*"})
 public class DefaultFilter implements Filter {
     
     private static final boolean debug = true;

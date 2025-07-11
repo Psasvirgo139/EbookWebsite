@@ -13,8 +13,6 @@ import java.util.logging.Logger;
  *
  * @author ADMIN
  */
-
-// sử lại database nè m
 public class DBConnection {
     public static String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
     public static String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=EBookWebsite;encrypt=true;trustServerCertificate=true";
