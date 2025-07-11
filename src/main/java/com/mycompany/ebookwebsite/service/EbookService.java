@@ -1,14 +1,14 @@
 package com.mycompany.ebookwebsite.service;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
 import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.dao.FavoriteDAO;
 import com.mycompany.ebookwebsite.dao.UserReadDAO;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.User;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
 
 public class EbookService {
     private final EbookDAO ebookDAO = new EbookDAO();
@@ -66,5 +66,24 @@ public class EbookService {
                 conn.close();
             }
         }
+    }
+
+    public List<Ebook> getLatestBooks(int limit) throws SQLException {
+        return ebookDAO.getBooksByPage(0, limit);
+    }
+
+    public List<Ebook> getAllBooks() throws SQLException {
+        return ebookDAO.selectAllEbooks();
+    }
+
+    public List<com.mycompany.ebookwebsite.model.AdminBookView> getAdminBookViews() throws java.sql.SQLException {
+        List<Ebook> ebooks = getAllBooks();
+        List<com.mycompany.ebookwebsite.model.AdminBookView> views = new java.util.ArrayList<>();
+        for (Ebook e : ebooks) {
+            views.add(new com.mycompany.ebookwebsite.model.AdminBookView(
+                e.getId(), e.getTitle(), e.getReleaseType(), e.getCreatedAt(), e.getStatus(), e.getViewCount()
+            ));
+        }
+        return views;
     }
 }

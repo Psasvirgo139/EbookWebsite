@@ -223,6 +223,25 @@ public class UserService {
         }
         return userInforDAO.selectUserInfor(id);
     }
+
+    public int countAllUsers() throws SQLException {
+        return userDAO.countAllUsers();
+    }
+
+    public List<User> getLatestUsers(int limit) throws SQLException {
+        return userDAO.getLatestUsers(limit);
+    }
+
+    public java.util.List<com.mycompany.ebookwebsite.model.AdminUserView> getAdminUserViews() throws java.sql.SQLException {
+        java.util.List<User> users = getAllUsers();
+        java.util.List<com.mycompany.ebookwebsite.model.AdminUserView> views = new java.util.ArrayList<>();
+        for (User u : users) {
+            views.add(new com.mycompany.ebookwebsite.model.AdminUserView(
+                u.getId(), u.getUsername(), u.getEmail(), u.getRole(), u.getStatus(), u.getCreatedAt(), u.getLastLogin()
+            ));
+        }
+        return views;
+    }
 }
 
 
