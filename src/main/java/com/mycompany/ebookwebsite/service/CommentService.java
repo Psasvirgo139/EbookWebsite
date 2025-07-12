@@ -1,12 +1,11 @@
 package com.mycompany.ebookwebsite.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import com.mycompany.ebookwebsite.dao.CommentDAO;
 import com.mycompany.ebookwebsite.model.Comment;
 import com.mycompany.ebookwebsite.model.User;
-import java.time.LocalDateTime;
-
-import java.sql.SQLException;
-import java.util.List;
 
 public class CommentService {
     private final CommentDAO commentDAO = new CommentDAO();
@@ -127,5 +126,57 @@ public class CommentService {
             c.setLikeCount(voteService.getLikeCount(c.getId()));
         }
         return bookComments;
+    }
+
+    public int countAllComments() throws SQLException {
+        return commentDAO.countAllComments();
+    }
+
+    public java.util.List<com.mycompany.ebookwebsite.model.AdminCommentView> getAdminCommentViews() throws java.sql.SQLException {
+        java.util.List<com.mycompany.ebookwebsite.model.Comment> comments = commentDAO.findAll();
+        com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+        com.mycompany.ebookwebsite.dao.EbookDAO ebookDAO = new com.mycompany.ebookwebsite.dao.EbookDAO();
+        java.util.List<com.mycompany.ebookwebsite.model.AdminCommentView> views = new java.util.ArrayList<>();
+        for (com.mycompany.ebookwebsite.model.Comment c : comments) {
+            String username = "";
+            String ebookTitle = "";
+            com.mycompany.ebookwebsite.model.User u = userDAO.findById(c.getUserID());
+            if (u != null) username = u.getUsername();
+            com.mycompany.ebookwebsite.model.Ebook e = ebookDAO.getEbookById(c.getEbookID());
+            if (e != null) ebookTitle = e.getTitle();
+            views.add(new com.mycompany.ebookwebsite.model.AdminCommentView(
+                c.getId(), c.getUserID(), username, c.getEbookID(), ebookTitle, c.getChapterID(), c.getContent(), c.getCreatedAt()
+            ));
+        }
+        return views;
+    }
+
+    public java.util.List<com.mycompany.ebookwebsite.model.AdminCommentView> getAdminCommentViewsReportedOnly() throws java.sql.SQLException {
+        // Lấy danh sách commentId đã bị báo cáo
+        java.util.Set<Integer> reportedIds = new java.util.HashSet<>();
+        try (java.sql.Connection con = com.mycompany.ebookwebsite.dao.DBConnection.getConnection();
+             java.sql.PreparedStatement ps = con.prepareStatement("SELECT DISTINCT comment_id FROM CommentReports")) {
+            java.sql.ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                reportedIds.add(rs.getInt(1));
+            }
+        }
+        java.util.List<com.mycompany.ebookwebsite.model.Comment> comments = commentDAO.findAll();
+        com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+        com.mycompany.ebookwebsite.dao.EbookDAO ebookDAO = new com.mycompany.ebookwebsite.dao.EbookDAO();
+        java.util.List<com.mycompany.ebookwebsite.model.AdminCommentView> views = new java.util.ArrayList<>();
+        for (com.mycompany.ebookwebsite.model.Comment c : comments) {
+            if (!reportedIds.contains(c.getId())) continue;
+            String username = "";
+            String ebookTitle = "";
+            com.mycompany.ebookwebsite.model.User u = userDAO.findById(c.getUserID());
+            if (u != null) username = u.getUsername();
+            com.mycompany.ebookwebsite.model.Ebook e = ebookDAO.getEbookById(c.getEbookID());
+            if (e != null) ebookTitle = e.getTitle();
+            views.add(new com.mycompany.ebookwebsite.model.AdminCommentView(
+                c.getId(), c.getUserID(), username, c.getEbookID(), ebookTitle, c.getChapterID(), c.getContent(), c.getCreatedAt()
+            ));
+        }
+        return views;
     }
 }

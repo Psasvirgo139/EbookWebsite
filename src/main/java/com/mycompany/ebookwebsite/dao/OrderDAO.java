@@ -55,6 +55,9 @@ public class OrderDAO {
     private static final String SELECT_BY_DATE_RANGE = 
         "SELECT Id, UserId, OrderDate, TotalAmount, Status FROM Orders WHERE OrderDate BETWEEN ? AND ? ORDER BY OrderDate DESC";
 
+    private static final String SELECT_TOTAL_REVENUE =
+        "SELECT SUM(TotalAmount) as totalRevenue FROM Orders WHERE Status = 'Completed'";
+
     /**
      * Thêm order mới vào database
      * @param order Order cần thêm
@@ -227,6 +230,22 @@ public class OrderDAO {
         }
         
         return orders;
+    }
+
+    /**
+     * Lấy tổng doanh thu từ các order đã hoàn thành
+     * @return tổng doanh thu (double)
+     * @throws SQLException nếu có lỗi database
+     */
+    public double getTotalRevenue() throws SQLException {
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(SELECT_TOTAL_REVENUE);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getDouble("totalRevenue");
+            }
+        }
+        return 0.0;
     }
 
     /**

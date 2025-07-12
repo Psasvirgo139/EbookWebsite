@@ -97,6 +97,10 @@
                                 <button type="submit" class="btn btn-sm btn-outline-danger delete-btn" data-comment-id="${comment.id}">Xóa</button>
                             </form>
                         </c:if>
+                        <!-- Nút Báo cáo -->
+                        <c:if test="${not empty sessionScope.user}">
+                            <button type="button" class="btn btn-sm btn-outline-danger report-btn" data-comment-id="${comment.id}">Báo cáo</button>
+                        </c:if>
                     </div>
                     <!-- Reply form -->
                     <c:if test="${replyTo == comment.id}">
@@ -186,4 +190,41 @@
     </div>
 </div>
 
+<!-- Modal báo cáo bình luận -->
+<div class="modal" id="reportModal" tabindex="-1" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:2rem; border-radius:10px; min-width:300px; max-width:90vw;">
+        <h5>Báo cáo bình luận</h5>
+        <form id="reportForm" method="post" action="${pageContext.request.contextPath}/comment/report">
+            <input type="hidden" name="commentId" id="reportCommentId" />
+            <label>Lý do báo cáo:</label>
+            <textarea name="reason" id="reportReason" required style="width:100%;min-height:60px;"></textarea>
+            <div style="margin-top:1rem; text-align:right;">
+                <button type="button" class="btn btn-secondary" id="cancelReportBtn">Hủy</button>
+                <button type="submit" class="btn btn-danger">Gửi báo cáo</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+// Hiển thị modal khi bấm nút Báo cáo
+const reportBtns = document.querySelectorAll('.report-btn');
+const reportModal = document.getElementById('reportModal');
+const reportForm = document.getElementById('reportForm');
+const reportCommentId = document.getElementById('reportCommentId');
+const cancelReportBtn = document.getElementById('cancelReportBtn');
+reportBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+        reportCommentId.value = this.getAttribute('data-comment-id');
+        reportModal.style.display = 'flex';
+    });
+});
+cancelReportBtn.addEventListener('click', function() {
+    reportModal.style.display = 'none';
+    reportForm.reset();
+});
+// Đóng modal khi submit thành công (có thể reload lại trang hoặc show thông báo)
+reportForm.addEventListener('submit', function() {
+    reportModal.style.display = 'none';
+});
+</script>
  

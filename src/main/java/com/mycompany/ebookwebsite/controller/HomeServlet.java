@@ -34,7 +34,7 @@ public class HomeServlet extends HttpServlet {
             req.setAttribute("ebookList", ebooks);
             req.setAttribute("currentPage", currentPage);
             req.setAttribute("totalPages", totalPages);
-            req.getRequestDispatcher("/book/list.jsp").forward(req, resp);
+            req.getRequestDispatcher("/book-list").forward(req, resp);
         } catch (IllegalArgumentException | SQLException e) {
             req.setAttribute("error", e.getMessage());
             req.getRequestDispatcher("/error.jsp").forward(req, resp);

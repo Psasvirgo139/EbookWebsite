@@ -319,6 +319,15 @@ public class OrderService {
         return orderDAO.countByStatus(status);
     }
 
+    /**
+     * Lấy tổng doanh thu từ các order đã hoàn thành
+     * @return tổng doanh thu (double)
+     * @throws SQLException nếu có lỗi database
+     */
+    public double getTotalRevenue() throws SQLException {
+        return orderDAO.getTotalRevenue();
+    }
+
     // Validation methods
     
     private void validateUserId(int userId) throws IllegalArgumentException, SQLException {

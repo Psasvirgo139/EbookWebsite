@@ -21,4 +21,8 @@ public class EbookValidation {
             throw new IllegalArgumentException("Invalid ID");
         }
     }
+
+    public static boolean isValidTitle(String title) {
+        return title != null && !title.trim().isEmpty() && title.length() <= 255;
+    }
 }

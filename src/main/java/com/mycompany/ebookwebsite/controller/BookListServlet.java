@@ -132,7 +132,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("endBook", endBook);
             
             // Forward đến JSP
-            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
+            request.getRequestDispatcher("/book-list").forward(request, response);
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -141,7 +141,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("totalBooks", 0);
             request.setAttribute("currentPage", 1);
             request.setAttribute("totalPages", 0);
-            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
+            request.getRequestDispatcher("/book-list").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
@@ -149,7 +149,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("totalBooks", 0);
             request.setAttribute("currentPage", 1);
             request.setAttribute("totalPages", 0);
-            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
+            request.getRequestDispatcher("/book-list").forward(request, response);
         }
     }
     
