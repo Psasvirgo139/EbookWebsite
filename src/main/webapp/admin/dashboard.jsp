@@ -1,4 +1,5 @@
-<%@page contentType="text/html;charset=UTF-8" language="java"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -127,61 +128,46 @@
     <nav class="sidebar">
         <h2>Quản trị</h2>
         <a href="#" class="active">Dashboard</a>
-        <a href="#">Quản lý sách</a>
-        <a href="#">Quản lý người dùng</a>
-        <a href="#">Quản lý tác giả</a>
-        <a href="#">Quản lý bình luận</a>
-        <a href="#">Thống kê</a>
+        <a href="${pageContext.request.contextPath}/admin/books">Quản lý sách</a>
+        <a href="${pageContext.request.contextPath}/admin/users">Quản Lý Người Dùng</a>
+        <a href="${pageContext.request.contextPath}/admin/comments">Quản lý bình luận</a>
+        
         <form action="${pageContext.request.contextPath}/logout" method="post" style="margin-top:auto;">
             <button type="submit" class="logout-link" style="width:100%;">Đăng xuất</button>
         </form>
     </nav>
     <main class="main-content">
-        <div class="dashboard-title">Chào mừng Admin!</div>
+        <div class="dashboard-title">Thống kê tài chính</div>
         <div class="stats">
             <div class="stat-card">
-                <div class="stat-label">Tổng số sách</div>
-                <div class="stat-value">1,234</div>
+                <div class="stat-label">Tổng doanh thu (VNĐ)</div>
+                <div class="stat-value">
+                    <c:out value="${totalRevenue}"/>
+                </div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Người dùng</div>
-                <div class="stat-value">567</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Bình luận</div>
-                <div class="stat-value">2,890</div>
+                <div class="stat-label">Tổng số giao dịch</div>
+                <div class="stat-value">
+                    <c:out value="${orderCount}"/>
+                </div>
             </div>
         </div>
         <div class="section-title">Danh sách sách mới nhất</div>
         <table>
             <tr>
                 <th>Tên sách</th>
-                <th>Tác giả</th>
                 <th>Thể loại</th>
                 <th>Ngày đăng</th>
                 <th>Trạng thái</th>
             </tr>
-            <tr>
-                <td>Thần Thoại Bắc Âu</td>
-                <td>Rick Riordan</td>
-                <td>Hành động</td>
-                <td>2024-06-25</td>
-                <td>Đã duyệt</td>
-            </tr>
-            <tr>
-                <td>Ma Đạo Tổ Sư</td>
-                <td>Mặc Hương Đồng Khứu</td>
-                <td>Kỳ ảo</td>
-                <td>2024-06-24</td>
-                <td>Chờ duyệt</td>
-            </tr>
-            <tr>
-                <td>One Piece</td>
-                <td>Eiichiro Oda</td>
-                <td>Phiêu lưu</td>
-                <td>2024-06-23</td>
-                <td>Đã duyệt</td>
-            </tr>
+            <c:forEach var="book" items="${latestBooks}">
+                <tr>
+                    <td>${book.title}</td>
+                    <td>${book.releaseType}</td>
+                    <td>${book.createdAt}</td>
+                    <td>${book.status}</td>
+                </tr>
+            </c:forEach>
         </table>
         <div class="section-title">Người dùng mới đăng ký</div>
         <table>
@@ -191,18 +177,14 @@
                 <th>Ngày đăng ký</th>
                 <th>Trạng thái</th>
             </tr>
-            <tr>
-                <td>Nguyễn Văn A</td>
-                <td>vana@gmail.com</td>
-                <td>2024-06-25</td>
-                <td>Hoạt động</td>
-            </tr>
-            <tr>
-                <td>Trần Thị B</td>
-                <td>tranb@gmail.com</td>
-                <td>2024-06-24</td>
-                <td>Chờ xác thực</td>
-            </tr>
+            <c:forEach var="user" items="${latestUsers}">
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.createdAt}</td>
+                    <td>${user.status}</td>
+                </tr>
+            </c:forEach>
         </table>
     </main>
 </div>

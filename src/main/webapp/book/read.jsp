@@ -44,6 +44,23 @@
                 </c:otherwise>
             </c:choose>
         </div>
+        
+        <!-- Favorite button (only for logged in users) -->
+        <c:if test="${sessionScope.user != null}">
+            <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
+                <input type="hidden" name="action" value="add"/>
+                <input type="hidden" name="ebookId" value="${ebook.id}"/>
+                <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}"/>
+                <c:choose>
+                    <c:when test="${isFavorite}">
+                        <button type="submit" class="btn btn-danger ms-3" disabled>💖 Đã yêu thích</button>
+                    </c:when>
+                    <c:otherwise>
+                        <button type="submit" class="btn btn-outline-danger ms-3">❤️ Yêu thích</button>
+                    </c:otherwise>
+                </c:choose>
+            </form>
+        </c:if>
     </div>
 
     <!-- Chapter Navigation (only for chapter mode) -->
@@ -279,3 +296,83 @@
 </div>
 
 <%@ include file="/common/footer.jspf" %>
+
+<script>
+// JavaScript function để toggle favorite
+function toggleFavorite(ebookId) {
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    const favoriteIcon = document.getElementById('favoriteIcon');
+    const favoriteText = document.getElementById('favoriteText');
+    
+    // Disable button during request
+    favoriteBtn.disabled = true;
+    
+    const formData = new FormData();
+    formData.append('action', 'add');
+    formData.append('ebookId', ebookId);
+    
+    fetch('${pageContext.request.contextPath}/favorites', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button to show "added to favorites"
+            favoriteIcon.textContent = '💖';
+            favoriteText.textContent = 'Đã yêu thích';
+            favoriteBtn.className = 'btn btn-danger ms-3';
+            favoriteBtn.onclick = function() { removeFavorite(ebookId); };
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi thêm vào favorites');
+    })
+    .finally(() => {
+        favoriteBtn.disabled = false;
+    });
+}
+
+function removeFavorite(ebookId) {
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    const favoriteIcon = document.getElementById('favoriteIcon');
+    const favoriteText = document.getElementById('favoriteText');
+    
+    if (!confirm('Bạn có chắc muốn bỏ yêu thích sách này?')) {
+        return;
+    }
+    
+    favoriteBtn.disabled = true;
+    
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('ebookId', ebookId);
+    
+    fetch('${pageContext.request.contextPath}/favorites', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update button back to "add favorite"
+            favoriteIcon.textContent = '❤️';
+            favoriteText.textContent = 'Yêu thích';
+            favoriteBtn.className = 'btn btn-outline-danger ms-3';
+            favoriteBtn.onclick = function() { toggleFavorite(ebookId); };
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi xóa khỏi favorites');
+    })
+    .finally(() => {
+        favoriteBtn.disabled = false;
+    });
+}
+</script>
