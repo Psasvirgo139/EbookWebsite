@@ -118,7 +118,7 @@
                                 <form method="post" action="${ctx}/favorites" style="display:inline;">
                                     <input type="hidden" name="action" value="add"/>
                                     <input type="hidden" name="ebookId" value="${book.id}"/>
-                                    <input type="hidden" name="redirectUrl" value="${ctx}/book/list${not empty param.page ? '?page=' + param.page : ''}${not empty param.searchKeyword ? (not empty param.page ? '&' : '?') + 'search=' + param.searchKeyword : ''}"/>
+                                    <input type="hidden" name="redirectUrl" value="${ctx}/book-list${not empty param.page ? '?page=' + param.page : ''}${not empty param.searchKeyword ? (not empty param.page ? '&' : '?') + 'search=' + param.searchKeyword : ''}"/>
                                     <c:choose>
                                         <c:when test="${favoriteMap[book.id]}">
                                             <button type="submit" class="favorite-btn btn btn-danger" disabled>💖</button>

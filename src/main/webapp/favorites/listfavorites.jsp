@@ -81,7 +81,7 @@ image.png<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
                 <div class="empty-icon">📚</div>
                 <h3>Chưa có sách yêu thích nào</h3>
                 <p class="text-muted">Hãy khám phá và thêm sách vào danh sách yêu thích của bạn!</p>
-                <a href="${ctx}/book/list" class="btn btn-primary">Khám phá sách</a>
+                <a href="${ctx}/book-list" class="btn btn-primary">Khám phá sách</a>
             </div>
         </c:if>
 
