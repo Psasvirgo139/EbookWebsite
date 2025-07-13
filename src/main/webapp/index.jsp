@@ -145,11 +145,11 @@
                        onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'">
                         📚 Upload Sách Ngay
                     </a>
-                    <a href="${ctx}/ai.jsp" 
+                    <a href="${ctx}/ai/chat" 
                        style="background: transparent; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; border: 2px solid rgba(255,255,255,0.5); transition: all 0.3s ease;"
                        onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(-2px)'"
                        onmouseout="this.style.background='transparent'; this.style.transform='translateY(0)'">
-                        🤖 Khám phá AI Tools
+                        💬 AI Chat
                     </a>
                 </div>
                 <div style="margin-top: 25px; font-size: 0.9em; opacity: 0.8;">

@@ -7,20 +7,20 @@ import java.util.List;
 
 public class UserReadDAO {
     
-    private static final String INSERT_OR_UPDATE = "MERGE UserRead AS target " +
+    private static final String INSERT_OR_UPDATE = "MERGE UserReads AS target " +
             "USING (VALUES (?, ?, ?, ?)) AS source (user_id, ebook_id, last_read_chapter_id, last_read_at) " +
             "ON target.user_id = source.user_id AND target.ebook_id = source.ebook_id " +
             "WHEN MATCHED THEN UPDATE SET last_read_chapter_id = source.last_read_chapter_id, last_read_at = source.last_read_at " +
             "WHEN NOT MATCHED THEN INSERT (user_id, ebook_id, last_read_chapter_id, last_read_at) " +
             "VALUES (source.user_id, source.ebook_id, source.last_read_chapter_id, source.last_read_at);";
     
-    private static final String SELECT_BY_USER_EBOOK = "SELECT * FROM UserRead WHERE user_id = ? AND ebook_id = ?";
-    private static final String SELECT_BY_USER = "SELECT * FROM UserRead WHERE user_id = ?";
-    private static final String SELECT_BY_EBOOK = "SELECT * FROM UserRead WHERE ebook_id = ?";
-    private static final String SELECT_ALL = "SELECT * FROM UserRead";
-    private static final String DELETE = "DELETE FROM UserRead WHERE user_id = ? AND ebook_id = ?";
-    private static final String DELETE_BY_USER = "DELETE FROM UserRead WHERE user_id = ?";
-    private static final String DELETE_BY_EBOOK = "DELETE FROM UserRead WHERE ebook_id = ?";
+    private static final String SELECT_BY_USER_EBOOK = "SELECT * FROM UserReads WHERE user_id = ? AND ebook_id = ?";
+    private static final String SELECT_BY_USER = "SELECT * FROM UserReads WHERE user_id = ?";
+    private static final String SELECT_BY_EBOOK = "SELECT * FROM UserReads WHERE ebook_id = ?";
+    private static final String SELECT_ALL = "SELECT * FROM UserReads";
+    private static final String DELETE = "DELETE FROM UserReads WHERE user_id = ? AND ebook_id = ?";
+    private static final String DELETE_BY_USER = "DELETE FROM UserReads WHERE user_id = ?";
+    private static final String DELETE_BY_EBOOK = "DELETE FROM UserReads WHERE ebook_id = ?";
 
     public void insertOrUpdateUserRead(UserRead userRead) throws SQLException {
         try (Connection con = DBConnection.getConnection(); 
@@ -132,7 +132,7 @@ public class UserReadDAO {
     }
 
     public void insertUserRead(UserRead userRead) throws SQLException {
-        String sql = "INSERT INTO UserRead (user_id, ebook_id, last_read_chapter_id, last_read_at) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO UserReads (user_id, ebook_id, last_read_chapter_id, last_read_at) VALUES (?, ?, ?, ?)";
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, userRead.getUserID());
             ps.setInt(2, userRead.getEbookID());
@@ -151,7 +151,7 @@ public class UserReadDAO {
     }
 
     public boolean updateUserRead(UserRead userRead) throws SQLException {
-        String sql = "UPDATE UserRead SET last_read_chapter_id = ?, last_read_at = ? WHERE user_id = ? AND ebook_id = ?";
+        String sql = "UPDATE UserReads SET last_read_chapter_id = ?, last_read_at = ? WHERE user_id = ? AND ebook_id = ?";
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             if (userRead.getLastReadChapterID() != null) {
                 ps.setInt(1, userRead.getLastReadChapterID());

@@ -357,6 +357,28 @@ public class UserDAO {
         return findByEmailAndPassword(usernameOrEmail, passwordHash);
     }
 
+    // Đếm tổng số user
+    public int countAllUsers() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Users WHERE status != 'deleted' OR status IS NULL";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    // Lấy user mới nhất
+    public List<User> getLatestUsers(int limit) throws SQLException {
+        String sql = "SELECT * FROM Users WHERE status != 'deleted' OR status IS NULL ORDER BY created_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        List<User> users = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapUser(rs));
+                }
+            }
+        }
+        return users;
+
     public List<User> findUsersByRole(String role) throws SQLException {
         List<User> list = new ArrayList<>();
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SELECT_BY_ROLE)) {
