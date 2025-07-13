@@ -7,6 +7,7 @@ import com.mycompany.ebookwebsite.model.EbookAI;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.service.LangChain4jAIChatService;
 import com.mycompany.ebookwebsite.utils.Utils;
+import com.mycompany.ebookwebsite.utils.PathManager;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -29,6 +30,15 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 🚀 BookUploadServlet - Upload sách với AI thông minh
+ * 
+ * - Upload file và tự động extract metadata
+ * - AI kiểm duyệt nội dung
+ * - Tự động lên kệ sách
+ * 
+ * Updated to use PathManager for better path management
+ */
 @WebServlet("/book/upload")
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
@@ -40,7 +50,6 @@ public class BookUploadServlet extends HttpServlet {
     private EbookDAO ebookDAO;
     private EbookAIDAO ebookAIDAO;
     private LangChain4jAIChatService aiService;
-    private static final String UPLOADS_FOLDER = "D:\\EbookWebsite\\uploads";
 
     @Override
     public void init() throws ServletException {
@@ -48,12 +57,14 @@ public class BookUploadServlet extends HttpServlet {
         ebookAIDAO = new EbookAIDAO();
         aiService = new LangChain4jAIChatService();
         
-        // Tạo thư mục uploads nếu chưa có
-        File uploadsDir = new File(UPLOADS_FOLDER);
+        // 🗂️ Sử dụng PathManager để quản lý uploads directory
+        String uploadsPath = PathManager.getUploadsPath();
+        File uploadsDir = new File(uploadsPath);
         if (!uploadsDir.exists()) {
             uploadsDir.mkdirs();
-            System.out.println("📁 Created uploads directory: " + UPLOADS_FOLDER);
+            System.out.println("📁 Created uploads directory: " + uploadsPath);
         }
+        System.out.println("📁 Using uploads path: " + uploadsPath);
     }
 
     @Override
@@ -377,7 +388,8 @@ public class BookUploadServlet extends HttpServlet {
     }
 
     private File saveUploadedFile(Part filePart, String fileName) throws IOException {
-        Path uploadPath = Paths.get(UPLOADS_FOLDER, fileName);
+        String uploadsPath = PathManager.getUploadsPath();
+        Path uploadPath = Paths.get(uploadsPath, fileName);
         
         try (InputStream inputStream = filePart.getInputStream()) {
             Files.copy(inputStream, uploadPath, StandardCopyOption.REPLACE_EXISTING);
@@ -735,9 +747,10 @@ public class BookUploadServlet extends HttpServlet {
     }
 
     private File findMatchingFile(String bookTitle) {
-        File uploadsDir = new File(UPLOADS_FOLDER);
+        String uploadsPath = PathManager.getUploadsPath();
+        File uploadsDir = new File(uploadsPath);
         if (!uploadsDir.exists() || !uploadsDir.isDirectory()) {
-            System.err.println("❌ Uploads directory not found: " + UPLOADS_FOLDER);
+            System.err.println("❌ Uploads directory not found: " + uploadsPath);
             return null;
         }
         
