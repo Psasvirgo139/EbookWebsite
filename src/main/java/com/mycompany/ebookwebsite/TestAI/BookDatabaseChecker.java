@@ -1,6 +1,7 @@
 package com.mycompany.ebookwebsite.TestAI;
 
 import com.mycompany.ebookwebsite.dao.DBConnection;
+import com.mycompany.ebookwebsite.utils.PathManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,7 @@ import java.util.Scanner;
 /**
  * 🔍 Book Database Checker
  * Kiểm tra sách đã được lưu vào database và listBook
+ * Updated to use PathManager for better path management
  */
 public class BookDatabaseChecker {
     
@@ -167,7 +169,7 @@ public class BookDatabaseChecker {
             ResultSet checkRs = checkStmt.executeQuery();
             
             if (checkRs.next() && checkRs.getInt(1) > 0) {
-                String sql = "SELECT id, title, description, release_type, status, visibility, file_name, original_file_name, created_at, view_count FROM Ebooks WHERE status != 'deleted' ORDER BY created_at DESC";
+                String sql = "SELECT id, title, description, release_type, status, visibility, created_at, view_count FROM Ebooks WHERE status != 'deleted' ORDER BY created_at DESC";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 ResultSet rs = stmt.executeQuery();
                 
@@ -176,13 +178,9 @@ public class BookDatabaseChecker {
                     count++;
                     System.out.println(count + ". 📚 " + rs.getString("title"));
                     System.out.println("   🏷️ Thể loại: " + rs.getString("release_type"));
-                    System.out.println("   📁 File: " + rs.getString("file_name"));
                     System.out.println("   📅 Upload: " + rs.getString("created_at"));
                     System.out.println("   📊 Status: " + rs.getString("status"));
                     System.out.println("   👁️ Views: " + rs.getInt("view_count"));
-                    if (rs.getString("original_file_name") != null) {
-                        System.out.println("   📄 Original: " + rs.getString("original_file_name"));
-                    }
                     System.out.println("   ---");
                 }
                 
@@ -231,9 +229,12 @@ public class BookDatabaseChecker {
         System.out.println("\n🔄 KIỂM TRA SÁCH MỚI UPLOAD:");
         System.out.println("=".repeat(50));
         
-        // Kiểm tra file trong uploads
+        // 🗂️ Sử dụng PathManager để kiểm tra uploads directory
         System.out.println("📁 Files trong uploads/:");
-        java.io.File uploadsDir = new java.io.File("D:\\EbookWebsite\\uploads");
+        String uploadsPath = PathManager.getUploadsPath();
+        System.out.println("📁 Using uploads path: " + uploadsPath);
+        
+        java.io.File uploadsDir = new java.io.File(uploadsPath);
         if (uploadsDir.exists() && uploadsDir.isDirectory()) {
             java.io.File[] files = uploadsDir.listFiles();
             if (files != null && files.length > 0) {
@@ -246,7 +247,7 @@ public class BookDatabaseChecker {
                 System.out.println("   📭 Không có file nào");
             }
         } else {
-            System.out.println("   ❌ Thư mục uploads không tồn tại");
+            System.out.println("   ❌ Thư mục uploads không tồn tại: " + uploadsPath);
         }
         
         // Kiểm tra trong database
@@ -292,20 +293,18 @@ public class BookDatabaseChecker {
             ResultSet checkRs = checkStmt.executeQuery();
             
             if (checkRs.next() && checkRs.getInt(1) > 0) {
-                String sql = "SELECT id, title, release_type, file_name, original_file_name, created_at, status FROM Ebooks WHERE (title LIKE ? OR file_name LIKE ? OR original_file_name LIKE ?) AND status != 'deleted'";
+                String sql = "SELECT id, title, release_type, created_at, status FROM Ebooks WHERE title LIKE ? AND status != 'deleted'";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 String searchPattern = "%" + bookName + "%";
                 stmt.setString(1, searchPattern);
-                stmt.setString(2, searchPattern);
-                stmt.setString(3, searchPattern);
                 
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
                     BookInfo book = new BookInfo();
                     book.title = rs.getString("title");
                     book.genre = rs.getString("release_type");
-                    book.fileName = rs.getString("file_name");
-                    book.originalFileName = rs.getString("original_file_name");
+                    book.fileName = "N/A"; // File info moved to EbookAI table
+                    book.originalFileName = "N/A"; // File info moved to EbookAI table
                     book.uploadDate = rs.getString("created_at");
                     book.status = rs.getString("status");
                     books.add(book);

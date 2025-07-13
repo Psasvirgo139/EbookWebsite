@@ -31,6 +31,8 @@ public class UserDAO {
     private static final String COUNT_BY_USERNAME = "SELECT COUNT(*) FROM Users WHERE username = ? AND id != ? AND (status != 'deleted' OR status IS NULL)";
     private static final String COUNT_BY_EMAIL = "SELECT COUNT(*) FROM Users WHERE email = ? AND id != ? AND (status != 'deleted' OR status IS NULL)";
 
+    private static final String SELECT_BY_ROLE = "SELECT * FROM Users WHERE role = ? AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
+
     // ===== Thêm kiểm tra tồn tại username / email =====
     public boolean existsByUsername(String username) throws SQLException {
         String sql = "SELECT 1 FROM Users WHERE username = ? AND (status != 'deleted' OR status IS NULL)";
@@ -353,6 +355,42 @@ public class UserDAO {
         
         // Try email if username fails
         return findByEmailAndPassword(usernameOrEmail, passwordHash);
+    }
+
+    // Đếm tổng số user
+    public int countAllUsers() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Users WHERE status != 'deleted' OR status IS NULL";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    // Lấy user mới nhất
+    public List<User> getLatestUsers(int limit) throws SQLException {
+        String sql = "SELECT * FROM Users WHERE status != 'deleted' OR status IS NULL ORDER BY created_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        List<User> users = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapUser(rs));
+                }
+            }
+        }
+        return users;
+    }
+
+    public List<User> findUsersByRole(String role) throws SQLException {
+        List<User> list = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SELECT_BY_ROLE)) {
+            ps.setString(1, role);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapUser(rs));
+                }
+            }
+        }
+        return list;
     }
 
 }

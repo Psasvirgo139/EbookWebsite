@@ -4,6 +4,7 @@ import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.dao.EbookAIDAO;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.EbookAI;
+import com.mycompany.ebookwebsite.utils.PathManager;
 
 import java.io.File;
 import java.sql.SQLException;
@@ -13,13 +14,14 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 
 /**
- * Service để tự động sửa các EbookAI record thiếu
+ * 🔧 EbookAIFixService - Tự động sửa các EbookAI record thiếu
+ * 
  * Khi sách đã được upload nhưng EbookAI record bị thiếu
+ * Updated to use PathManager for better path management
  */
 public class EbookAIFixService {
     
     private static final Logger logger = Logger.getLogger(EbookAIFixService.class.getName());
-    private static final String UPLOADS_FOLDER = "D:\\EbookWebsite\\uploads";
     
     private EbookDAO ebookDAO;
     private EbookAIDAO ebookAIDAO;
@@ -27,6 +29,9 @@ public class EbookAIFixService {
     public EbookAIFixService() {
         this.ebookDAO = new EbookDAO();
         this.ebookAIDAO = new EbookAIDAO();
+        
+        // 🗂️ Log PathManager info for debugging
+        logger.info("📁 EbookAIFixService initialized with uploads path: " + PathManager.getUploadsPath());
     }
     
     /**
@@ -114,9 +119,12 @@ public class EbookAIFixService {
      * Tìm file phù hợp với tiêu đề sách trong uploads folder
      */
     private String findMatchingFile(String bookTitle) {
-        File uploadsDir = new File(UPLOADS_FOLDER);
+        // 🗂️ Sử dụng PathManager thay vì hard-coded path
+        String uploadsPath = PathManager.getUploadsPath();
+        File uploadsDir = new File(uploadsPath);
+        
         if (!uploadsDir.exists() || !uploadsDir.isDirectory()) {
-            logger.warning("❌ Thư mục uploads không tồn tại: " + UPLOADS_FOLDER);
+            logger.warning("❌ Thư mục uploads không tồn tại: " + uploadsPath);
             return null;
         }
         
@@ -126,7 +134,7 @@ public class EbookAIFixService {
         }
         
         logger.info("🔍 Đang tìm file cho sách: '" + bookTitle + "'");
-        logger.info("📁 Thư mục uploads: " + UPLOADS_FOLDER);
+        logger.info("📁 Thư mục uploads: " + uploadsPath);
         logger.info("📄 Số file có sẵn: " + files.length);
         
         // Debug: Liệt kê tất cả files
@@ -292,8 +300,9 @@ public class EbookAIFixService {
                 return "⚠️ EbookAI record tồn tại nhưng thiếu file_name";
             }
             
-            // Kiểm tra file có tồn tại không
-            File file = new File(UPLOADS_FOLDER, ai.getFileName());
+            // 🗂️ Sử dụng PathManager để kiểm tra file
+            String filePath = PathManager.getUploadFilePath(ai.getFileName());
+            File file = new File(filePath);
             if (!file.exists()) {
                 return "⚠️ EbookAI record OK nhưng file không tồn tại: " + ai.getFileName();
             }

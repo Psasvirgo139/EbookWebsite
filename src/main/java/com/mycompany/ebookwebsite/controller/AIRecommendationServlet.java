@@ -6,10 +6,11 @@ import java.util.List;
 
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.User;
-import com.mycompany.ebookwebsite.service.BookService;
-import com.mycompany.ebookwebsite.service.InternalAIChatService;
 import com.mycompany.ebookwebsite.service.AIRecommendationService;
+import com.mycompany.ebookwebsite.service.BookService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.InternalAIChatService;
+import com.mycompany.ebookwebsite.service.PersonalizedRecommendationService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -103,6 +104,7 @@ public class AIRecommendationServlet extends HttpServlet {
     private AIRecommendationService recommendationService;
     private BookService bookService;
     private EbookWithAIService ebookWithAIService;
+    private PersonalizedRecommendationService personalizedRecommendationService;
     
     @Override
     public void init() throws ServletException {
@@ -111,6 +113,7 @@ public class AIRecommendationServlet extends HttpServlet {
             this.recommendationService = new AIRecommendationService();
             this.bookService = new BookService();
             this.ebookWithAIService = new EbookWithAIService();
+            this.personalizedRecommendationService = new PersonalizedRecommendationService();
             System.out.println("✅ AIRecommendationServlet initialized successfully");
         } catch (Exception e) {
             System.err.println("❌ Failed to initialize AIRecommendationServlet: " + e.getMessage());
@@ -146,8 +149,15 @@ public class AIRecommendationServlet extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
-            request.getRequestDispatcher("/ai/recommendations.jsp").forward(request, response);
+            if (!response.isCommitted()) {
+                request.setAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
+                request.getRequestDispatcher("/ai/recommendations.jsp").forward(request, response);
+            } else {
+                // Response đã được commit, ghi lỗi trực tiếp
+                try (PrintWriter out = response.getWriter()) {
+                    out.write("{\"success\": false, \"error\": \"Có lỗi xảy ra: " + escapeJson(e.getMessage()) + "\"}");
+                }
+            }
         }
     }
     
@@ -223,6 +233,9 @@ public class AIRecommendationServlet extends HttpServlet {
                     break;
                 case "search":
                     handleSearchRecommendations(request, response, currentUser, out);
+                    break;
+                case "personalized":
+                    handlePersonalizedRecommendations(request, response, currentUser, out);
                     break;
                 default:
                     handleGeneralRecommendations(request, response, currentUser, out);
@@ -378,6 +391,71 @@ public class AIRecommendationServlet extends HttpServlet {
         );
         
         out.write(jsonResponse);
+    }
+    
+    /**
+     * Personalized recommendations based on user history
+     */
+    private void handlePersonalizedRecommendations(HttpServletRequest request, HttpServletResponse response,
+                                                 User user, PrintWriter out) throws Exception {
+        
+        try {
+            // Get personalized recommendations
+            List<Ebook> personalizedBooks = personalizedRecommendationService.getPersonalizedRecommendations(user.getId(), 5);
+            
+            // Get user reading stats
+            PersonalizedRecommendationService.UserReadingStats stats = 
+                personalizedRecommendationService.getUserReadingStats(user.getId());
+            
+            StringBuilder result = new StringBuilder();
+            result.append("🎯 ĐỀ XUẤT CÁ NHÂN HÓA CHO BẠN\n\n");
+            
+            if (personalizedBooks.isEmpty()) {
+                result.append("Chưa có đủ dữ liệu để tạo đề xuất cá nhân hóa.\n");
+                result.append("Hãy đọc thêm sách để nhận đề xuất tốt hơn! 📚");
+            } else {
+                result.append("📊 Thống kê đọc sách của bạn:\n");
+                result.append("• Sách đã đọc: ").append(stats.getTotalBooksRead()).append(" cuốn\n");
+                result.append("• Sách yêu thích: ").append(stats.getTotalFavorites()).append(" cuốn\n");
+                
+                if (!stats.getTopGenres().isEmpty()) {
+                    result.append("• Thể loại yêu thích: ").append(String.join(", ", stats.getTopGenres())).append("\n\n");
+                }
+                
+                result.append("📚 Sách đề xuất dựa trên sở thích của bạn:\n\n");
+                
+                for (int i = 0; i < personalizedBooks.size(); i++) {
+                    Ebook book = personalizedBooks.get(i);
+                    result.append("🌟 ").append(book.getTitle())
+                          .append("\n🏷️ ").append(book.getReleaseType())
+                          .append("\n👁️ ").append(book.getViewCount()).append(" lượt xem");
+                    
+                    // Get AI summary if available
+                    try {
+                        EbookWithAIService.EbookWithAI bookWithAI = ebookWithAIService.getEbookWithAI(book.getId());
+                        if (bookWithAI != null && bookWithAI.getSummary() != null && !bookWithAI.getSummary().isEmpty()) {
+                            result.append("\n📖 ").append(bookWithAI.getSummary().substring(0, Math.min(100, bookWithAI.getSummary().length()))).append("...");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("⚠️ Cannot get AI summary for book " + book.getId() + ": " + e.getMessage());
+                    }
+                    result.append("\n\n");
+                }
+            }
+            
+            String jsonResponse = String.format(
+                "{\"success\": true, \"type\": \"personalized\", \"count\": %d, \"recommendations\": \"%s\"}",
+                personalizedBooks.size(),
+                escapeJson(result.toString())
+            );
+            
+            out.write(jsonResponse);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            String errorMsg = "Có lỗi xảy ra khi tạo đề xuất cá nhân hóa: " + e.getMessage();
+            out.write("{\"success\": false, \"error\": \"" + escapeJson(errorMsg) + "\"}");
+        }
     }
     
     /**

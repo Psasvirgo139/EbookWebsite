@@ -9,14 +9,16 @@ import java.util.List;
 public class FavoriteService {
     private final FavoriteDAO favoriteDAO = new FavoriteDAO();
 
-    public void addFavorite(Favorite favorite) throws SQLException {
-        favoriteDAO.insertFavorite(favorite);
+    public void addFavorite(int userId, int ebookId) throws SQLException {
+        if (!favoriteDAO.isFavorite(userId, ebookId)) {
+            favoriteDAO.insertFavorite(new Favorite(userId, ebookId, null, java.time.LocalDate.now()));
+        }
     }
-    public boolean deleteFavorite(int userId, int ebookId, Integer chapterId, User user) throws SQLException {
+    public boolean deleteFavorite(int userId, int ebookId, User user) throws SQLException {
         if (user.getId() != userId && !"admin".equals(user.getRole())) {
             throw new SecurityException("Bạn không có quyền xóa favorite này!");
         }
-        return favoriteDAO.deleteFavorite(userId, ebookId, chapterId);
+        return favoriteDAO.deleteFavorite(userId, ebookId);
     }
     public List<Favorite> getFavoritesByUser(int userId) throws SQLException {
         return favoriteDAO.getFavoritesByUser(userId);

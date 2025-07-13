@@ -45,6 +45,23 @@
         <div class="mt-3">
             <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success">📖 Đọc ngay</a>
             
+            <!-- Favorite button (only for logged in users) -->
+            <c:if test="${sessionScope.user != null}">
+                <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="ebookId" value="${ebook.id}"/>
+                    <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/detail?id=${ebook.id}"/>
+                    <c:choose>
+                        <c:when test="${isFavorite}">
+                            <button type="submit" class="btn btn-danger ms-2" disabled>💖 Đã yêu thích</button>
+                        </c:when>
+                        <c:otherwise>
+                            <button type="submit" class="btn btn-outline-danger ms-2">❤️ Yêu thích</button>
+                        </c:otherwise>
+                    </c:choose>
+                </form>
+            </c:if>
+            
             <!-- Admin actions (if user has permission) -->
             <c:if test="${sessionScope.user != null && (sessionScope.user.role == 'admin' || sessionScope.user.id == ebook.uploaderId)}">
                 <a href="${pageContext.request.contextPath}/book/detail?action=editSummary&id=${ebook.id}" class="btn btn-outline-primary btn-sm ms-2">📝 Sửa tóm tắt</a>
@@ -154,3 +171,11 @@
 </div>
 
 <%@ include file="/common/footer.jspf" %>
+
+<script>
+// Check if book is already in favorites when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // This would require checking favorite status via AJAX
+    // For now, we'll assume it's not favorited initially
+});
+</script>

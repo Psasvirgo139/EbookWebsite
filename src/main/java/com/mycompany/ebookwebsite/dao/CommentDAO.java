@@ -1,10 +1,14 @@
 package com.mycompany.ebookwebsite.dao;
 
-import com.mycompany.ebookwebsite.model.Comment;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mycompany.ebookwebsite.model.Comment;
 
 public class CommentDAO {
 
@@ -210,6 +214,26 @@ public class CommentDAO {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        return list;
+    }
+
+    // Đếm tổng số comment
+    public int countAllComments() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Comments";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    public java.util.List<Comment> findAll() throws java.sql.SQLException {
+        String sql = "SELECT * FROM Comments ORDER BY created_at DESC";
+        java.util.List<Comment> list = new java.util.ArrayList<>();
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
         }
         return list;
     }
