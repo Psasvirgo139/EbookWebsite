@@ -18,6 +18,9 @@
         .chat-user { background: #e0e7ff; color: #333; align-self: flex-end; }
         .chat-ai { background: #f3f0ff; color: #6a5acd; align-self: flex-start; }
         .chat-meta { font-size: 0.85em; color: #888; margin-bottom: 2px; }
+        .chat-ai a { color: #007bff !important; text-decoration: underline !important; }
+        .chat-ai a:hover { color: #0056b3 !important; text-decoration: none !important; }
+        .chat-ai strong { color: #495057; }
     </style>
 </head>
 <body>
@@ -32,7 +35,9 @@
                     <div>
                         <c:choose>
                             <c:when test="${msg.type eq 'user'}">${msg.message}</c:when>
-                            <c:otherwise>${msg.response}</c:otherwise>
+                            <c:otherwise>
+                                <c:out value="${msg.response}" escapeXml="false"/>
+                            </c:otherwise>
                         </c:choose>
                     </div>
                 </div>

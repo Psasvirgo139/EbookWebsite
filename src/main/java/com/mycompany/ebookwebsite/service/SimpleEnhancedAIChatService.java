@@ -11,7 +11,11 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mycompany.ebookwebsite.ai.CachedAnswerStore;
+import com.mycompany.ebookwebsite.ai.EmbeddingCache;
+import com.mycompany.ebookwebsite.ai.SimilarityUtil;
 import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.BookWithLink;
 import com.mycompany.ebookwebsite.utils.Utils;
 
 import dev.langchain4j.memory.ChatMemory;
@@ -22,10 +26,6 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-
-import com.mycompany.ebookwebsite.ai.EmbeddingCache;
-import com.mycompany.ebookwebsite.ai.SimilarityUtil;
-import com.mycompany.ebookwebsite.ai.CachedAnswerStore;
 
 /**
  * 🚀 Enhanced AI Chat Service with Improved Context Management
@@ -102,22 +102,78 @@ public class SimpleEnhancedAIChatService {
 
             // OVERRIDE: Nếu user hỏi gợi ý sách thì trả về danh sách thực tế từ database
             String lowerMsg = userMessage.toLowerCase();
-            if ((lowerMsg.contains("gợi ý") && lowerMsg.contains("sách")) ||
-                (lowerMsg.contains("suggest") && lowerMsg.contains("book")) ||
-                (lowerMsg.contains("recommend") && lowerMsg.contains("book"))) {
-                List<Ebook> books = Utils.getAvailableBooks(3);
+            if (lowerMsg.contains("gợi ý") || lowerMsg.contains("suggest") || 
+                lowerMsg.contains("recommend") || lowerMsg.contains("đề xuất") ||
+                lowerMsg.contains("sách nào") || lowerMsg.contains("book")) {
+                
+                // Đọc số lượng sách từ user message
+                int bookCount = extractBookCountFromMessage(userMessage);
+                List<BookWithLink> books = Utils.getAvailableBooksWithLinks(bookCount); // Lấy số sách theo yêu cầu
                 if (books.isEmpty()) {
-                    return "Hiện tại thư viện chưa có sách nào để gợi ý.";
+                    return "Hiện tại thư viện chưa có sách nào để gợi ý. Vui lòng thử lại sau!";
                 }
-                StringBuilder sb = new StringBuilder("Dưới đây là 3 cuốn sách có sẵn trong thư viện:\n");
+                
+                StringBuilder sb = new StringBuilder("📚 <strong>Dưới đây là ").append(bookCount).append(" cuốn sách có sẵn trong thư viện:</strong><br><br>");
                 int i = 1;
-                for (Ebook book : books) {
-                    sb.append(i++).append(". \"").append(book.getTitle()).append("\"\n");
+                for (BookWithLink book : books) {
+                    sb.append(i++).append(". <strong>").append(book.getTitle()).append("</strong>");
+                    if (book.getReleaseType() != null && !book.getReleaseType().isEmpty()) {
+                        sb.append(" (").append(book.getReleaseType()).append(")");
+                    }
+                    sb.append("<br>");
+                    if (book.getShortDescription() != null && !book.getShortDescription().isEmpty()) {
+                        sb.append("   ").append(book.getShortDescription()).append("<br>");
+                    }
+                    sb.append("   <a href='").append(book.getDirectLink()).append("' target='_blank' style='color: #007bff; text-decoration: underline;'>🔗 Xem chi tiết</a><br><br>");
                 }
-                sb.append("Bạn muốn tìm hiểu thêm về cuốn nào? Hãy nhập tên hoặc số thứ tự!");
+                sb.append("Bạn muốn đọc cuốn nào? Hãy nhập tên hoặc số thứ tự!");
                 String result = sb.toString();
                 CachedAnswerStore.put(userMessage, result);
                 return result;
+            }
+            
+            // OVERRIDE: Nếu user muốn đọc sách cụ thể
+            if (lowerMsg.contains("muốn đọc") || lowerMsg.contains("đọc cuốn") || 
+                lowerMsg.contains("cuốn sách") || lowerMsg.contains("sách đầu tiên") ||
+                lowerMsg.contains("sách thứ") || lowerMsg.contains("đầu tiên") ||
+                lowerMsg.contains("thứ nhất") || lowerMsg.contains("thứ hai") ||
+                lowerMsg.contains("thứ ba") || lowerMsg.contains("thứ tư") ||
+                lowerMsg.contains("thứ năm")) {
+                
+                BookWithLink targetBook = null;
+                
+                // Tìm theo số thứ tự
+                if (lowerMsg.contains("đầu tiên") || lowerMsg.contains("thứ nhất") || lowerMsg.contains("1")) {
+                    targetBook = Utils.findBookByIndex(1);
+                } else if (lowerMsg.contains("thứ hai") || lowerMsg.contains("2")) {
+                    targetBook = Utils.findBookByIndex(2);
+                } else if (lowerMsg.contains("thứ ba") || lowerMsg.contains("3")) {
+                    targetBook = Utils.findBookByIndex(3);
+                } else if (lowerMsg.contains("thứ tư") || lowerMsg.contains("4")) {
+                    targetBook = Utils.findBookByIndex(4);
+                } else if (lowerMsg.contains("thứ năm") || lowerMsg.contains("5")) {
+                    targetBook = Utils.findBookByIndex(5);
+                }
+                
+                // Nếu không tìm được theo số, thử tìm theo tên sách
+                if (targetBook == null) {
+                    // Extract tên sách từ message
+                    String[] words = userMessage.split("\\s+");
+                    for (String word : words) {
+                        if (word.length() > 2) { // Bỏ qua từ ngắn
+                            targetBook = Utils.findBookByTitle(word);
+                            if (targetBook != null) break;
+                        }
+                    }
+                }
+                
+                if (targetBook != null) {
+                    String result = "Đây là sách <strong>" + targetBook.getTitle() + "</strong>: <a href='" + targetBook.getDirectLink() + "' target='_blank' style='color: #007bff; text-decoration: underline;'>" + targetBook.getDirectLink() + "</a>";
+                    CachedAnswerStore.put(userMessage, result);
+                    return result;
+                } else {
+                    return "Xin lỗi, tôi không tìm thấy sách bạn muốn đọc. Hãy thử nhập tên sách cụ thể hoặc số thứ tự!";
+                }
             }
 
             logger.info("🚀 Processing enhanced chat for user {}: {}", userId, userMessage);
@@ -142,6 +198,9 @@ public class SimpleEnhancedAIChatService {
             String enhancedContext = buildEnhancedContext(sessionId, userMessage, additionalContext);
             // Process with AI
             String aiResponse = simpleAssistant.chatWithMemory(userMessage, enhancedContext, sessionId);
+            
+            // Post-process: Kiểm tra xem AI có đề xuất sách không có trong database không
+            aiResponse = validateAndFixBookRecommendations(aiResponse, sessionId);
             // Extract and track books and topics
             extractAndTrackBooks(sessionId, userMessage, aiResponse);
             extractAndTrackTopics(sessionId, userMessage, aiResponse);
@@ -167,9 +226,20 @@ public class SimpleEnhancedAIChatService {
      */
     private boolean isBookInDatabase(String bookTitle) {
         try {
-            // For now, assume books are available since we're using getAvailableBooks
-            // This avoids the database column error
-            return true;
+            if (bookTitle == null || bookTitle.trim().isEmpty()) {
+                return false;
+            }
+            
+            List<Ebook> allBooks = Utils.getAvailableBooks(1000); // Lấy tất cả sách
+            String searchTitle = bookTitle.toLowerCase().trim();
+            
+            for (Ebook book : allBooks) {
+                if (book.getTitle() != null && 
+                    book.getTitle().toLowerCase().contains(searchTitle)) {
+                    return true;
+                }
+            }
+            return false;
         } catch (Exception e) {
             logger.error("❌ Error checking book in database: " + e.getMessage(), e);
             return false;
@@ -177,13 +247,157 @@ public class SimpleEnhancedAIChatService {
     }
     
     /**
+     * ✅ Validate and fix AI response to ensure only real books are recommended
+     */
+    private String validateAndFixBookRecommendations(String aiResponse, String sessionId) {
+        try {
+            if (aiResponse == null || aiResponse.trim().isEmpty()) {
+                return aiResponse;
+            }
+            
+            // Lấy danh sách sách thực tế từ database
+            List<Ebook> realBooks = Utils.getAvailableBooks(50);
+            Set<String> realBookTitles = new HashSet<>();
+            for (Ebook book : realBooks) {
+                if (book.getTitle() != null) {
+                    realBookTitles.add(book.getTitle().toLowerCase().trim());
+                }
+            }
+            
+            // Kiểm tra xem AI có đề xuất sách không có trong database không
+            String[] lines = aiResponse.split("\n");
+            StringBuilder fixedResponse = new StringBuilder();
+            boolean hasInvalidBooks = false;
+            
+            for (String line : lines) {
+                // Tìm các pattern có thể là tên sách (trong dấu ngoặc kép hoặc sau số)
+                if (line.contains("\"") || line.matches(".*\\d+\\..*")) {
+                    // Extract potential book titles
+                    String[] potentialTitles = extractPotentialBookTitles(line);
+                    boolean lineHasInvalidBook = false;
+                    
+                    for (String title : potentialTitles) {
+                        if (!title.isEmpty() && !realBookTitles.contains(title.toLowerCase().trim())) {
+                            lineHasInvalidBook = true;
+                            break;
+                        }
+                    }
+                    
+                    if (lineHasInvalidBook) {
+                        hasInvalidBooks = true;
+                        // Thay thế bằng sách thực tế
+                        fixedResponse.append("⚠️ <strong>Lưu ý:</strong> Tôi chỉ có thể đề xuất sách có trong thư viện.<br>");
+                        fixedResponse.append("📚 <strong>Sách có sẵn trong thư viện:</strong><br>");
+                        int i = 1;
+                        List<BookWithLink> booksWithLinks = Utils.getAvailableBooksWithLinks(5);
+                        for (BookWithLink book : booksWithLinks) {
+                            fixedResponse.append(i++).append(". <strong>").append(book.getTitle()).append("</strong>");
+                            fixedResponse.append(" - <a href='").append(book.getDirectLink()).append("' target='_blank' style='color: #007bff; text-decoration: underline;'>").append(book.getDirectLink()).append("</a><br>");
+                        }
+                        break;
+                    }
+                }
+                
+                if (!hasInvalidBooks) {
+                    fixedResponse.append(line).append("\n");
+                }
+            }
+            
+            if (hasInvalidBooks) {
+                logger.warn("🚫 AI attempted to recommend non-existent books, fixed response");
+                return fixedResponse.toString();
+            }
+            
+            return aiResponse;
+            
+        } catch (Exception e) {
+            logger.error("❌ Error validating book recommendations: " + e.getMessage(), e);
+            return aiResponse; // Return original if validation fails
+        }
+    }
+    
+    /**
+     * 🔍 Extract potential book titles from a line of text
+     */
+    private String[] extractPotentialBookTitles(String line) {
+        List<String> titles = new ArrayList<>();
+        
+        // Pattern 1: Text in quotes
+        java.util.regex.Pattern quotePattern = java.util.regex.Pattern.compile("\"([^\"]+)\"");
+        java.util.regex.Matcher quoteMatcher = quotePattern.matcher(line);
+        while (quoteMatcher.find()) {
+            titles.add(quoteMatcher.group(1));
+        }
+        
+        // Pattern 2: Text after numbers (e.g., "1. Book Title")
+        java.util.regex.Pattern numberPattern = java.util.regex.Pattern.compile("\\d+\\.\\s*([^\\n]+)");
+        java.util.regex.Matcher numberMatcher = numberPattern.matcher(line);
+        while (numberMatcher.find()) {
+            titles.add(numberMatcher.group(1).trim());
+        }
+        
+        return titles.toArray(new String[0]);
+    }
+    
+    /**
+     * 🔢 Extract số lượng sách từ user message
+     */
+    private int extractBookCountFromMessage(String userMessage) {
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            return 3; // Default 3 sách
+        }
+        
+        String lowerMessage = userMessage.toLowerCase();
+        
+        // Tìm số trong message
+        java.util.regex.Pattern numberPattern = java.util.regex.Pattern.compile("\\b(\\d+)\\s*(cuốn|cuốn sách|sách|book|books)\\b");
+        java.util.regex.Matcher matcher = numberPattern.matcher(lowerMessage);
+        
+        if (matcher.find()) {
+            try {
+                int count = Integer.parseInt(matcher.group(1));
+                // Giới hạn từ 1-10 sách để tránh quá tải
+                return Math.max(1, Math.min(10, count));
+            } catch (NumberFormatException e) {
+                logger.warn("❌ Không thể parse số lượng sách từ message: " + userMessage);
+            }
+        }
+        
+        // Nếu không tìm thấy số cụ thể, kiểm tra các từ khóa
+        if (lowerMessage.contains("một") || lowerMessage.contains("1")) {
+            return 1;
+        } else if (lowerMessage.contains("hai") || lowerMessage.contains("2")) {
+            return 2;
+        } else if (lowerMessage.contains("ba") || lowerMessage.contains("3")) {
+            return 3;
+        } else if (lowerMessage.contains("bốn") || lowerMessage.contains("4")) {
+            return 4;
+        } else if (lowerMessage.contains("năm") || lowerMessage.contains("5")) {
+            return 5;
+        } else if (lowerMessage.contains("sáu") || lowerMessage.contains("6")) {
+            return 6;
+        } else if (lowerMessage.contains("bảy") || lowerMessage.contains("7")) {
+            return 7;
+        } else if (lowerMessage.contains("tám") || lowerMessage.contains("8")) {
+            return 8;
+        } else if (lowerMessage.contains("chín") || lowerMessage.contains("9")) {
+            return 9;
+        } else if (lowerMessage.contains("mười") || lowerMessage.contains("10")) {
+            return 10;
+        }
+        
+        // Default: 3 sách
+        return 3;
+    }
+    
+    /**
      * 📚 Get real books from database for a topic
      */
-    private List<Ebook> getRealBooksForTopic(String topic) {
+    private List<BookWithLink> getRealBooksForTopic(String topic) {
         try {
-            // Use available books instead of searching to avoid database column errors
+            // Use available books with links instead of searching to avoid database column errors
             // This provides real books from database for recommendations
-            return Utils.getAvailableBooks(10); // Get 10 books for recommendations
+            return Utils.getAvailableBooksWithLinks(10); // Get 10 books for recommendations
         } catch (Exception e) {
             logger.error("❌ Error getting available books for topic: " + e.getMessage(), e);
             return new ArrayList<>();
@@ -245,13 +459,13 @@ public class SimpleEnhancedAIChatService {
         }
         
         // Add real books from database for recommendations
-        List<Ebook> availableBooks = getRealBooksForTopic("general");
+        List<BookWithLink> availableBooks = Utils.getAvailableBooksWithLinks(10);
         if (!availableBooks.isEmpty()) {
-            contextBuilder.append("📖 Sách có sẵn trong database để gợi ý:\n");
-            for (Ebook book : availableBooks) {
-                contextBuilder.append("  • ").append(book.getTitle()).append(" (ID: ").append(book.getId()).append(")\n");
+            contextBuilder.append("📖 <strong>SÁCH CÓ SẴN TRONG DATABASE (CHỈ ĐƯỢC PHÉP ĐỀ XUẤT NHỮNG SÁCH NÀY):</strong><br>");
+            for (BookWithLink book : availableBooks) {
+                contextBuilder.append("  • <strong>").append(book.getTitle()).append("</strong> (ID: ").append(book.getId()).append(") - <a href='").append(book.getDirectLink()).append("' target='_blank'>").append(book.getDirectLink()).append("</a><br>");
             }
-            contextBuilder.append("\n");
+            contextBuilder.append("<br>");
         }
         
         // Add discussed topics tracking with user preferences
@@ -705,17 +919,14 @@ public class SimpleEnhancedAIChatService {
      */
     public interface SimpleAssistant {
         
-        @SystemMessage("Bạn là AI trợ lý thông minh với khả năng ghi nhớ cuộc trò chuyện và tránh lặp lại. " +
-                      "Luôn nhớ context trước đó và trả lời phù hợp với lịch sử cuộc trò chuyện. " +
-                      "QUAN TRỌNG: Chỉ đề xuất sách có trong database thực tế. " +
-                      "Nếu user hỏi về sách không có trong database, hãy nói 'Chưa có sách này trong thư viện' " +
+        @SystemMessage("Bạn là AI trợ lý thông minh cho thư viện sách trực tuyến. " +
+                      "QUAN TRỌNG: Bạn CHỈ được phép đề xuất sách có thực tế trong database. " +
+                      "KHÔNG BAO GIỜ được bịa ra tên sách, tác giả, hoặc thông tin sách. " +
+                      "Nếu user hỏi về sách không có trong database, hãy nói: 'Chưa có sách này trong thư viện' " +
                       "và đề xuất sách tương tự có trong database. " +
-                      "Nếu user hỏi 'có sách nào khác không?', hãy đưa ra sách mới chưa đề cập từ database. " +
-                      "Tránh lặp lại sách đã đề cập trước đó. " +
-                      "Khi user chuyển từ chủ đề này sang chủ đề khác (ví dụ: từ AI sang ML, từ ML sang Deep Learning), " +
-                      "hãy giải thích mối liên hệ giữa các chủ đề và đưa ra sách phù hợp từ database. " +
-                      "Luôn cung cấp context về mối liên hệ giữa các chủ đề liên quan. " +
-                      "Cung cấp câu trả lời thông minh, hữu ích, liên tục và độc đáo.")
+                      "Khi user yêu cầu gợi ý sách, hãy sử dụng danh sách sách thực tế từ database. " +
+                      "Luôn nhớ context trước đó và tránh lặp lại sách đã đề cập. " +
+                      "Cung cấp câu trả lời thông minh, hữu ích và chính xác.")
         String chatWithMemory(@UserMessage String userMessage, 
                             @V("context") String context, 
                             @V("sessionId") String sessionId);
