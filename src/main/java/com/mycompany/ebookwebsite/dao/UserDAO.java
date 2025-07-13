@@ -31,6 +31,8 @@ public class UserDAO {
     private static final String COUNT_BY_USERNAME = "SELECT COUNT(*) FROM Users WHERE username = ? AND id != ? AND (status != 'deleted' OR status IS NULL)";
     private static final String COUNT_BY_EMAIL = "SELECT COUNT(*) FROM Users WHERE email = ? AND id != ? AND (status != 'deleted' OR status IS NULL)";
 
+    private static final String SELECT_BY_ROLE = "SELECT * FROM Users WHERE role = ? AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
+
     // ===== Thêm kiểm tra tồn tại username / email =====
     public boolean existsByUsername(String username) throws SQLException {
         String sql = "SELECT 1 FROM Users WHERE username = ? AND (status != 'deleted' OR status IS NULL)";
@@ -376,6 +378,18 @@ public class UserDAO {
             }
         }
         return users;
+
+    public List<User> findUsersByRole(String role) throws SQLException {
+        List<User> list = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SELECT_BY_ROLE)) {
+            ps.setString(1, role);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapUser(rs));
+                }
+            }
+        }
+        return list;
     }
 
 }

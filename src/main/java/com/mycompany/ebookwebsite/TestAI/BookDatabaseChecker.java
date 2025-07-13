@@ -1,6 +1,7 @@
 package com.mycompany.ebookwebsite.TestAI;
 
 import com.mycompany.ebookwebsite.dao.DBConnection;
+import com.mycompany.ebookwebsite.utils.PathManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,7 @@ import java.util.Scanner;
 /**
  * 🔍 Book Database Checker
  * Kiểm tra sách đã được lưu vào database và listBook
+ * Updated to use PathManager for better path management
  */
 public class BookDatabaseChecker {
     
@@ -227,9 +229,12 @@ public class BookDatabaseChecker {
         System.out.println("\n🔄 KIỂM TRA SÁCH MỚI UPLOAD:");
         System.out.println("=".repeat(50));
         
-        // Kiểm tra file trong uploads
+        // 🗂️ Sử dụng PathManager để kiểm tra uploads directory
         System.out.println("📁 Files trong uploads/:");
-        java.io.File uploadsDir = new java.io.File("D:\\EbookWebsite\\uploads");
+        String uploadsPath = PathManager.getUploadsPath();
+        System.out.println("📁 Using uploads path: " + uploadsPath);
+        
+        java.io.File uploadsDir = new java.io.File(uploadsPath);
         if (uploadsDir.exists() && uploadsDir.isDirectory()) {
             java.io.File[] files = uploadsDir.listFiles();
             if (files != null && files.length > 0) {
@@ -242,7 +247,7 @@ public class BookDatabaseChecker {
                 System.out.println("   📭 Không có file nào");
             }
         } else {
-            System.out.println("   ❌ Thư mục uploads không tồn tại");
+            System.out.println("   ❌ Thư mục uploads không tồn tại: " + uploadsPath);
         }
         
         // Kiểm tra trong database
