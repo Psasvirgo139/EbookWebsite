@@ -23,6 +23,7 @@ public class FavoriteDAO {
     private static final String DELETE = "DELETE FROM Favorites WHERE user_id = ? AND ebook_id = ?";
     private static final String DELETE_BY_USER = "DELETE FROM Favorites WHERE user_id = ?";
     private static final String DELETE_BY_EBOOK = "DELETE FROM Favorites WHERE ebook_id = ?";
+    private static final String DELETE_BY_CHAPTER = "DELETE FROM Favorites WHERE chapter_id = ?";
     
     public void insertFavorite(Favorite favorite) throws SQLException {
         try (Connection con = DBConnection.getConnection(); 
@@ -115,6 +116,15 @@ public class FavoriteDAO {
              PreparedStatement ps = con.prepareStatement(DELETE_BY_EBOOK)) {
             
             ps.setInt(1, ebookId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+    
+    public boolean deleteByChapter(int chapterId) throws SQLException {
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(DELETE_BY_CHAPTER)) {
+            
+            ps.setInt(1, chapterId);
             return ps.executeUpdate() > 0;
         }
     }

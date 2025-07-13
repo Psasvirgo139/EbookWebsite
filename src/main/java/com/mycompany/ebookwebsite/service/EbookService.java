@@ -3,11 +3,13 @@ package com.mycompany.ebookwebsite.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.dao.FavoriteDAO;
 import com.mycompany.ebookwebsite.dao.UserReadDAO;
 import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.LatestBookView;
 import com.mycompany.ebookwebsite.model.User;
 
 public class EbookService {
@@ -70,6 +72,19 @@ public class EbookService {
 
     public List<Ebook> getLatestBooks(int limit) throws SQLException {
         return ebookDAO.getBooksByPage(0, limit);
+    }
+    
+    /**
+     * Lấy danh sách truyện mới nhất dưới dạng LatestBookView
+     * @param limit Số lượng truyện cần lấy
+     * @return Danh sách LatestBookView
+     * @throws SQLException
+     */
+    public List<LatestBookView> getLatestBookViews(int limit) throws SQLException {
+        List<Ebook> books = getLatestBooks(limit);
+        return books.stream()
+                .map(LatestBookView::new)
+                .collect(Collectors.toList());
     }
 
     public List<Ebook> getAllBooks() throws SQLException {
