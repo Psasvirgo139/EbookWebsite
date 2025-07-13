@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import com.mycompany.ebookwebsite.dao.EbookDAO;
-import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.LatestBookView;
+import com.mycompany.ebookwebsite.service.EbookService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,60 +16,53 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebServlet(name = "LatestBooksServlet", urlPatterns = {"/latest"})
 public class LatestBooksServlet extends HttpServlet {
     
-    private EbookDAO ebookDAO;
+    private EbookService ebookService;
     
     @Override
     public void init() throws ServletException {
-        ebookDAO = new EbookDAO();
+        ebookService = new EbookService();
     }
     
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        response.setContentType("application/json; charset=UTF-8");
+        response.setContentType("text/html; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
         
-        // Add CORS headers for frontend access
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
-        
         try {
-            // Lấy truyện mới nhất từ database
-            List<Ebook> latestBooks = ebookDAO.selectAllEbooks(); // Lấy tất cả truyện
-            
-            // Chuyển đổi thành JSON
-            JSONArray jsonArray = new JSONArray();
-            for (Ebook book : latestBooks) {
-                JSONObject bookJson = new JSONObject();
-                bookJson.put("id", book.getId());
-                bookJson.put("title", book.getTitle());
-                bookJson.put("description", book.getDescription());
-                bookJson.put("coverUrl", book.getCoverUrl());
-                bookJson.put("status", book.getStatus());
-                bookJson.put("releaseType", book.getReleaseType());
-                bookJson.put("language", book.getLanguage());
-                bookJson.put("visibility", book.getVisibility());
-                bookJson.put("createdAt", book.getCreatedAt() != null ? book.getCreatedAt().toString() : null);
-                bookJson.put("viewCount", book.getViewCount());
-                jsonArray.put(bookJson);
+            // Lấy tham số limit từ request, mặc định là 20
+            int limit = 20;
+            try {
+                String limitParam = request.getParameter("limit");
+                if (limitParam != null && !limitParam.isEmpty()) {
+                    limit = Integer.parseInt(limitParam);
+                    if (limit < 1) limit = 20;
+                    if (limit > 100) limit = 100; // Giới hạn tối đa 100
+                }
+            } catch (NumberFormatException e) {
+                limit = 20; // Mặc định nếu parse lỗi
             }
             
-            response.getWriter().write(jsonArray.toString());
+            // Lấy truyện mới nhất từ service với LatestBookView
+            List<LatestBookView> latestBooks = ebookService.getLatestBookViews(limit);
+            
+            // Đặt attributes cho JSP
+            request.setAttribute("latestBooks", latestBooks);
+            request.setAttribute("totalBooks", latestBooks.size());
+            request.setAttribute("limit", limit);
+            
+            // Forward đến JSP để render HTML
+            request.getRequestDispatcher("/latest.jsp").forward(request, response);
             
         } catch (SQLException e) {
             e.printStackTrace();
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("error", "Lỗi database: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(errorResponse.toString());
+            request.setAttribute("error", "Lỗi database: " + e.getMessage());
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("error", "Lỗi server: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write(errorResponse.toString());
+            request.setAttribute("error", "Lỗi server: " + e.getMessage());
+            request.getRequestDispatcher("/error.jsp").forward(request, response);
         }
     }
     
