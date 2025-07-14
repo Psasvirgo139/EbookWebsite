@@ -1,5 +1,5 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -124,6 +124,7 @@
     </style>
 </head>
 <body>
+<%@ include file="/common/header.jsp" %>
 <div class="admin-container">
     <nav class="sidebar">
         <h2>Quản trị</h2>
@@ -188,5 +189,6 @@
         </table>
     </main>
 </div>
+<%@ include file="/common/footer.jsp" %>
 </body>
 </html>

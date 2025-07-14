@@ -12,6 +12,8 @@ import com.mycompany.ebookwebsite.dao.UserInforDAO;
 import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.model.UserInfor;
 import com.mycompany.ebookwebsite.service.CoinService;
+import com.mycompany.ebookwebsite.service.EbookService;
+import com.mycompany.ebookwebsite.service.FavoriteService;
 import com.mycompany.ebookwebsite.service.UserService;
 
 import jakarta.servlet.ServletException;
@@ -29,6 +31,8 @@ public class ProfileServlet extends HttpServlet {
     private UserDAO userDAO;
     private UserInforDAO userInforDAO;
     private CoinService coinService;
+    private FavoriteService favoriteService;
+    private EbookService ebookService;
 
     @Override
     public void init() throws ServletException {
@@ -36,6 +40,8 @@ public class ProfileServlet extends HttpServlet {
         userDAO = new UserDAO();
         userInforDAO = new UserInforDAO();
         coinService = new CoinService();
+        favoriteService = new FavoriteService();
+        ebookService = new EbookService();
     }
 
     @Override
@@ -99,6 +105,19 @@ public class ProfileServlet extends HttpServlet {
         // Lấy thông tin coin của user với fallback an toàn
         int userCoins = coinService.getUserCoinsSafe(user.getId());
         LOGGER.info("Retrieved " + userCoins + " coins for user: " + user.getUsername());
+
+        // Lấy danh sách truyện yêu thích thật
+        java.util.List<com.mycompany.ebookwebsite.model.Ebook> favorites = new java.util.ArrayList<>();
+        try {
+            java.util.List<com.mycompany.ebookwebsite.model.Favorite> favs = favoriteService.getFavoritesByUser(user.getId());
+            for (com.mycompany.ebookwebsite.model.Favorite fav : favs) {
+                com.mycompany.ebookwebsite.model.Ebook book = ebookService.getEbookById(fav.getEbookID());
+                if (book != null) favorites.add(book);
+            }
+        } catch (Exception e) {
+            // ignore, để favorites rỗng
+        }
+        request.setAttribute("favorites", favorites);
 
         request.setAttribute("user", user);
         request.setAttribute("userInfor", userInfor);
