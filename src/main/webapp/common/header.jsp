@@ -42,6 +42,7 @@
   </div>
   <nav class="main-nav" id="mainNav" aria-label="Điều hướng chính">
     <a class="nav-link" href="${ctx}/">Trang chủ</a>
+    <a class="nav-link" href="${ctx}/book-list">Tất cả Truyện</a>
     <div class="nav-item genres-dropdown">
       <a class="nav-link" href="#" aria-haspopup="true" aria-expanded="false">
         Thể loại ▾
@@ -69,7 +70,6 @@
     <c:if test="${not empty sessionScope.user}">
       <a class="nav-link" href="${ctx}/book/upload" style="background: linear-gradient(45deg, #ff6b6b, #ff8e8e); color: white; padding: 6px 12px; border-radius: 15px; font-weight: 600;">📚 Upload Sách</a>
     </c:if>
-    <a class="premium-badge" href="${ctx}/premium">Premium</a>
   </nav>
   <div class="header-actions">
     <form class="search-container" role="search" aria-label="Tìm kiếm truyện">

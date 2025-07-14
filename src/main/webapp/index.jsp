@@ -9,91 +9,270 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>scroll | Đọc truyện online</title>
-
-    <!-- Core CSS -->
     <link rel="stylesheet" href="${ctx}/assets/css/style.css" />
-
-    <!-- Preconnect fonts -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <meta name="description" content="Scroll – Kho truyện lớn, cập nhật nhanh, đọc mượt trên mọi thiết bị." />
-    <link rel="icon" href="${ctx}/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f7f8fa;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(120deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 60px 0 40px 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero h1 {
+            font-size: 2.8em;
+            font-weight: 700;
+            margin-bottom: 18px;
+            letter-spacing: -1px;
+        }
+        .hero .highlight {
+            color: #ffd700;
+        }
+        .hero .hero-search {
+            margin: 30px auto 0 auto;
+            max-width: 480px;
+            display: flex;
+            gap: 0;
+            background: #fff;
+            border-radius: 32px;
+            box-shadow: 0 4px 24px rgba(102,126,234,0.08);
+            overflow: hidden;
+        }
+        .hero .hero-search input {
+            flex: 1;
+            border: none;
+            padding: 18px 22px;
+            font-size: 1.1em;
+            border-radius: 32px 0 0 32px;
+            outline: none;
+        }
+        .hero .hero-search button {
+            background: #764ba2;
+            color: #fff;
+            border: none;
+            padding: 0 28px;
+            font-size: 1.1em;
+            border-radius: 0 32px 32px 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .hero .hero-search button:hover {
+            background: #667eea;
+        }
+        .hero .cta-group {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+        }
+        .hero .cta-btn {
+            background: #ffd700;
+            color: #333;
+            padding: 14px 36px;
+            border-radius: 28px;
+            font-weight: 700;
+            font-size: 1.1em;
+            border: none;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.10);
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .hero .cta-btn:hover {
+            background: #fff;
+            color: #764ba2;
+            transform: translateY(-2px) scale(1.04);
+        }
+        .hero-illustration {
+            margin: 40px auto 0 auto;
+            max-width: 320px;
+        }
+        /* Genre section */
+        .genres-section {
+            margin: 40px auto 0 auto;
+            max-width: 900px;
+            text-align: center;
+        }
+        .genres-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+            margin-top: 18px;
+        }
+        .genre-btn {
+            background: #fff;
+            color: #764ba2;
+            border: 1.5px solid #764ba2;
+            border-radius: 20px;
+            padding: 8px 22px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+        }
+        .genre-btn:hover {
+            background: #764ba2;
+            color: #fff;
+            border: 1.5px solid #667eea;
+        }
+        /* Featured books */
+        .featured-section {
+            margin: 56px auto 0 auto;
+            max-width: 1100px;
+        }
+        .featured-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+        .featured-header h2 {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #333;
+        }
+        .featured-header a {
+            color: #764ba2;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1em;
+            transition: color 0.2s;
+        }
+        .featured-header a:hover {
+            color: #667eea;
+        }
+        .featured-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 28px;
+        }
+        .book-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(102,126,234,0.08);
+            overflow: hidden;
+            transition: transform 0.18s, box-shadow 0.18s;
+            display: flex;
+            flex-direction: column;
+            min-height: 340px;
+        }
+        .book-card:hover {
+            transform: translateY(-6px) scale(1.03);
+            box-shadow: 0 8px 32px rgba(102,126,234,0.16);
+        }
+        .book-thumb {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #f3f3f3;
+        }
+        .book-content {
+            padding: 18px 18px 12px 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .book-title {
+            font-size: 1.15em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            text-decoration: none;
+        }
+        .book-title:hover {
+            color: #764ba2;
+        }
+        .book-desc {
+            font-size: 0.98em;
+            color: #666;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+        .book-info {
+            font-size: 0.92em;
+            color: #999;
+            margin-bottom: 8px;
+        }
+        .read-btn {
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 1em;
+            align-self: flex-start;
+            margin-top: 6px;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+        .read-btn:hover {
+            background: #ffd700;
+            color: #764ba2;
+        }
+        /* Features section */
+        .features-section {
+            margin: 60px auto 0 auto;
+            max-width: 900px;
+            text-align: center;
+        }
+        .features-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        .feature-item {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(102,126,234,0.07);
+            padding: 28px 32px;
+            min-width: 180px;
+            max-width: 240px;
+            flex: 1 1 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .feature-item .feature-icon {
+            font-size: 2.2em;
+            margin-bottom: 12px;
+        }
+        .feature-item .feature-title {
+            font-weight: 700;
+            color: #764ba2;
+            margin-bottom: 8px;
+        }
+        .feature-item .feature-desc {
+            color: #666;
+            font-size: 0.98em;
+        }
+        @media (max-width: 900px) {
+            .featured-section, .features-section, .genres-section {
+                max-width: 98vw;
+            }
+        }
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 2em; }
+            .hero .hero-search input { font-size: 1em; }
+            .hero .cta-btn { font-size: 1em; padding: 12px 18px; }
+            .featured-header h2 { font-size: 1.1em; }
+            .feature-item { padding: 18px 8px; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Skip-link for Accessibility -->
     <a href="#main" class="skip-link">Bỏ qua và tới nội dung chính</a>
-
     <%@ include file="/common/header.jsp" %>
-
-    <!-- Success Messages -->
-    <c:if test="${param.success != null}">
-        <div id="successMessage" style="
-            position: fixed; 
-            top: 80px; 
-            right: 20px; 
-            background: linear-gradient(135deg, #28a745, #34ce57); 
-            color: white; 
-            padding: 20px 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3); 
-            z-index: 1000; 
-            max-width: 400px;
-            animation: slideInRight 0.5s ease-out;
-        ">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 24px;">✅</span>
-                <div>
-                    <div style="font-weight: bold; margin-bottom: 5px;">Upload thành công!</div>
-                    <div style="font-size: 14px; opacity: 0.9;">
-                        <c:choose>
-                            <c:when test="${param.success == 'smart_upload_completed'}">
-                                Sách "<strong>${param.bookTitle}</strong>" đã được tạo từ file "${param.originalFile}" với AI processing hoàn tất.
-                            </c:when>
-                            <c:when test="${param.success == 'title_override_upload_completed'}">
-                                Sách "<strong>${param.bookTitle}</strong>" đã được upload và xử lý bằng AI thành công.
-                            </c:when>
-                            <c:when test="${param.success == 'ai_upload_completed'}">
-                                Sách "<strong>${param.bookTitle}</strong>" đã được upload và phân tích bằng AI hoàn tất.
-                            </c:when>
-                            <c:when test="${param.success == 'book_created'}">
-                                Sách "<strong>${param.bookTitle}</strong>" đã được tạo thành công.
-                            </c:when>
-                            <c:otherwise>
-                                Sách của bạn đã được xử lý thành công!
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                </div>
-                <button onclick="document.getElementById('successMessage').style.display='none'" 
-                        style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; margin-left: 10px;">×</button>
-            </div>
-        </div>
-        <style>
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-        </style>
-        <script>
-            // Auto hide success message after 8 seconds
-            setTimeout(function() {
-                var msg = document.getElementById('successMessage');
-                if (msg) {
-                    msg.style.animation = 'slideInRight 0.5s ease-out reverse';
-                    setTimeout(function() {
-                        msg.style.display = 'none';
-                    }, 500);
-                }
-            }, 8000);
-        </script>
-    </c:if>
-
     <main id="main">
         <!-- HERO SECTION -->
         <section class="hero" id="home">
@@ -101,102 +280,80 @@
                 Khám phá kho truyện <span class="highlight">khổng lồ</span> &amp;
                 <span class="highlight">chất lượng</span>
             </h1>
-            <p>Hơn 20 thể loại, hàng nghìn chương mới mỗi ngày.</p>
-            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 25px;">
-                <a href="#storiesGrid" class="cta-btn">Bắt đầu đọc ngay</a>
+            <div class="cta-group">
+                <a href="${ctx}/book-list" class="cta-btn">Bắt đầu đọc ngay</a>
                 <c:if test="${not empty sessionScope.user}">
-                    <a href="${ctx}/book/upload" class="cta-btn" style="background: linear-gradient(45deg, #28a745, #34ce57); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);">
-                        📚 Upload Sách của bạn
-                    </a>
+                    <a href="${ctx}/favorites" class="cta-btn" style="background:#fff;color:#764ba2;">Truyện yêu thích</a>
                 </c:if>
             </div>
+            <div class="hero-illustration">
+                <!-- SVG minh họa sách -->
+                <svg width="100%" height="120" viewBox="0 0 320 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="20" y="30" width="80" height="60" rx="12" fill="#fff" fill-opacity="0.9"/>
+                  <rect x="120" y="20" width="80" height="80" rx="16" fill="#ffd700" fill-opacity="0.8"/>
+                  <rect x="220" y="40" width="80" height="60" rx="12" fill="#fff" fill-opacity="0.9"/>
+                  <rect x="40" y="50" width="40" height="8" rx="4" fill="#764ba2" fill-opacity="0.2"/>
+                  <rect x="140" y="60" width="60" height="8" rx="4" fill="#764ba2" fill-opacity="0.2"/>
+                  <rect x="240" y="70" width="40" height="8" rx="4" fill="#764ba2" fill-opacity="0.2"/>
+                </svg>
+            </div>
         </section>
-
-        <!-- STORIES FEATURED -->
-        <section class="stories-list" aria-labelledby="featured-heading">
-            <h2 id="featured-heading">Truyện nổi bật</h2>
-            <div class="stories-grid" id="storiesGrid" aria-live="polite">
-                <c:forEach var="book" items="${featuredBooks}">
-                    <div class="story-card">
-                        <img class="story-thumb" src="${book.coverUrl}" alt="${book.title}" />
-                        <div class="story-content">
-                            <a class="story-title" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">${book.title}</a>
-                            <div class="story-desc">${book.description}</div>
-                            <div class="story-info"><span>Lượt xem: ${book.viewCount}</span></div>
-                            <a class="read-btn" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">Đọc</a>
+        <!-- FEATURED BOOKS SECTION -->
+        <section class="featured-section">
+            <div class="featured-header">
+                <h2>Truyện nổi bật</h2>
+                <a href="${ctx}/book-list">Xem tất cả &rarr;</a>
+            </div>
+            <div class="featured-grid">
+                <c:forEach var="book" items="${featuredBooks}" varStatus="loop" begin="0" end="3">
+                    <div class="book-card">
+                        <img class="book-thumb" src="${book.coverUrl}" alt="${book.title}" />
+                        <div class="book-content">
+                            <a class="book-title" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">${book.title}</a>
+                            <div class="book-desc">
+                                <c:choose>
+                                    <c:when test="${not empty book.description}">
+                                        <c:out value="${book.description.length() > 80 ? book.description.substring(0, 80).concat('...') : book.description}" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="text-muted">Không có mô tả</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                            <div class="book-info">Lượt xem: ${book.viewCount}</div>
+                            <a class="read-btn" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">Đọc ngay</a>
                         </div>
                     </div>
                 </c:forEach>
             </div>
         </section>
-
-        <!-- UPLOAD CALL-TO-ACTION (for logged-in users) -->
-        <c:if test="${not empty sessionScope.user}">
-            <section class="upload-cta" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 20px; margin: 40px 0; text-align: center; border-radius: 20px;">
-                <h2 style="margin-bottom: 20px; font-size: 2.2em;">🚀 Chia sẻ tác phẩm của bạn!</h2>
-                <p style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.9;">
-                    Upload sách, truyện, tiểu thuyết của bạn và tiếp cận hàng nghìn độc giả. 
-                    Hệ thống AI sẽ tự động phân tích và tối ưu nội dung.
-                </p>
-                <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                    <a href="${ctx}/book/upload" 
-                       style="background: rgba(255,255,255,0.2); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; border: 2px solid rgba(255,255,255,0.3); transition: all 0.3s ease;"
-                       onmouseover="this.style.background='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'"
-                       onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'">
-                        📚 Upload Sách Ngay
-                    </a>
-                    <a href="${ctx}/ai/chat" 
-                       style="background: transparent; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: 600; border: 2px solid rgba(255,255,255,0.5); transition: all 0.3s ease;"
-                       onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='translateY(-2px)'"
-                       onmouseout="this.style.background='transparent'; this.style.transform='translateY(0)'">
-                        💬 AI Chat
-                    </a>
+        <!-- FEATURES SECTION -->
+        <section class="features-section">
+            <h2 style="font-size:1.2em;font-weight:700;color:#333;">Tại sao chọn Scroll?</h2>
+            <div class="features-list">
+                <div class="feature-item">
+                    <div class="feature-icon">📚</div>
+                    <div class="feature-title">Kho truyện khổng lồ – phần lớn hoàn toàn miễn phí</div>
+                    <div class="feature-desc">Từ truyện hot đến kinh điển, Scroll mở ra thế giới truyện hấp dẫn cho mọi độc giả. Đọc thoải mái với hàng ngàn đầu truyện miễn phí, có chọn lọc.</div>
                 </div>
-                <div style="margin-top: 25px; font-size: 0.9em; opacity: 0.8;">
-                    ✨ Hỗ trợ format: PDF, DOCX, TXT | 🤖 AI tự động phân tích nội dung | 💰 Kiếm coin từ độc giả
+                <div class="feature-item">
+                    <div class="feature-icon">✨</div>
+                    <div class="feature-title">Trải nghiệm mượt mà, giao diện hiện đại</div>
+                    <div class="feature-desc">Giao diện tối giản, dễ dùng, được tối ưu cho mọi thiết bị – từ máy tính đến smartphone, tablet.</div>
                 </div>
-            </section>
-        </c:if>
-
-        <!-- STORIES UPDATE -->
-        <section class="stories-update" id="latest" aria-labelledby="update-heading">
-            <div class="update-header">
-                <h2 id="update-heading">Truyện mới cập nhật</h2>
-                <button class="filter-btn" id="filterUpdate" aria-label="Lọc truyện mới"></button>
+                <div class="feature-item">
+                    <div class="feature-icon">🎯</div>
+                    <div class="feature-title">Tập trung vào trải nghiệm đọc</div>
+                    <div class="feature-desc">Không quảng cáo chen ngang, không rối mắt – chỉ có bạn và những câu chuyện cuốn hút. Scroll tạo không gian đọc yên tĩnh, giúp bạn đắm chìm trọn vẹn trong từng trang truyện.</div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🌐</div>
+                    <div class="feature-title">Truy cập mọi lúc, mọi nơi</div>
+                    <div class="feature-desc">Dù ở nhà, trên xe hay quán cà phê, bạn luôn có thể tiếp tục hành trình đọc với Scroll – chỉ cần một thiết bị kết nối mạng.</div>
+                </div>
             </div>
-            <div class="stories-update-grid" id="updateGrid" aria-live="polite"></div>
-            <div class="skeleton-loader" id="updateSkeleton"></div>
         </section>
     </main>
-
-    <!-- FOOTER -->
     <%@ include file="/common/footer.jsp" %>
-
-    <!-- DYNAMIC MODALS -->
-    <dialog class="modal" id="modalAuth" aria-modal="true">
-        <form method="dialog" class="modal-content" id="authForm" novalidate>
-            <button class="close" id="closeModal" aria-label="Đóng">×</button>
-            <h3 id="modalTitle">Đăng nhập</h3>
-            <input type="text" id="authUser" placeholder="Tên đăng nhập" required />
-            <input type="password" id="authPass" placeholder="Mật khẩu" required />
-            <button type="submit" id="submitAuth">Đăng nhập</button>
-            <p class="switch-auth">
-                Chưa có tài khoản?
-                <a href="#" id="switchToRegister">Đăng ký</a>
-            </p>
-        </form>
-    </dialog>
-
-    <!-- Core JS -->
-    <script src="${ctx}/assets/js/app.js" defer></script>
-
-    <!-- Quick enhancement: đóng menu mobile khi chọn link -->
-    <script>
-      document.querySelectorAll('.main-nav a').forEach((l) =>
-        l.addEventListener('click', () => {
-          document.getElementById('mainNav').classList.remove('show-mobile');
-        })
-      );
-    </script>
 </body>
 </html>

@@ -97,7 +97,10 @@ public class BookListServlet extends HttpServlet {
             // Tính toán phân trang
             int totalBooks = allBooks.size();
             int totalPages = (int) Math.ceil((double) totalBooks / pageSize);
-            
+
+            // Log để debug phân trang
+            System.out.println("[BookListServlet] page=" + page + ", startIndex=" + ((page - 1) * pageSize) + ", endIndex=" + (Math.min((page - 1) * pageSize + pageSize, totalBooks)) + ", totalBooks=" + totalBooks + ", totalPages=" + totalPages);
+
             // Lấy sách cho trang hiện tại
             int startIndex = (page - 1) * pageSize;
             int endIndex = Math.min(startIndex + pageSize, totalBooks);
@@ -132,7 +135,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("endBook", endBook);
             
             // Forward đến JSP
-            request.getRequestDispatcher("/book-list").forward(request, response);
+            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -141,7 +144,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("totalBooks", 0);
             request.setAttribute("currentPage", 1);
             request.setAttribute("totalPages", 0);
-            request.getRequestDispatcher("/book-list").forward(request, response);
+            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
@@ -149,7 +152,7 @@ public class BookListServlet extends HttpServlet {
             request.setAttribute("totalBooks", 0);
             request.setAttribute("currentPage", 1);
             request.setAttribute("totalPages", 0);
-            request.getRequestDispatcher("/book-list").forward(request, response);
+            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
         }
     }
     

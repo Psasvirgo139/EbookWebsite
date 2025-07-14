@@ -74,3 +74,7 @@ uploads/
 *.derby
 # Không upload file kết nối cơ sở dữ liệu
 src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
+
+# Bỏ folder chứa data ra khỏi git để không bị push nặng
+src/main/webapp/bookreal/
+src/main/webapp/image/
