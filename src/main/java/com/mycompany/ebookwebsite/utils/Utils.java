@@ -25,6 +25,7 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import com.mycompany.ebookwebsite.dao.DBConnection;
 import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.BookWithLink;
 
 /**
  * Tiện ích đọc file đa định dạng cho kiểm duyệt AI nội dung sách + tiện ích đọc biến môi trường từ .env
@@ -334,6 +335,55 @@ public class Utils {
         
         return results;
     }
+    
+    /**
+     * 📚 Lấy danh sách sách với link trực tiếp
+     */
+    public static List<BookWithLink> getAvailableBooksWithLinks(int limit) {
+        List<Ebook> books = getAvailableBooks(limit);
+        List<BookWithLink> booksWithLinks = new ArrayList<>();
+        
+        for (Ebook book : books) {
+            booksWithLinks.add(new BookWithLink(book));
+        }
+        
+        return booksWithLinks;
+    }
+    
+    /**
+     * 🔍 Tìm sách theo tên và trả về với link
+     */
+    public static BookWithLink findBookByTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            return null;
+        }
+        
+        List<Ebook> allBooks = getAvailableBooks(1000);
+        String searchTitle = title.toLowerCase().trim();
+        
+        for (Ebook book : allBooks) {
+            if (book.getTitle() != null && 
+                book.getTitle().toLowerCase().contains(searchTitle)) {
+                return new BookWithLink(book);
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 🔍 Tìm sách theo số thứ tự (1, 2, 3...)
+     */
+    public static BookWithLink findBookByIndex(int index) {
+        List<Ebook> books = getAvailableBooks(1000);
+        
+        if (index >= 1 && index <= books.size()) {
+            return new BookWithLink(books.get(index - 1));
+        }
+        
+        return null;
+    }
+
 
     /**
      * 📚 Lấy thông tin chi tiết sách từ database

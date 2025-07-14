@@ -378,6 +378,8 @@ public class UserDAO {
             }
         }
         return users;
+    }
+
 
     public List<User> findUsersByRole(String role) throws SQLException {
         List<User> list = new ArrayList<>();
