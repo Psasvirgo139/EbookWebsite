@@ -90,6 +90,30 @@ public class AuthorDAO {
         }
     }
     
+    /**
+     * Lấy top N tác giả có nhiều truyện nhất
+     */
+    public List<Author> getTopAuthorsByBookCount(int limit) throws SQLException {
+        String sql = "SELECT a.id, a.name, a.bio, a.avatar_url, COUNT(ea.ebook_id) as book_count " +
+                "FROM Authors a " +
+                "JOIN EbookAuthors ea ON a.id = ea.author_id " +
+                "GROUP BY a.id, a.name, a.bio, a.avatar_url " +
+                "ORDER BY book_count DESC " +
+                "LIMIT ?";
+        List<Author> list = new ArrayList<>();
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Author author = mapAuthor(rs);
+                // Nếu muốn lấy số lượng truyện, có thể mở rộng Author hoặc trả về map
+                list.add(author);
+            }
+        }
+        return list;
+    }
+    
     private Author mapAuthor(ResultSet rs) throws SQLException {
         return new Author(
             rs.getInt("id"),

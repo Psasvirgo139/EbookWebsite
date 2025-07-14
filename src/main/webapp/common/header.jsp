@@ -48,17 +48,9 @@
       </a>
       <div class="mega-menu" aria-label="Danh sách thể loại">
         <div class="mega-column">
-          <a href="#">Ngôn Tình</a>
-          <a href="#">Đô Thị</a>
-          <a href="#">Khoa Huyễn</a>
-        </div>
-        <div class="mega-column">
-          <a href="#">Tiên Hiệp</a>
-          <a href="#">Quan Trường</a>
-        </div>
-        <div class="mega-column">
-          <a href="#">Kiếm Hiệp</a>
-          <a href="#">Võng Du</a>
+          <c:forEach var="tag" items="${tags}">
+            <a href="${ctx}/search?genre=${tag.name}">${tag.name}</a>
+          </c:forEach>
         </div>
       </div>
     </div>
