@@ -184,6 +184,61 @@ public class EbookDAO {
         }
         return ebooks;
     }
+
+    /**
+     * Enhanced keyword-only search with better text matching
+     */
+    public List<Ebook> searchByKeywordOnly(String keyword) throws SQLException {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // Clean keyword: remove extra spaces, convert to lowercase for case-insensitive search
+        String cleanKeyword = keyword.trim().toLowerCase().replaceAll("\\s+", " ");
+        
+        // Use LOWER function for case-insensitive search in SQL Server
+        String sql = "SELECT * FROM Ebooks WHERE " +
+                     "(LOWER(title) LIKE ? OR LOWER(description) LIKE ?) " +
+                     "AND (status != 'deleted' OR status IS NULL) " +
+                     "AND visibility = 'public' " +
+                     "ORDER BY " +
+                     "CASE " +
+                     "  WHEN LOWER(title) = ? THEN 1 " +              // Exact match first
+                     "  WHEN LOWER(title) LIKE ? THEN 2 " +          // Title starts with keyword
+                     "  WHEN LOWER(title) LIKE ? THEN 3 " +          // Title contains keyword
+                     "  ELSE 4 " +                                   // Description contains keyword
+                     "END, " +
+                     "view_count DESC";
+        
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            String searchPattern = "%" + cleanKeyword + "%";
+            String startsWithPattern = cleanKeyword + "%";
+            
+            ps.setString(1, searchPattern);     // title LIKE
+            ps.setString(2, searchPattern);     // description LIKE
+            ps.setString(3, cleanKeyword);      // exact title match
+            ps.setString(4, startsWithPattern); // title starts with
+            ps.setString(5, searchPattern);     // title contains
+            
+            System.out.println("EbookDAO.searchByKeywordOnly - SQL: " + sql);
+            System.out.println("EbookDAO.searchByKeywordOnly - Keyword: " + cleanKeyword);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+            
+            System.out.println("EbookDAO.searchByKeywordOnly - Found " + ebooks.size() + " books");
+        } catch (SQLException e) {
+            System.err.println("EbookDAO.searchByKeywordOnly - SQL Error: " + e.getMessage());
+            throw e;
+        }
+        return ebooks;
+    }
     
     public List<Ebook> selectEbooksByUploader(int uploaderId) throws SQLException {
         String sql = "SELECT * FROM Ebooks WHERE uploader_id = ? AND (status != 'deleted' OR status IS NULL) ORDER BY created_at DESC";
@@ -195,6 +250,109 @@ public class EbookDAO {
                     ebooks.add(mapRow(rs));
                 }
             }
+        }
+        return ebooks;
+    }
+
+    /**
+     * Advanced search with multiple filters
+     */
+    public List<Ebook> searchWithFilters(String keyword, String genre, String author, Integer minChapters, String sortBy, String status) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT DISTINCT e.* FROM Ebooks e ");
+        List<Object> params = new ArrayList<>();
+        
+        // JOIN với các bảng cần thiết
+        if (genre != null && !genre.trim().isEmpty()) {
+            sql.append("JOIN EbookTags et ON e.id = et.ebook_id ");
+            sql.append("JOIN Tags t ON et.tag_id = t.id ");
+        }
+        if (author != null && !author.trim().isEmpty()) {
+            sql.append("JOIN EbookAuthors ea ON e.id = ea.ebook_id ");
+            sql.append("JOIN Authors a ON ea.author_id = a.id ");
+        }
+        if (minChapters != null && minChapters > 0) {
+            sql.append("LEFT JOIN (SELECT ebook_id, COUNT(*) as chapter_count FROM Chapters GROUP BY ebook_id) cc ON e.id = cc.ebook_id ");
+        }
+        
+        sql.append("WHERE (e.status != 'deleted' OR e.status IS NULL) ");
+        sql.append("AND e.visibility = 'public' ");
+        
+        // Keyword filter
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append("AND (e.title LIKE ? OR e.description LIKE ?) ");
+            String searchPattern = "%" + keyword.trim() + "%";
+            params.add(searchPattern);
+            params.add(searchPattern);
+        }
+        
+        // Genre filter
+        if (genre != null && !genre.trim().isEmpty()) {
+            sql.append("AND t.name = ? ");
+            params.add(genre.trim());
+        }
+        
+        // Author filter  
+        if (author != null && !author.trim().isEmpty()) {
+            sql.append("AND a.name LIKE ? ");
+            params.add("%" + author.trim() + "%");
+        }
+        
+        // Status filter
+        if (status != null && !status.equals("all") && !status.trim().isEmpty()) {
+            sql.append("AND e.status = ? ");
+            params.add(status);
+        }
+        
+        // MinChapters filter
+        if (minChapters != null && minChapters > 0) {
+            sql.append("AND cc.chapter_count >= ? ");
+            params.add(minChapters);
+        }
+        
+        // Sort
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            switch (sortBy) {
+                case "view_total":
+                    sql.append("ORDER BY e.view_count DESC ");
+                    break;
+                case "view_week":
+                case "view_month":
+                    // Giả định sắp xếp theo view_count (có thể mở rộng với bảng analytics)
+                    sql.append("ORDER BY e.view_count DESC ");
+                    break;
+                case "like":
+                    // Giả định sắp xếp theo view_count (có thể join với bảng likes)
+                    sql.append("ORDER BY e.view_count DESC ");
+                    break;
+                default:
+                    sql.append("ORDER BY e.created_at DESC ");
+            }
+        } else {
+            sql.append("ORDER BY e.created_at DESC ");
+        }
+        
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            // Log SQL for debugging
+            System.out.println("EbookDAO.searchWithFilters - SQL: " + sql.toString());
+            System.out.println("EbookDAO.searchWithFilters - Params: " + params);
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+            
+            System.out.println("EbookDAO.searchWithFilters - Found " + ebooks.size() + " books");
+        } catch (SQLException e) {
+            System.err.println("EbookDAO.searchWithFilters - SQL Error: " + e.getMessage());
+            throw e;
         }
         return ebooks;
     }

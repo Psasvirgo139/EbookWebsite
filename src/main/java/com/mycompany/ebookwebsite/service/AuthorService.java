@@ -5,9 +5,55 @@ import com.mycompany.ebookwebsite.model.Author;
 import com.mycompany.ebookwebsite.model.User;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class AuthorService {
     private final AuthorDAO authorDAO = new AuthorDAO();
+    private static final Logger logger = Logger.getLogger(AuthorService.class.getName());
+    private static final int TOP_AUTHOR_LIMIT = 10;
+    private static List<Author> cachedTopAuthors = new ArrayList<>();
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static boolean schedulerStarted = false;
+
+    public AuthorService() {
+        startTopAuthorsScheduler();
+    }
+
+    private synchronized void startTopAuthorsScheduler() {
+        if (schedulerStarted) return;
+        // Load ngay khi start
+        reloadTopAuthors();
+        // Schedule reload mỗi ngày vào 0h00
+        long initialDelay = calculateInitialDelayToMidnight();
+        scheduler.scheduleAtFixedRate(this::reloadTopAuthors, initialDelay, TimeUnit.DAYS.toSeconds(1), TimeUnit.SECONDS);
+        schedulerStarted = true;
+        logger.info("[AuthorService] TopAuthors scheduler started, reload at 0h00 mỗi ngày");
+    }
+
+    private void reloadTopAuthors() {
+        try {
+            List<Author> top = authorDAO.getTopAuthorsByBookCount(TOP_AUTHOR_LIMIT);
+            synchronized (AuthorService.class) {
+                cachedTopAuthors = top;
+            }
+            logger.info("[AuthorService] Reloaded top authors at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        } catch (SQLException e) {
+            logger.warning("[AuthorService] Failed to reload top authors: " + e.getMessage());
+            // Giữ cache cũ nếu reload fail
+        }
+    }
+
+    private long calculateInitialDelayToMidnight() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime next0000 = now.toLocalDate().plusDays(1).atTime(0, 0);
+        return java.time.Duration.between(now, next0000).toSeconds();
+    }
 
     public void addAuthor(Author author) throws SQLException {
         authorDAO.insertAuthor(author);
@@ -29,5 +75,20 @@ public class AuthorService {
     }
     public List<Author> searchAuthors(String name) throws SQLException {
         return authorDAO.search(name);
+    }
+    public List<Author> getTopAuthorsByBookCount(int limit) throws SQLException {
+        // Service throw SQLException để servlet catch
+        synchronized (AuthorService.class) {
+            if (cachedTopAuthors.isEmpty()) {
+                // Nếu cache trống, thử load ngay
+                try {
+                    cachedTopAuthors = authorDAO.getTopAuthorsByBookCount(TOP_AUTHOR_LIMIT);
+                } catch (SQLException e) {
+                    logger.warning("[AuthorService] Failed to load top authors on demand: " + e.getMessage());
+                    throw e; // Throw ra cho servlet catch
+                }
+            }
+            return new ArrayList<>(cachedTopAuthors.subList(0, Math.min(limit, cachedTopAuthors.size())));
+        }
     }
 } 

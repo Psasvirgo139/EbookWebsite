@@ -5,13 +5,22 @@ import com.mycompany.ebookwebsite.model.Tag;
 import com.mycompany.ebookwebsite.model.User;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TagService {
     private TagDAO tagDAO = new TagDAO();
+    private static List<Tag> cachedTags = new ArrayList<>();
+    private static boolean loaded = false;
 
-    public List<Tag> getAllTags() throws SQLException {
-        return tagDAO.getAllTags();
+    public TagService() {}
+
+    public synchronized List<Tag> getAllTags() throws SQLException {
+        if (!loaded) {
+            cachedTags = tagDAO.getAllTags();
+            loaded = true;
+        }
+        return new ArrayList<>(cachedTags);
     }
 
     public Tag getTagById(int id) throws SQLException {
