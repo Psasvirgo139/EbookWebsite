@@ -76,5 +76,9 @@ uploads/
 src/main/java/com/mycompany/ebookwebsite/dao/DBConnection.java
 
 # Bỏ folder chứa data ra khỏi git để không bị push nặng
-src/main/webapp/bookreal/
-src/main/webapp/image/
+src/main/webapp/bookreal/*
+src/main/webapp/image/*
+
+# Nhưng vẫn giữ thư mục rỗng trong Git (nếu cần)
+!src/main/webapp/bookreal/.gitkeep
+!src/main/webapp/image/.gitkeep
