@@ -1,8 +1,18 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%
     String ctx = request.getContextPath();
 %>
+<c:choose>
+  <c:when test="${not empty param.page and param.page >= '1' and param.page <= '9999'}">
+    <c:set var="safePage" value="${param.page}" />
+  </c:when>
+  <c:otherwise>
+    <c:set var="safePage" value="1" />
+  </c:otherwise>
+</c:choose>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -118,7 +128,7 @@
                                 <form method="post" action="${ctx}/favorites" style="display:inline;">
                                     <input type="hidden" name="action" value="add"/>
                                     <input type="hidden" name="ebookId" value="${book.id}"/>
-                                    <input type="hidden" name="redirectUrl" value="${ctx}/book-list${not empty param.page ? '?page=' + param.page : ''}${not empty param.searchKeyword ? (not empty param.page ? '&' : '?') + 'search=' + param.searchKeyword : ''}"/>
+                                    <input type="hidden" name="redirectUrl" value="${ctx}/book-list?page=${safePage}${not empty param.searchKeyword ? '&search=' + param.searchKeyword : ''}"/>
                                     <c:choose>
                                         <c:when test="${favoriteMap[book.id]}">
                                             <button type="submit" class="favorite-btn btn btn-danger" disabled>💖</button>
@@ -185,39 +195,31 @@
                             </a>
                         </li>
                     </c:if>
-                    
-                    <!-- Page numbers -->
-                    <c:set var="startPage" value="${currentPage - 2 > 0 ? currentPage - 2 : 1}" />
-                    <c:set var="endPage" value="${currentPage + 2 <= totalPages ? currentPage + 2 : totalPages}" />
-                    
-                    <c:if test="${startPage > 1}">
-                        <li class="page-item">
-                            <a class="page-link" href="${ctx}/book-list?page=1&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">1</a>
-                        </li>
-                        <c:if test="${startPage > 2}">
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        </c:if>
-                    </c:if>
-                    
-                    <c:forEach var="i" begin="${startPage}" end="${endPage}">
-                        <li class="page-item ${i == currentPage ? 'active' : ''}">
-                            <a class="page-link" href="${ctx}/book-list?page=${i}&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">
-                                ${i}
-                            </a>
+
+                    <!-- Always show first page -->
+                    <li class="page-item ${currentPage == 1 ? 'active' : ''}">
+                        <a class="page-link" href="${ctx}/book-list?page=1&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">1</a>
+                    </li>
+
+                    <!-- Show pages 2, 3, 4, 5 if totalPages > 1 -->
+                    <c:forEach var="i" begin="2" end="${totalPages > 5 ? 5 : totalPages}">
+                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                            <a class="page-link" href="${ctx}/book-list?page=${i}&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">${i}</a>
                         </li>
                     </c:forEach>
-                    
-                    <c:if test="${endPage < totalPages}">
-                        <c:if test="${endPage < totalPages - 1}">
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        </c:if>
-                        <li class="page-item">
-                            <a class="page-link" href="${ctx}/book-list?page=${totalPages}&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">
-                                ${totalPages}
-                            </a>
+
+                    <!-- Dấu ... nếu còn nhiều trang -->
+                    <c:if test="${totalPages > 6 && currentPage < totalPages - 2}">
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    </c:if>
+
+                    <!-- Trang cuối -->
+                    <c:if test="${totalPages > 5}">
+                        <li class="page-item ${currentPage == totalPages ? 'active' : ''}">
+                            <a class="page-link" href="${ctx}/book-list?page=${totalPages}&search=${searchKeyword}&genre=${selectedGenre}&sortBy=${sortBy}">${totalPages}</a>
                         </li>
                     </c:if>
-                    
+
                     <!-- Next page -->
                     <c:if test="${currentPage < totalPages}">
                         <li class="page-item">
