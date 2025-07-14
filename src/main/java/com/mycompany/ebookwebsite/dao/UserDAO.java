@@ -380,6 +380,7 @@ public class UserDAO {
         return users;
     }
 
+
     public List<User> findUsersByRole(String role) throws SQLException {
         List<User> list = new ArrayList<>();
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(SELECT_BY_ROLE)) {
