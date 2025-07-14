@@ -101,4 +101,21 @@ public class EbookService {
         }
         return views;
     }
+
+    /**
+     * Enhanced keyword search - Service layer for SearchServlet
+     */
+    public List<Ebook> searchByKeyword(String keyword) throws SQLException {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Keyword không được để trống");
+        }
+        return ebookDAO.searchByKeywordOnly(keyword);
+    }
+
+    /**
+     * Advanced search with filters - Service layer for SearchServlet
+     */
+    public List<Ebook> searchWithFilters(String genre, String author, Integer minChapters, String sortBy, String status) throws SQLException {
+        return ebookDAO.searchWithFilters(null, genre, author, minChapters, sortBy, status);
+    }
 }

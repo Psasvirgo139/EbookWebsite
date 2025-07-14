@@ -92,23 +92,23 @@ public class AuthorDAO {
     
     /**
      * Lấy top N tác giả có nhiều truyện nhất
+     * DAO chỉ throw SQLException, không catch
      */
     public List<Author> getTopAuthorsByBookCount(int limit) throws SQLException {
-        String sql = "SELECT a.id, a.name, a.bio, a.avatar_url, COUNT(ea.ebook_id) as book_count " +
+        String sql = "SELECT TOP (?) a.id, a.name, a.bio, a.avatar_url, COUNT(ea.ebook_id) as book_count " +
                 "FROM Authors a " +
                 "JOIN EbookAuthors ea ON a.id = ea.author_id " +
                 "GROUP BY a.id, a.name, a.bio, a.avatar_url " +
-                "ORDER BY book_count DESC " +
-                "LIMIT ?";
+                "ORDER BY book_count DESC";
         List<Author> list = new ArrayList<>();
+        
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, limit);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Author author = mapAuthor(rs);
-                // Nếu muốn lấy số lượng truyện, có thể mở rộng Author hoặc trả về map
-                list.add(author);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapAuthor(rs));
+                }
             }
         }
         return list;

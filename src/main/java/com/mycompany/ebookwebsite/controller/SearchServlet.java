@@ -5,7 +5,7 @@ import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.Tag;
 import com.mycompany.ebookwebsite.service.AuthorService;
 import com.mycompany.ebookwebsite.service.TagService;
-import com.mycompany.ebookwebsite.dao.EbookDAO;
+import com.mycompany.ebookwebsite.service.EbookService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,13 +19,13 @@ import java.util.List;
 public class SearchServlet extends HttpServlet {
     private AuthorService authorService;
     private TagService tagService;
-    private EbookDAO ebookDAO;
+    private EbookService ebookService;
 
     @Override
     public void init() {
         authorService = new AuthorService();
         tagService = new TagService();
-        ebookDAO = new EbookDAO();
+        ebookService = new EbookService();
     }
 
     /**
@@ -88,13 +88,13 @@ public class SearchServlet extends HttpServlet {
             if (keyword != null && !keyword.isEmpty()) {
                 // Khi có keyword: chỉ tìm theo keyword, bỏ qua các filter khác
                 System.out.println("SearchServlet - Searching by keyword only: " + keyword);
-                bookList = ebookDAO.searchByKeywordOnly(keyword);
+                bookList = ebookService.searchByKeyword(keyword);
             } else {
                 // Khi không có keyword: dùng advanced filters
                 System.out.println("SearchServlet - Using advanced filters");
                 // Clean null values cho advanced search
                 if (status != null && status.equals("all")) status = null;
-                bookList = ebookDAO.searchWithFilters(null, genre, author, minChapters, sortBy, status);
+                bookList = ebookService.searchWithFilters(genre, author, minChapters, sortBy, status);
             }
             
             request.setAttribute("bookList", bookList);
@@ -106,12 +106,16 @@ public class SearchServlet extends HttpServlet {
         } catch (SQLException e) {
             System.err.println("SearchServlet - SQL Error: " + e.getMessage());
             e.printStackTrace();
-            request.setAttribute("error", "Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại.");
+            request.setAttribute("error", "Có lỗi xảy ra khi tìm kiếm trong cơ sở dữ liệu. Vui lòng thử lại.");
+            request.getRequestDispatcher("/book/search.jsp").forward(request, response);
+        } catch (IllegalArgumentException e) {
+            System.err.println("SearchServlet - Invalid Parameter: " + e.getMessage());
+            request.setAttribute("error", e.getMessage());
             request.getRequestDispatcher("/book/search.jsp").forward(request, response);
         } catch (Exception e) {
             System.err.println("SearchServlet - General Error: " + e.getMessage());
             e.printStackTrace();
-            throw new ServletException("Lỗi khi tải dữ liệu tìm kiếm", e);
+            throw new ServletException("Lỗi hệ thống khi tải dữ liệu tìm kiếm", e);
         }
     }
 } 

@@ -43,8 +43,9 @@ public class AuthorService {
                 cachedTopAuthors = top;
             }
             logger.info("[AuthorService] Reloaded top authors at " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        } catch (Exception e) {
+        } catch (SQLException e) {
             logger.warning("[AuthorService] Failed to reload top authors: " + e.getMessage());
+            // Giữ cache cũ nếu reload fail
         }
     }
 
@@ -75,9 +76,18 @@ public class AuthorService {
     public List<Author> searchAuthors(String name) throws SQLException {
         return authorDAO.search(name);
     }
-    public List<Author> getTopAuthorsByBookCount(int limit) {
-        // Luôn trả về cache, chỉ lấy tối đa limit
+    public List<Author> getTopAuthorsByBookCount(int limit) throws SQLException {
+        // Service throw SQLException để servlet catch
         synchronized (AuthorService.class) {
+            if (cachedTopAuthors.isEmpty()) {
+                // Nếu cache trống, thử load ngay
+                try {
+                    cachedTopAuthors = authorDAO.getTopAuthorsByBookCount(TOP_AUTHOR_LIMIT);
+                } catch (SQLException e) {
+                    logger.warning("[AuthorService] Failed to load top authors on demand: " + e.getMessage());
+                    throw e; // Throw ra cho servlet catch
+                }
+            }
             return new ArrayList<>(cachedTopAuthors.subList(0, Math.min(limit, cachedTopAuthors.size())));
         }
     }
