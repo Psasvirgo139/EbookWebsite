@@ -1,12 +1,12 @@
 package com.mycompany.ebookwebsite.service;
 
-import com.mycompany.ebookwebsite.dao.EbookDAO;
-import com.mycompany.ebookwebsite.dao.EbookAIDAO;
-import com.mycompany.ebookwebsite.model.Ebook;
-import com.mycompany.ebookwebsite.model.EbookAI;
-
 import java.sql.SQLException;
 import java.util.List;
+
+import com.mycompany.ebookwebsite.dao.EbookAIDAO;
+import com.mycompany.ebookwebsite.dao.EbookDAO;
+import com.mycompany.ebookwebsite.model.Ebook;
+import com.mycompany.ebookwebsite.model.EbookAI;
 
 /**
  * Service để combine Ebook và EbookAI data
@@ -86,6 +86,23 @@ public class EbookWithAIService {
         
         public void setAiData(EbookAI aiData) {
             this.aiData = aiData;
+        }
+        
+        @Override
+        public String getCoverUrl() {
+            String coverUrl = super.getCoverUrl();
+            if (coverUrl != null && !coverUrl.trim().isEmpty()) {
+                return coverUrl;
+            }
+            // Lấy coverUrl từ aiData nếu có
+            if (aiData != null) {
+                String aiCoverUrl = aiData.getCoverUrl();
+                if (aiCoverUrl != null && !aiCoverUrl.trim().isEmpty()) {
+                    return aiCoverUrl;
+                }
+            }
+            // Fallback: đúng công thức image/<title>_cover.jpg
+            return "image/" + getTitle() + "_cover.jpg";
         }
         
         @Override
