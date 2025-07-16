@@ -128,6 +128,10 @@ public class Ebook {
         this.coverUrl = coverUrl;
     }
 
+    public String getSummary() {
+        return null;
+    }
+
     // ===== AI COMPATIBILITY METHODS =====
     
     /**

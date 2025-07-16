@@ -17,6 +17,7 @@ public class EbookAI {
     private LocalDateTime createdAt;      // When AI data was first created
     private LocalDateTime updatedAt;      // When AI data was last updated
     private String status;                // Status of AI processing (processing, completed, failed)
+    private String coverUrl;
 
     public EbookAI() {
         this.createdAt = LocalDateTime.now();
@@ -99,6 +100,14 @@ public class EbookAI {
     public void setStatus(String status) {
         this.status = status;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 
     @Override
