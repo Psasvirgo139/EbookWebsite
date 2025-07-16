@@ -473,6 +473,7 @@
         </style>
     </head>
     <body>
+        <%@ include file="/common/header.jsp" %>
         <div class="profile-container">
             <!-- Hiển thị thông báo -->
             <c:if test="${not empty message}">
@@ -725,26 +726,21 @@
                     <i class="fas fa-heart"></i>
                     Truyện yêu thích
                 </h2>
-                
                 <div class="favorites-grid">
-                    <div class="favorite-item">
-                        <div class="favorite-title">Ma Đạo Tổ Sư</div>
-                    </div>
-                    <div class="favorite-item">
-                        <div class="favorite-title">One Piece</div>
-                    </div>
-                    <div class="favorite-item">
-                        <div class="favorite-title">Người Ở Bên Kia</div>
-                    </div>
-                    <div class="favorite-item">
-                        <div class="favorite-title">Phế Vật Dòng Bá Tước</div>
-                    </div>
-                    <div class="favorite-item">
-                        <div class="favorite-title">Thần Thoại Bắc Âu</div>
-                    </div>
-                    <div class="favorite-item">
-                        <div class="favorite-title">Hệ Thống Tu Tiên</div>
-                    </div>
+                    <c:choose>
+                        <c:when test="${not empty favorites}">
+                            <c:forEach var="book" items="${favorites}">
+                                <div class="favorite-item">
+                                    <a class="favorite-title" href="${pageContext.request.contextPath}/book/detail?id=${book.id}">
+                                        <c:out value="${book.title}"/>
+                                    </a>
+                                </div>
+                            </c:forEach>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="favorite-item" style="background: #eee; color: #888;">Chưa có truyện yêu thích nào.</div>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </div>
@@ -783,5 +779,6 @@
                 });
             });
         </script>
+        <%@ include file="/common/footer.jsp" %>
     </body>
 </html>
