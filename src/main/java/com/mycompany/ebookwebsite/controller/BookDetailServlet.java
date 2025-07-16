@@ -61,11 +61,102 @@ public class BookDetailServlet extends HttpServlet {
                 return;
             }
 
-            // Tăng view count nếu cần
             ebookWithAIService.incrementViewCount(id);
-
-            // Truyền sang JSP
+        
+            // ===== COVER URL DYNAMIC LOGIC =====
+            String coverUrl = ebook.getCoverUrl();
+            if (coverUrl == null || coverUrl.trim().isEmpty()) {
+                String safeTitle = ebook.getTitle()
+                    .replaceAll("[\\\\/:*?\"<>|]", "")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+                coverUrl = "/image/" + safeTitle + "_cover.jpg";
+                ebook.setCoverUrl(coverUrl);
+            }
+            // ===== END COVER URL LOGIC =====
+    
+            // Get book comments
+            List<Comment> bookComments = commentService.getCommentsByBook(id);
+            if (bookComments == null) {
+                bookComments = new java.util.ArrayList<>();
+            }
+            
+            // Get top chapter comments
+            List<Comment> aggregatedComments;
+            try {
+                aggregatedComments = commentService.getTopChapterComments(id, 10);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                aggregatedComments = new java.util.ArrayList<>();
+            }
+    
+            // Lấy userId từ cả 2 list
+            java.util.Set<Integer> userIds = new java.util.HashSet<>();
+            for (Comment c : bookComments) userIds.add(c.getUserID());
+            for (Comment c : aggregatedComments) userIds.add(c.getUserID());
+            java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
+            com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+            for (Integer uid : userIds) {
+                com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
+                userMap.put(uid, user != null ? user.getUsername() : "Unknown");
+            }
+            request.setAttribute("userMap", userMap);
+    
+            // Create vote maps
+            CommentVoteService voteService = new CommentVoteService();
+            Map<Integer, Integer> likeMap = new HashMap<>();
+            Map<Integer, Integer> dislikeMap = new HashMap<>();
+            
+            // Process book comments
+            for (Comment c : bookComments) {
+                likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+                dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+            }
+            
+            // Process aggregated comments
+            for (Comment c : aggregatedComments) {
+                likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+                dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+            }
+            
+            request.setAttribute("likeMap", likeMap);
+            request.setAttribute("dislikeMap", dislikeMap);
+    
+            // Authors
+            List<com.mycompany.ebookwebsite.model.EbookAuthor> eaList = ebookAuthorDAO.getAuthorsByEbook(id);
+            List<Author> authors = new java.util.ArrayList<>();
+            for (com.mycompany.ebookwebsite.model.EbookAuthor ea : eaList) {
+                Author a = authorDAO.selectAuthor(ea.getAuthorID());
+                if (a != null) authors.add(a);
+            }
+    
+            // Tags
+            List<com.mycompany.ebookwebsite.model.EbookTag> etList = ebookTagDAO.getTagsByEbook(id);
+            List<Tag> tags = new java.util.ArrayList<>();
+            for (com.mycompany.ebookwebsite.model.EbookTag et : etList) {
+                Tag t = tagDAO.getTagById(et.getTagId());
+                if (t != null) tags.add(t);
+            }
+    
+            // Lấy danh sách volumes & chapters
+            List<Volume> volumes = volumeService.getVolumesByEbook(id);
+            List<Chapter> chapters = chapterService.getChaptersByBookId(id);
+    
+            boolean isMultiVolume = volumes != null && volumes.size() > 1;
+    
             request.setAttribute("ebook", ebook);
+            // Convert LocalDateTime -> java.util.Date for JSTL fmt
+            if (ebook.getCreatedAt() != null) {
+                java.util.Date cDate = java.sql.Timestamp.valueOf(ebook.getCreatedAt());
+                request.setAttribute("ebookCreatedDate", cDate);
+            }
+            request.setAttribute("bookComments", bookComments);
+            request.setAttribute("aggregatedComments", aggregatedComments);
+            request.setAttribute("volumes", volumes);
+            request.setAttribute("chapters", chapters);
+            request.setAttribute("isMultiVolume", isMultiVolume);
+            request.setAttribute("authors", authors);
+            request.setAttribute("tags", tags);
             request.getRequestDispatcher("/book/detail.jsp").forward(request, response);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -92,115 +183,115 @@ public class BookDetailServlet extends HttpServlet {
         }
     }
 
-    private void showBookDetail(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, SQLException {
-
-        // validate và xử lý
-        int id = EbookValidation.validateId(request.getParameter("id"));
-        EbookWithAIService.EbookWithAI ebook = ebookWithAIService.getEbookWithAI(id);
-        if (ebook == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Book not found");
-            return;
-        }
-
-        ebookWithAIService.incrementViewCount(id);
-        
-        // ===== COVER URL DYNAMIC LOGIC =====
-        String coverUrl = ebook.getCoverUrl();
-        if (coverUrl == null || coverUrl.trim().isEmpty()) {
-            String safeTitle = ebook.getTitle()
-                .replaceAll("[\\\\/:*?\"<>|]", "")
-                .replaceAll("\\s+", " ")
-                .trim();
-            coverUrl = "/image/" + safeTitle + "_cover.jpg";
-            ebook.setCoverUrl(coverUrl);
-        }
-        // ===== END COVER URL LOGIC =====
-
-        // Get book comments
-        List<Comment> bookComments = commentService.getCommentsByBook(id);
-        if (bookComments == null) {
-            bookComments = new java.util.ArrayList<>();
-        }
-        
-        // Get top chapter comments
-        List<Comment> aggregatedComments;
-        try {
-            aggregatedComments = commentService.getTopChapterComments(id, 10);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            aggregatedComments = new java.util.ArrayList<>();
-        }
-
-        // Lấy userId từ cả 2 list
-        java.util.Set<Integer> userIds = new java.util.HashSet<>();
-        for (Comment c : bookComments) userIds.add(c.getUserID());
-        for (Comment c : aggregatedComments) userIds.add(c.getUserID());
-        java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
-        com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
-        for (Integer uid : userIds) {
-            com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
-            userMap.put(uid, user != null ? user.getUsername() : "Unknown");
-        }
-        request.setAttribute("userMap", userMap);
-
-        // Create vote maps
-        CommentVoteService voteService = new CommentVoteService();
-        Map<Integer, Integer> likeMap = new HashMap<>();
-        Map<Integer, Integer> dislikeMap = new HashMap<>();
-        
-        // Process book comments
-        for (Comment c : bookComments) {
-            likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
-            dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
-        }
-        
-        // Process aggregated comments
-        for (Comment c : aggregatedComments) {
-            likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
-            dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
-        }
-        
-        request.setAttribute("likeMap", likeMap);
-        request.setAttribute("dislikeMap", dislikeMap);
-
-        // Authors
-        List<com.mycompany.ebookwebsite.model.EbookAuthor> eaList = ebookAuthorDAO.getAuthorsByEbook(id);
-        List<Author> authors = new java.util.ArrayList<>();
-        for (com.mycompany.ebookwebsite.model.EbookAuthor ea : eaList) {
-            Author a = authorDAO.selectAuthor(ea.getAuthorID());
-            if (a != null) authors.add(a);
-        }
-
-        // Tags
-        List<com.mycompany.ebookwebsite.model.EbookTag> etList = ebookTagDAO.getTagsByEbook(id);
-        List<Tag> tags = new java.util.ArrayList<>();
-        for (com.mycompany.ebookwebsite.model.EbookTag et : etList) {
-            Tag t = tagDAO.getTagById(et.getTagId());
-            if (t != null) tags.add(t);
-        }
-
-        // Lấy danh sách volumes & chapters
-        List<Volume> volumes = volumeService.getVolumesByEbook(id);
-        List<Chapter> chapters = chapterService.getChaptersByBookId(id);
-
-        boolean isMultiVolume = volumes != null && volumes.size() > 1;
-
-        request.setAttribute("ebook", ebook);
-        // Convert LocalDateTime -> java.util.Date for JSTL fmt
-        if (ebook.getCreatedAt() != null) {
-            java.util.Date cDate = java.sql.Timestamp.valueOf(ebook.getCreatedAt());
-            request.setAttribute("ebookCreatedDate", cDate);
-        }
-        request.setAttribute("bookComments", bookComments);
-        request.setAttribute("aggregatedComments", aggregatedComments);
-        request.setAttribute("volumes", volumes);
-        request.setAttribute("chapters", chapters);
-        request.setAttribute("isMultiVolume", isMultiVolume);
-        request.setAttribute("authors", authors);
-        request.setAttribute("tags", tags);
-        request.getRequestDispatcher("/book/detail.jsp").forward(request, response);
-    }
+//    private void showBookDetail(HttpServletRequest request, HttpServletResponse response)
+//            throws ServletException, IOException, SQLException {
+//
+//        // validate và xử lý
+//        int id = EbookValidation.validateId(request.getParameter("id"));
+//        EbookWithAIService.EbookWithAI ebook = ebookWithAIService.getEbookWithAI(id);
+//        if (ebook == null) {
+//            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Book not found");
+//            return;
+//        }
+//
+//        ebookWithAIService.incrementViewCount(id);
+//        
+//        // ===== COVER URL DYNAMIC LOGIC =====
+//        String coverUrl = ebook.getCoverUrl();
+//        if (coverUrl == null || coverUrl.trim().isEmpty()) {
+//            String safeTitle = ebook.getTitle()
+//                .replaceAll("[\\\\/:*?\"<>|]", "")
+//                .replaceAll("\\s+", " ")
+//                .trim();
+//            coverUrl = "/image/" + safeTitle + "_cover.jpg";
+//            ebook.setCoverUrl(coverUrl);
+//        }
+//        // ===== END COVER URL LOGIC =====
+//
+//        // Get book comments
+//        List<Comment> bookComments = commentService.getCommentsByBook(id);
+//        if (bookComments == null) {
+//            bookComments = new java.util.ArrayList<>();
+//        }
+//        
+//        // Get top chapter comments
+//        List<Comment> aggregatedComments;
+//        try {
+//            aggregatedComments = commentService.getTopChapterComments(id, 10);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            aggregatedComments = new java.util.ArrayList<>();
+//        }
+//
+//        // Lấy userId từ cả 2 list
+//        java.util.Set<Integer> userIds = new java.util.HashSet<>();
+//        for (Comment c : bookComments) userIds.add(c.getUserID());
+//        for (Comment c : aggregatedComments) userIds.add(c.getUserID());
+//        java.util.Map<Integer, String> userMap = new java.util.HashMap<>();
+//        com.mycompany.ebookwebsite.dao.UserDAO userDAO = new com.mycompany.ebookwebsite.dao.UserDAO();
+//        for (Integer uid : userIds) {
+//            com.mycompany.ebookwebsite.model.User user = userDAO.findById(uid);
+//            userMap.put(uid, user != null ? user.getUsername() : "Unknown");
+//        }
+//        request.setAttribute("userMap", userMap);
+//
+//        // Create vote maps
+//        CommentVoteService voteService = new CommentVoteService();
+//        Map<Integer, Integer> likeMap = new HashMap<>();
+//        Map<Integer, Integer> dislikeMap = new HashMap<>();
+//        
+//        // Process book comments
+//        for (Comment c : bookComments) {
+//            likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+//            dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+//        }
+//        
+//        // Process aggregated comments
+//        for (Comment c : aggregatedComments) {
+//            likeMap.put(c.getId(), voteService.getLikeCount(c.getId()));
+//            dislikeMap.put(c.getId(), voteService.getDislikeCount(c.getId()));
+//        }
+//        
+//        request.setAttribute("likeMap", likeMap);
+//        request.setAttribute("dislikeMap", dislikeMap);
+//
+//        // Authors
+//        List<com.mycompany.ebookwebsite.model.EbookAuthor> eaList = ebookAuthorDAO.getAuthorsByEbook(id);
+//        List<Author> authors = new java.util.ArrayList<>();
+//        for (com.mycompany.ebookwebsite.model.EbookAuthor ea : eaList) {
+//            Author a = authorDAO.selectAuthor(ea.getAuthorID());
+//            if (a != null) authors.add(a);
+//        }
+//
+//        // Tags
+//        List<com.mycompany.ebookwebsite.model.EbookTag> etList = ebookTagDAO.getTagsByEbook(id);
+//        List<Tag> tags = new java.util.ArrayList<>();
+//        for (com.mycompany.ebookwebsite.model.EbookTag et : etList) {
+//            Tag t = tagDAO.getTagById(et.getTagId());
+//            if (t != null) tags.add(t);
+//        }
+//
+//        // Lấy danh sách volumes & chapters
+//        List<Volume> volumes = volumeService.getVolumesByEbook(id);
+//        List<Chapter> chapters = chapterService.getChaptersByBookId(id);
+//
+//        boolean isMultiVolume = volumes != null && volumes.size() > 1;
+//
+//        request.setAttribute("ebook", ebook);
+//        // Convert LocalDateTime -> java.util.Date for JSTL fmt
+//        if (ebook.getCreatedAt() != null) {
+//            java.util.Date cDate = java.sql.Timestamp.valueOf(ebook.getCreatedAt());
+//            request.setAttribute("ebookCreatedDate", cDate);
+//        }
+//        request.setAttribute("bookComments", bookComments);
+//        request.setAttribute("aggregatedComments", aggregatedComments);
+//        request.setAttribute("volumes", volumes);
+//        request.setAttribute("chapters", chapters);
+//        request.setAttribute("isMultiVolume", isMultiVolume);
+//        request.setAttribute("authors", authors);
+//        request.setAttribute("tags", tags);
+//        request.getRequestDispatcher("/book/detail.jsp").forward(request, response);
+//    }
 
     private void showEditSummaryForm(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, ServletException, IOException {

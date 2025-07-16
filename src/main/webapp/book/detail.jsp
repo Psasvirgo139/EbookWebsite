@@ -1,7 +1,7 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ include file="/common/header.jspf" %>
+<%@ include file="/common/header.jsp" %>
 
 <style>
     /* === Modern Tech Design System - Enhanced Contrast === */
@@ -478,16 +478,14 @@
 
 <div class="container py-4">
     <!-- Book Detail Card -->
-    <div class="card p-4 mb-5">
-        <div class="row g-4 align-items-start">
-            <!-- Cover Image -->
-            <div class="col-md-4">
-                <div class="cover-container h-100">
+    <section id="book-detail" class="mb-5">
+        <div class="book-detail-wrapper" style="display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; max-width: 1000px; margin: 0 auto;">
+            <!-- Left: Cover -->
+            <div class="book-cover" style="flex: 0 0 220px; max-width: 220px; display: flex; align-items: center; justify-content: center;">
+                <div class="cover-container w-100">
                     <c:choose>
                         <c:when test="${not empty ebook.coverUrl}">
-                            <img src="${pageContext.request.contextPath}/${ebook.coverUrl}" 
-                                 alt="cover"
-                                 class="img-fluid">
+                            <img src="${pageContext.request.contextPath}/${ebook.coverUrl}" alt="cover" class="img-fluid" style="width: 100%; border-radius: 12px;">
                         </c:when>
                         <c:otherwise>
                             <div class="d-flex flex-column align-items-center justify-content-center w-100 py-5">
@@ -498,123 +496,60 @@
                     </c:choose>
                 </div>
             </div>
-
-            <!-- Book Info -->
-            <div class="col-md-8">
-                <div class="h-100">
-                    <h2 class="mb-3">${ebook.title}</h2>
-                    
-                    <div class="d-flex flex-wrap mb-3">
-                        <span class="badge badge-primary me-2 mb-2">
-                            <i class="fas fa-tag"></i> ${ebook.releaseType}
-                        </span>
-                        <span class="badge badge-info me-2 mb-2">
-                            <i class="fas fa-language"></i> ${ebook.language}
-                        </span>
-                        <span class="badge badge-success mb-2">
-                            <i class="fas fa-check-circle"></i> ${ebook.status}
-                        </span>
-                    </div>
-                    
-                    <div class="d-flex flex-wrap text-muted small mb-3">
-                        <span class="me-3">
-                            <i class="fas fa-calendar-alt me-1"></i> 
-                            <fmt:formatDate value="${ebookCreatedDate}" pattern="dd/MM/yyyy"/>
-                        </span>
-                        <span>
-                            <i class="fas fa-eye me-1"></i> 
-                            ${ebook.viewCount} lượt xem
-                        </span>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <strong class="d-block mb-1">Tác giả:</strong>
-                        <div class="d-flex flex-wrap">
-                            <c:forEach var="a" items="${authors}" varStatus="loop">
-                                <span class="text-primary me-2">${a.name}</span>
-                            </c:forEach>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <strong class="d-block mb-1">Thể loại:</strong>
-                        <div class="d-flex flex-wrap">
-                            <c:forEach var="t" items="${tags}" varStatus="loop">
-                                <span class="badge badge-secondary me-2 mb-2">${t.name}</span>
-                            </c:forEach>
-                        </div>
-                    </div>
-                    
-                    <div class="book-description mb-4">
-                        <p>${ebook.description}</p>
-                    </div>
-                    
-                    <!-- AI SUMMARY -->
-                    <c:if test="${not empty ebook.summary}">
-                        <div class="ai-summary p-4 mb-4">
-                            <h6 class="mb-3">
-                                <i class="fas fa-robot"></i> Tóm tắt AI
-                            </h6>
-                            <p class="mb-0">${ebook.summary}</p>
-                            <hr class="my-3 border-light opacity-10">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle me-1"></i> 
-                                Tóm tắt được tạo tự động bằng AI
-                            </small>
-                        </div>
-                    </c:if>
-                    
-                    <!-- Action buttons -->
-                    <div class="d-flex flex-wrap align-items-center action-group">
-                        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" 
-                           class="btn btn-success btn-lg me-3">
-                           <i class="fas fa-book-open me-2"></i>Đọc ngay
-                        </a>
-                        
-                        <c:if test="${sessionScope.user != null}">
-                            <form method="post" action="${pageContext.request.contextPath}/favorites" class="me-2 mb-2">
-                                <input type="hidden" name="action" value="add"/>
-                                <input type="hidden" name="ebookId" value="${ebook.id}"/>
-                                <input type="hidden" name="redirectUrl" 
-                                       value="${pageContext.request.contextPath}/book/detail?id=${ebook.id}"/>
-                                <c:choose>
-                                    <c:when test="${isFavorite}">
-                                        <button type="submit" class="btn btn-danger" disabled>
-                                            <i class="fas fa-heart me-2"></i>Đã yêu thích
-                                        </button>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <button type="submit" class="btn btn-outline-danger">
-                                            <i class="far fa-heart me-2"></i>Yêu thích
-                                        </button>
-                                    </c:otherwise>
-                                </c:choose>
-                            </form>
-                        </c:if>
-                        
-                        <c:if test="${sessionScope.user != null && (sessionScope.user.role == 'admin' || sessionScope.user.id == ebook.uploaderId)}">
-                            <a href="${pageContext.request.contextPath}/book/detail?action=editSummary&id=${ebook.id}" 
-                               class="btn btn-outline-primary btn-sm me-2 mb-2">
-                               <i class="fas fa-edit me-1"></i>Sửa tóm tắt
-                            </a>
-                            <a href="${pageContext.request.contextPath}/book/detail?action=delete&id=${ebook.id}" 
-                               class="btn btn-outline-danger btn-sm me-2 mb-2">
-                               <i class="fas fa-trash-alt me-1"></i>Xóa
-                            </a>
-                        </c:if>
-                        
-                        <a href="${pageContext.request.contextPath}/book-list" 
-                           class="btn btn-outline-secondary btn-sm mb-2">
-                           <i class="fas fa-arrow-left me-1"></i>Quay lại
-                        </a>
-                    </div>
+            <!-- Right: Info -->
+            <div class="book-info" style="flex: 1 1 320px; min-width: 260px;">
+                <h1 style="margin-top:0;">${ebook.title}</h1>
+                <div class="book-tags" style="margin-bottom: 16px;">
+                    <c:forEach var="t" items="${tags}">
+                        <span class="badge badge-secondary me-2 mb-2">${t.name}</span>
+                    </c:forEach>
                 </div>
+                <ul class="book-meta" style="list-style:none;padding:0;margin:0 0 18px 0;">
+                    <li style="margin-bottom:8px;"><span class="me-2">📖</span> <b>Tác giả:</b> <c:forEach var="a" items="${authors}"><span class="text-primary me-2">${a.name}</span></c:forEach></li>
+                    <li style="margin-bottom:8px;"><span class="me-2">📌</span> <b>Tình trạng:</b> ${ebook.status}</li>
+                    <li style="margin-bottom:8px;"><span class="me-2">🔄</span> <b>Cập nhật:</b> <fmt:formatDate value="${ebookCreatedDate}" pattern="dd-MM-yyyy"/></li>
+                    <li style="margin-bottom:8px;"><span class="me-2">👁️</span> <b>Lượt xem:</b> ${ebook.viewCount}</li>
+                    <!-- Add more meta as needed -->
+                </ul>
+                <div class="book-actions" style="display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:18px;">
+                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success btn-lg"><i class="fas fa-book-open me-2"></i>Đọc từ đầu</a>
+                    <c:if test="${sessionScope.user != null}">
+                        <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
+                            <input type="hidden" name="action" value="add"/>
+                            <input type="hidden" name="ebookId" value="${ebook.id}"/>
+                            <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/detail?id=${ebook.id}"/>
+                            <c:choose>
+                                <c:when test="${isFavorite}">
+                                    <button type="submit" class="btn btn-danger" disabled><i class="fas fa-heart me-2"></i>Đã yêu thích</button>
+                                </c:when>
+                                <c:otherwise>
+                                    <button type="submit" class="btn btn-outline-danger"><i class="far fa-heart me-2"></i>Theo dõi</button>
+                                </c:otherwise>
+                            </c:choose>
+                        </form>
+                    </c:if>
+                    <a href="#" class="btn btn-outline-secondary"><i class="fas fa-exclamation-triangle me-2"></i>Báo lỗi</a>
+                    <a href="#" class="btn btn-outline-primary"><i class="fas fa-gift me-2"></i>Tặng quà</a>
+                    <a href="#" class="btn btn-outline-primary"><i class="fas fa-fire me-2"></i>Đề cử</a>
+                </div>
+                <!-- AI SUMMARY (optional, can be below actions or in description) -->
+                <c:if test="${not empty ebook.summary}">
+                    <div class="ai-summary p-3 mb-3">
+                        <h6 class="mb-2"><i class="fas fa-robot"></i> Tóm tắt AI</h6>
+                        <p class="mb-0">${ebook.summary}</p>
+                    </div>
+                </c:if>
             </div>
         </div>
-    </div>
+        <!-- Description full width -->
+        <div class="book-description mt-4" style="max-width:900px;margin:auto;">
+            <h2 style="font-size:1.3em;margin-bottom:10px;">Giới thiệu</h2>
+            <p>${ebook.description}</p>
+        </div>
+    </section>
 
     <!-- Comments Section -->
-    <div class="mt-5">
+    <section id="book-comments" class="mt-5" style="max-width:1200px; margin:0 auto 48px auto; padding-left:16px; padding-right:16px;">
         <h4><i class="fas fa-comments"></i> Bình luận về sách</h4>
         <c:if test="${not empty ebook and not empty ebook.id}">
             <c:set var="bookId" value="${ebook.id}" />
@@ -623,10 +558,10 @@
         <c:if test="${empty ebook or empty ebook.id}">
             <div class="alert alert-danger">Không tìm thấy sách hoặc ID không hợp lệ!</div>
         </c:if>
-    </div>
+    </section>
 
     <!-- Chapter Comments -->
-    <div class="mt-5">
+    <section id="chapter-comments" class="mt-5" style="max-width:1200px; margin:0 auto 48px auto; padding-left:16px; padding-right:16px;">
         <h4><i class="fas fa-comment-dots"></i> Bình luận từ các chương</h4>
         <c:if test="${empty aggregatedComments}">
             <div class="alert alert-secondary mt-3">
@@ -656,70 +591,32 @@
                 </c:forEach>
             </div>
         </c:if>
-    </div>
+    </section>
 
     <!-- Chapter List -->
-    <div class="mt-5">
+    <section id="chapter-list" class="mt-5" style="max-width:1200px; margin:0 auto 48px auto; padding-left:16px; padding-right:16px;">
         <h4><i class="fas fa-list-ol"></i> Danh sách chương</h4>
-        
-        <!-- Multi-volume layout -->
-        <c:if test="${isMultiVolume}">
-            <c:forEach var="vol" items="${volumes}">
-                <div class="volume-title">
-                    <div class="volume-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div>
-                        <h5 class="mb-0">Tập ${vol.number}: ${vol.title}</h5>
-                    </div>
-                </div>
-                
-                <div class="chapter-list">
-                    <c:forEach var="ch" items="${chapters}">
-                        <c:if test="${ch.volumeID == vol.id}">
-                            <div class="chapter-item">
-                                <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
-                                    Chương ${ch.number}
-                                </a>
-                                <c:choose>
-                                    <c:when test="${ch.accessLevel == 'free' || ch.accessLevel == 'public'}">
-                                        <span class="badge bg-success chapter-badge">Miễn phí</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="badge bg-warning text-dark chapter-badge">Trả phí</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </c:if>
-                    </c:forEach>
+        <div class="chapter-list">
+            <c:forEach var="ch" items="${chapters}">
+                <div class="chapter-item">
+                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
+                        Chương ${ch.number}
+                    </a>
+                    <c:choose>
+                        <c:when test="${ch.accessLevel == 'free' || ch.accessLevel == 'public'}">
+                            <span class="badge bg-success chapter-badge">Miễn phí</span>
+                        </c:when>
+                        <c:otherwise>
+                            <span class="badge bg-warning text-dark chapter-badge">Trả phí</span>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </c:forEach>
-        </c:if>
-        
-        <!-- Single volume layout -->
-        <c:if test="${not isMultiVolume}">
-            <div class="chapter-list">
-                <c:forEach var="ch" items="${chapters}">
-                    <div class="chapter-item">
-                        <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${ch.number}">
-                            Chương ${ch.number}
-                        </a>
-                        <c:choose>
-                            <c:when test="${ch.accessLevel == 'free' || ch.accessLevel == 'public'}">
-                                <span class="badge bg-success chapter-badge">Miễn phí</span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="badge bg-warning text-dark chapter-badge">Trả phí</span>
-                            </c:otherwise>
-                        </c:choose>
-                    </div>
-                </c:forEach>
-            </div>
-        </c:if>
-    </div>
+        </div>
+    </section>
 </div>
 
-<%@ include file="/common/footer.jspf" %>
+<%@ include file="/common/footer.jsp" %>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
