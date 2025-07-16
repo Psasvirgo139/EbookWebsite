@@ -357,4 +357,22 @@ public class EbookDAO {
         return ebooks;
     }
 
+    /**
+     * Lấy danh sách Ebook theo tag/thể loại (dùng VIEW v_EbookWithTags)
+     */
+    public List<Ebook> getBooksByTag(String tagName, int limit) throws SQLException {
+        List<Ebook> ebooks = new ArrayList<>();
+        String sql = "SELECT DISTINCT e.* FROM v_EbookWithTags v JOIN Ebooks e ON v.ebook_id = e.id WHERE LOWER(v.tag_name) = LOWER(?) AND (e.status != 'deleted' OR e.status IS NULL) ORDER BY e.view_count DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tagName);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+
 }

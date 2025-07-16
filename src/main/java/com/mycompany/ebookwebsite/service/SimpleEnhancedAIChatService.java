@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.mycompany.ebookwebsite.ai.CachedAnswerStore;
 import com.mycompany.ebookwebsite.ai.EmbeddingCache;
 import com.mycompany.ebookwebsite.ai.SimilarityUtil;
+import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.BookWithLink;
 import com.mycompany.ebookwebsite.utils.Utils;
@@ -47,6 +48,7 @@ public class SimpleEnhancedAIChatService {
     private final Map<String, List<String>> conversationContexts = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> mentionedBooks = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> discussedTopics = new ConcurrentHashMap<>();
+    private final EbookDAO ebookDAO = new EbookDAO();
     
     public SimpleEnhancedAIChatService() {
         try {
@@ -100,36 +102,33 @@ public class SimpleEnhancedAIChatService {
                 }
             }
 
-            // OVERRIDE: Nếu user hỏi gợi ý sách thì trả về danh sách thực tế từ database
+            // === GỢI Ý SÁCH ĐÚNG THỂ LOẠI (TAG) ===
             String lowerMsg = userMessage.toLowerCase();
-            if (lowerMsg.contains("gợi ý") || lowerMsg.contains("suggest") || 
+            String genre = extractGenreFromMessage(userMessage); // Hàm mới bên dưới
+            if ((lowerMsg.contains("gợi ý") || lowerMsg.contains("suggest") || 
                 lowerMsg.contains("recommend") || lowerMsg.contains("đề xuất") ||
-                lowerMsg.contains("sách nào") || lowerMsg.contains("book")) {
-                
-                // Đọc số lượng sách từ user message
-                int bookCount = extractBookCountFromMessage(userMessage);
-                List<BookWithLink> books = Utils.getAvailableBooksWithLinks(bookCount); // Lấy số sách theo yêu cầu
-                if (books.isEmpty()) {
-                    return "Hiện tại thư viện chưa có sách nào để gợi ý. Vui lòng thử lại sau!";
-                }
-                
-                StringBuilder sb = new StringBuilder("📚 <strong>Dưới đây là ").append(bookCount).append(" cuốn sách có sẵn trong thư viện:</strong><br><br>");
-                int i = 1;
-                for (BookWithLink book : books) {
-                    sb.append(i++).append(". <strong>").append(book.getTitle()).append("</strong>");
-                    if (book.getReleaseType() != null && !book.getReleaseType().isEmpty()) {
-                        sb.append(" (").append(book.getReleaseType()).append(")");
+                lowerMsg.contains("sách nào") || lowerMsg.contains("book")) && genre != null) {
+                try {
+                    List<Ebook> books = ebookDAO.getBooksByTag(genre, 3);
+                    if (books.isEmpty()) {
+                        return "Hiện tại chưa có sách nào thuộc thể loại '" + genre + "' trong thư viện.";
                     }
-                    sb.append("<br>");
-                    if (book.getShortDescription() != null && !book.getShortDescription().isEmpty()) {
-                        sb.append("   ").append(book.getShortDescription()).append("<br>");
+                    StringBuilder sb = new StringBuilder("📚 <strong>3 cuốn sách thể loại '" + genre + "':</strong><br><br>");
+                    int i = 1;
+                    for (Ebook book : books) {
+                        BookWithLink bookWithLink = new BookWithLink(book);
+                        sb.append(i++).append(". <strong>").append(bookWithLink.getTitle()).append("</strong>");
+                        sb.append("<br>Thể loại: ").append(genre);
+                        sb.append("<br>   ").append(bookWithLink.getShortDescription()).append("<br>");
+                        sb.append("   <a href='").append(bookWithLink.getDirectLink()).append("' target='_blank' style='color: #007bff; text-decoration: underline;'>🔗 Xem chi tiết</a><br><br>");
                     }
-                    sb.append("   <a href='").append(book.getDirectLink()).append("' target='_blank' style='color: #007bff; text-decoration: underline;'>🔗 Xem chi tiết</a><br><br>");
+                    sb.append("Bạn muốn đọc cuốn nào? Hãy nhập tên hoặc số thứ tự!");
+                    String result = sb.toString();
+                    CachedAnswerStore.put(userMessage, result);
+                    return result;
+                } catch (Exception e) {
+                    return "Lỗi khi truy vấn sách thể loại '" + genre + "': " + e.getMessage();
                 }
-                sb.append("Bạn muốn đọc cuốn nào? Hãy nhập tên hoặc số thứ tự!");
-                String result = sb.toString();
-                CachedAnswerStore.put(userMessage, result);
-                return result;
             }
             
             // OVERRIDE: Nếu user muốn đọc sách cụ thể
@@ -1227,5 +1226,46 @@ public class SimpleEnhancedAIChatService {
         }
         
         return null;
+    }
+
+    /**
+     * Trích xuất thể loại/tag từ user message (ví dụ: 'trinh thám', 'khoa học', ...)
+     * Có thể mở rộng bằng regex hoặc mapping từ khóa sang tag chuẩn
+     */
+    private String extractGenreFromMessage(String userMessage) {
+        if (userMessage == null) return null;
+        String lower = userMessage.toLowerCase();
+        // Danh sách tag đầy đủ
+        String[] genres = {
+            "ẩm thực - nấu ăn", "cổ tích - thần thoại", "công nghệ thông tin", "hồi ký - tuỳ bút", "huyền bí - giả tưởng",
+            "khoa học - kỹ thuật", "kiếm hiệp - tiên hiệp", "kiến trúc - xây dựng", "kinh tế", "lịch sử - chính trị",
+            "marketing", "ngoại ngữ", "nông - lâm - ngư", "pháp luật", "phiêu lưu", "sách giáo khoa",
+            "tâm lý - kỹ năng sống", "thể thao - nghệ thuật", "thơ hay", "tiểu thuyết phương tây", "tiểu thuyết trung quốc",
+            "triết học", "trinh thám", "truyện cười", "truyện ma", "truyện ngắn", "truyện tuổi teen",
+            "tử vi - phong thuỷ", "văn hóa - tôn giáo", "văn học việt nam", "y học",
+            // Các thể loại cũ, ngắn hơn để backward compatibility
+            "trinh thám", "khoa học", "lãng mạn", "kinh dị", "phiêu lưu", "giả tưởng", "hài", "cổ tích", "ngôn tình", "lịch sử", "tâm lý", "hành động", "văn học", "thiếu nhi", "self-help", "kỹ năng", "tâm linh", "tôn giáo", "chính trị", "chiến tranh", "blockchain", "lập trình"
+        };
+        String bestMatch = null;
+        int maxLen = 0;
+        for (String genre : genres) {
+            if (genre.length() > maxLen && genre.contains("-")) { // Ưu tiên tag dài, có dấu '-'
+                String[] parts = genre.split("-");
+                for (String part : parts) {
+                    if (lower.contains(part.trim())) {
+                        bestMatch = genre;
+                        maxLen = genre.length();
+                    }
+                }
+            }
+            // Nếu match exact hoặc partial với tag ngắn
+            if (lower.contains(genre)) {
+                if (genre.length() > maxLen) {
+                    bestMatch = genre;
+                    maxLen = genre.length();
+                }
+            }
+        }
+        return bestMatch;
     }
 } 
