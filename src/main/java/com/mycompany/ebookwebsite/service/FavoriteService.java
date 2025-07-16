@@ -1,10 +1,11 @@
 package com.mycompany.ebookwebsite.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import com.mycompany.ebookwebsite.dao.FavoriteDAO;
 import com.mycompany.ebookwebsite.model.Favorite;
 import com.mycompany.ebookwebsite.model.User;
-import java.sql.SQLException;
-import java.util.List;
 
 public class FavoriteService {
     private final FavoriteDAO favoriteDAO = new FavoriteDAO();

@@ -474,7 +474,16 @@
     .text-primary {
         color: #a7c3ff !important; /* Lighter for better visibility */
     }
-    </style>
+    .favorite-animate {
+        animation: fav-pop 0.5s;
+    }
+    @keyframes fav-pop {
+        0% { transform: scale(1); }
+        30% { transform: scale(1.25) rotate(-8deg);}
+        60% { transform: scale(0.95) rotate(8deg);}
+        100% { transform: scale(1) rotate(0);}
+    }
+</style>
 
 <div class="container py-4">
     <!-- Book Detail Card -->
@@ -514,23 +523,15 @@
                 <div class="book-actions" style="display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:18px;">
                     <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success btn-lg"><i class="fas fa-book-open me-2"></i>Đọc từ đầu</a>
                     <c:if test="${sessionScope.user != null}">
-                        <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
-                            <input type="hidden" name="action" value="add"/>
-                            <input type="hidden" name="ebookId" value="${ebook.id}"/>
-                            <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/detail?id=${ebook.id}"/>
-                            <c:choose>
-                                <c:when test="${isFavorite}">
-                                    <button type="submit" class="btn btn-danger" disabled><i class="fas fa-heart me-2"></i>Đã yêu thích</button>
-                                </c:when>
-                                <c:otherwise>
-                                    <button type="submit" class="btn btn-outline-danger"><i class="far fa-heart me-2"></i>Theo dõi</button>
-                                </c:otherwise>
-                            </c:choose>
-                        </form>
+                        <button id="favoriteBtn"
+                            class="btn <c:choose><c:when test='${isFavorite}'>btn-danger</c:when><c:otherwise>btn-outline-danger</c:otherwise></c:choose>"
+                            data-favorited="${isFavorite ? 'true' : 'false'}"
+                            data-ebook-id="${ebook.id}">
+                            <i class="<c:choose><c:when test='${isFavorite}'>fas</c:when><c:otherwise>far</c:otherwise></c:choose> fa-heart me-2"></i>
+                            <span>${isFavorite ? 'Đã yêu thích' : 'Yêu thích'}</span>
+                        </button>
+                        <span id="favoriteMsg" style="margin-left:10px;color:#ff6b6b;display:none;"></span>
                     </c:if>
-                    <a href="#" class="btn btn-outline-secondary"><i class="fas fa-exclamation-triangle me-2"></i>Báo lỗi</a>
-                    <a href="#" class="btn btn-outline-primary"><i class="fas fa-gift me-2"></i>Tặng quà</a>
-                    <a href="#" class="btn btn-outline-primary"><i class="fas fa-fire me-2"></i>Đề cử</a>
                 </div>
                 <!-- AI SUMMARY (optional, can be below actions or in description) -->
                 <c:if test="${not empty ebook.summary}">
@@ -639,5 +640,39 @@ document.addEventListener('DOMContentLoaded', function() {
             cover.style.transform = `translateY(${scrollPosition * 0.1}px)`;
         });
     }
+
+    const btn = document.getElementById('favoriteBtn');
+    const msg = document.getElementById('favoriteMsg');
+    if (!btn) return;
+    const ctx = "${pageContext.request.contextPath}";
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const ebookId = btn.getAttribute('data-ebook-id');
+        const isFavorited = btn.getAttribute('data-favorited') === 'true';
+        const action = isFavorited ? 'remove' : 'add';
+        fetch(`${ctx}/favorites`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `action=${action}&ebookId=${ebookId}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Toggle trạng thái
+                btn.setAttribute('data-favorited', (!isFavorited).toString());
+                btn.classList.toggle('btn-danger', !isFavorited);
+                btn.classList.toggle('btn-outline-danger', isFavorited);
+                btn.querySelector('i').className = (!isFavorited ? 'fas' : 'far') + ' fa-heart me-2';
+                btn.querySelector('span').textContent = !isFavorited ? 'Đã yêu thích' : 'Yêu thích';
+                // Hiệu ứng
+                btn.classList.add('favorite-animate');
+                setTimeout(() => btn.classList.remove('favorite-animate'), 500);
+                // Thông báo
+                msg.textContent = !isFavorited ? 'Đã thêm vào yêu thích!' : 'Đã xóa khỏi yêu thích!';
+                msg.style.display = 'inline';
+                setTimeout(() => msg.style.display = 'none', 1500);
+            }
+        });
+    });
 });
 </script>
