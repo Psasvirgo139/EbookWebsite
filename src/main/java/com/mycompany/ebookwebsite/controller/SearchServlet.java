@@ -50,9 +50,9 @@ public class SearchServlet extends HttpServlet {
             List<Tag> tags = tagService.getAllTags();
             request.setAttribute("tags", tags);
 
-            // Lấy top 10 tác giả nhiều truyện nhất
-            List<Author> topAuthors = authorService.getTopAuthorsByBookCount(10);
-            request.setAttribute("topAuthors", topAuthors);
+            // Lấy danh sách tất cả tác giả
+            List<Author> authors = authorService.getAllAuthors();
+            request.setAttribute("authors", authors);
 
             // Lấy các filter từ request và clean input
             String keyword = cleanAndTrimInput(request.getParameter("keyword"));
@@ -104,7 +104,7 @@ public class SearchServlet extends HttpServlet {
             // Debug info
             System.out.println("SearchServlet - Found " + bookList.size() + " books");
 
-            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
+            request.getRequestDispatcher("/book/search.jsp").forward(request, response);
         } catch (SQLException e) {
             System.err.println("SearchServlet - SQL Error: " + e.getMessage());
             e.printStackTrace();

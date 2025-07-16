@@ -334,7 +334,7 @@
 }
 </style>
 
-<a href="#main" class="skip-link">Bỏ qua và tới nội dung chính</a>
+
 <header class="main-header">
   <div class="header-left">
     <button class="hamburger-menu" id="hamburgerMenu" aria-label="Mở menu">
@@ -359,6 +359,7 @@
       <button type="button" class="header-search-clear" aria-label="Xóa" style="display:none;">✕</button>
       <ul class="search-suggest" id="suggestList" role="listbox"></ul>
     </form>
+    
     <div class="account-dropdown" id="accountDropdown">
       <button class="account-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false">
         <span id="accountIcon">👤</span>
@@ -409,6 +410,7 @@
     <li><a href="${ctx}/ai/chat">AI Chat</a></li>
     <li><a href="${ctx}/favorites">Yêu thích</a></li>
     <li><a href="${ctx}/book/upload">Upload Sách</a></li>
+    <li><a href="${ctx}/search?keyword=&genre=&author=&minChapters=0&sortBy=&status=all" style="color:#222;font-weight:500;">Search Nâng Cao</a></li>
     <li class="sidebar-divider"></li>
     <li class="sidebar-genres-dropdown">
       <button class="sidebar-genres-btn" id="sidebarGenresBtn">
