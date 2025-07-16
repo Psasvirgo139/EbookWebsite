@@ -110,4 +110,23 @@ public class ChapterDAO {
             return ps.executeUpdate() > 0;
         }
     }
+
+    /**
+     * Lấy n chương mới nhất, mỗi chương thuộc một ebook khác nhau
+     */
+    public List<Chapter> getLatestUniqueChapters(int limit) throws SQLException {
+        String sql = "SELECT * FROM ( " +
+                "SELECT *, ROW_NUMBER() OVER (PARTITION BY ebook_id ORDER BY created_at DESC) as rn " +
+                "FROM Chapters " +
+                ") t WHERE t.rn = 1 ORDER BY created_at DESC OFFSET 0 ROWS FETCH NEXT ? ROWS ONLY";
+        List<Chapter> chapters = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                chapters.add(mapRow(rs));
+            }
+        }
+        return chapters;
+    }
 }
