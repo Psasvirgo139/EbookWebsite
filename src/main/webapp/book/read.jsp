@@ -5,7 +5,7 @@
 
 <div class="container py-4">
     <h2>${ebook.title}</h2>
-    <h4>Chương ${currentChapter}: ${chapter.title}</h4>
+    <h4>Chương ${currentChapter}</h4>
 
     <!-- Hiển thị thông báo success/error -->
     <c:if test="${not empty successMessage}">
@@ -22,86 +22,17 @@
         </div>
     </c:if>
 
-    <!-- Reading Mode Toggle -->
-    <div class="mb-3">
-        <div class="btn-group" role="group" aria-label="Reading Mode">
-            <c:choose>
-                <c:when test="${readingMode == 'full_book'}">
-                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-outline-primary">
-                        📄 Đọc theo chương
-                    </a>
-                    <span class="btn btn-success active">
-                        📚 Đọc toàn bộ (Có AI Summary)
-                    </span>
-                </c:when>
-                <c:otherwise>
-                    <span class="btn btn-primary active">
-                        📄 Đọc theo chương
-                    </span>
-                    <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&mode=full_book" class="btn btn-outline-success">
-                        📚 Đọc toàn bộ (Có AI Summary)
-                    </a>
-                </c:otherwise>
-            </c:choose>
-        </div>
-        
-        <!-- Favorite button (only for logged in users) -->
-        <c:if test="${sessionScope.user != null}">
-            <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
-                <input type="hidden" name="action" value="add"/>
-                <input type="hidden" name="ebookId" value="${ebook.id}"/>
-                <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}"/>
-                <c:choose>
-                    <c:when test="${isFavorite}">
-                        <button type="submit" class="btn btn-danger ms-3" disabled>💖 Đã yêu thích</button>
-                    </c:when>
-                    <c:otherwise>
-                        <button type="submit" class="btn btn-outline-danger ms-3">❤️ Yêu thích</button>
-                    </c:otherwise>
-                </c:choose>
-            </form>
+    <!-- Chapter Navigation (only for chapter mode) -->
+    <div class="d-flex justify-content-between mb-3">
+        <c:if test="${prevChapter != null}">
+            <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
+        </c:if>
+        <c:if test="${nextChapter != null}">
+            <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
     </div>
 
-    <!-- Chapter Navigation (only for chapter mode) -->
-    <c:if test="${readingMode != 'full_book'}">
-        <div class="d-flex justify-content-between mb-3">
-            <c:if test="${prevChapter != null}">
-                <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
-            </c:if>
-            <c:if test="${nextChapter != null}">
-                <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
-            </c:if>
-        </div>
-    </c:if>
-
     <c:choose>
-        <c:when test="${readingMode == 'full_book'}">
-            <!-- ===== FULL BOOK READING MODE ===== -->
-            <hr>
-            
-            <!-- AI Summary Display for Full Book -->
-            <c:if test="${not empty ebook.summary}">
-                <div class="alert alert-success mb-4" style="border-left: 4px solid #28a745;">
-                    <h6 class="alert-heading">
-                        <i class="fas fa-robot text-success"></i> 🤖 Tóm tắt AI
-                    </h6>
-                    <p class="mb-0" style="line-height: 1.6;">${ebook.summary}</p>
-                    <hr class="mt-2 mb-2">
-                    <small class="text-muted">
-                        <i class="fas fa-magic"></i> Tóm tắt tự động từ nội dung toàn bộ sách
-                    </small>
-                </div>
-            </c:if>
-            
-            <!-- Full Book Content Display -->
-            <div class="book-content">
-                <h4 class="text-center mb-4">📖 Đọc toàn bộ sách</h4>
-                <div class="content-text" style="white-space: pre-line; line-height: 1.8; font-size: 16px;">
-                    ${bookContent}
-                </div>
-            </div>
-        </c:when>
         <c:when test="${hasAccess}">
             <hr>
             <div class="chapter-content">
@@ -114,7 +45,6 @@
                 <h5><i class="fas fa-lock"></i> Chapter Premium</h5>
                 <p><strong>Bạn chưa mở khóa chapter này!</strong></p>
                 <p>Chapter này yêu cầu mở khóa để đọc nội dung.</p>
-                
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <div class="card">
@@ -132,7 +62,6 @@
                                             <input type="hidden" name="bookId" value="${ebook.id}">
                                             <input type="hidden" name="chapterNum" value="${currentChapter}">
                                             <input type="hidden" name="chapterId" value="${chapter.id}">
-                                            
                                             <button type="submit" class="btn btn-primary">
                                                 <i class="fas fa-unlock"></i> Mở khóa (${unlockCost} coins)
                                             </button>
@@ -157,7 +86,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body text-center">
@@ -187,11 +115,9 @@
     </c:choose>
 
     <!-- Chapter List (only for chapter mode) -->
-    <c:if test="${readingMode != 'full_book'}">
-        <div class="mt-4">
-            <h5>Danh sách chương</h5>
-
-            <!-- Nếu có volumes -->
+    <div class="mt-4">
+        <h5>Danh sách chương</h5>
+        <!-- Nếu có volumes -->
         <c:if test="${not empty volumes and fn:length(volumes) > 1}">
             <c:forEach var="vol" items="${volumes}">
                 <h6 class="mt-2">Tập ${vol.number}: ${vol.title}</h6>
@@ -234,7 +160,6 @@
                 </ul>
             </c:forEach>
         </c:if>
-
         <!-- Nếu không có volume hoặc chỉ 1 volume -->
         <c:if test="${empty volumes or fn:length(volumes) <= 1}">
             <ul class="pagination">
@@ -274,19 +199,16 @@
             </ul>
         </c:if>
     </div>
-    </c:if>
 
     <!-- Chapter Navigation Bottom (only for chapter mode) -->
-    <c:if test="${readingMode != 'full_book'}">
-        <div class="d-flex justify-content-between mt-4">
+    <div class="d-flex justify-content-between mt-4">
         <c:if test="${prevChapter != null}">
             <a class="btn btn-outline-primary" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${prevChapter}">← Ch ${prevChapter}</a>
         </c:if>
         <c:if test="${nextChapter != null}">
             <a class="btn btn-outline-primary ms-auto" href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=${nextChapter}">Ch ${nextChapter} →</a>
         </c:if>
-            </div>
-    </c:if>
+    </div>
 
     <!-- ======= Bình luận về chương ======= -->
     <div class="mt-5">
@@ -296,83 +218,3 @@
 </div>
 
 <%@ include file="/common/footer.jspf" %>
-
-<script>
-// JavaScript function để toggle favorite
-function toggleFavorite(ebookId) {
-    const favoriteBtn = document.getElementById('favoriteBtn');
-    const favoriteIcon = document.getElementById('favoriteIcon');
-    const favoriteText = document.getElementById('favoriteText');
-    
-    // Disable button during request
-    favoriteBtn.disabled = true;
-    
-    const formData = new FormData();
-    formData.append('action', 'add');
-    formData.append('ebookId', ebookId);
-    
-    fetch('${pageContext.request.contextPath}/favorites', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update button to show "added to favorites"
-            favoriteIcon.textContent = '💖';
-            favoriteText.textContent = 'Đã yêu thích';
-            favoriteBtn.className = 'btn btn-danger ms-3';
-            favoriteBtn.onclick = function() { removeFavorite(ebookId); };
-        } else {
-            alert('Lỗi: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Có lỗi xảy ra khi thêm vào favorites');
-    })
-    .finally(() => {
-        favoriteBtn.disabled = false;
-    });
-}
-
-function removeFavorite(ebookId) {
-    const favoriteBtn = document.getElementById('favoriteBtn');
-    const favoriteIcon = document.getElementById('favoriteIcon');
-    const favoriteText = document.getElementById('favoriteText');
-    
-    if (!confirm('Bạn có chắc muốn bỏ yêu thích sách này?')) {
-        return;
-    }
-    
-    favoriteBtn.disabled = true;
-    
-    const formData = new FormData();
-    formData.append('action', 'delete');
-    formData.append('ebookId', ebookId);
-    
-    fetch('${pageContext.request.contextPath}/favorites', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update button back to "add favorite"
-            favoriteIcon.textContent = '❤️';
-            favoriteText.textContent = 'Yêu thích';
-            favoriteBtn.className = 'btn btn-outline-danger ms-3';
-            favoriteBtn.onclick = function() { toggleFavorite(ebookId); };
-        } else {
-            alert('Lỗi: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Có lỗi xảy ra khi xóa khỏi favorites');
-    })
-    .finally(() => {
-        favoriteBtn.disabled = false;
-    });
-}
-</script>
