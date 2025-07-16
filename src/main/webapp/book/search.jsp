@@ -12,144 +12,86 @@
     <link rel="stylesheet" href="${ctx}/assets/css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
-        .search-container {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .search-bar {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 0;
-            justify-content: center;
-        }
-        .search-bar .form-control {
-            max-width: 400px;
-            height: 45px;
-            border-radius: 8px;
-            border: 2px solid #e9ecef;
-            font-size: 16px;
-        }
-        .search-bar .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-        }
-        .search-bar .btn {
-            height: 45px;
-            border-radius: 8px;
-            font-weight: 500;
-            min-width: 120px;
-        }
-        .filter-toggle-btn {
-            white-space: nowrap;
-            background: #6c757d;
-            border-color: #6c757d;
-            color: white;
-        }
-        .filter-toggle-btn:hover {
-            background: #5a6268;
-            border-color: #545b62;
-        }
+        /* --- Hiệu ứng bộ lọc nâng cao --- */
         .advanced-filters {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 25px;
-            margin-top: 20px;
-            display: none;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .advanced-filters.show {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .advanced-filters .form-label {
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-        }
-        .advanced-filters .form-select,
-        .advanced-filters .form-control {
-            border-radius: 6px;
-            border: 1px solid #ced4da;
-        }
-        .book-card {
-            transition: all 0.3s ease;
-            height: 100%;
-            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .book-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-        .book-cover {
-            height: 200px;
-            object-fit: cover;
-            width: 100%;
-        }
-        .dropdown-search-author {
+            transition: max-height 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s cubic-bezier(.4,0,.2,1), padding 0.3s, margin 0.3s;
+            max-height: 1000px;
+            opacity: 1;
+            margin-bottom: 24px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+            padding: 24px 32px 16px 32px;
             position: relative;
         }
-        .dropdown-search-author .dropdown-menu {
-            min-width: 280px;
-            max-width: 350px;
+        .advanced-filters.hide {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 32px;
+            margin-bottom: 0;
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            align-items: flex-end;
+            justify-content: flex-start;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 150px;
+            flex: 1 1 160px;
+            margin-bottom: 0;
+        }
+        .filter-group label, .form-label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 0.98rem;
+        }
+        .filter-group select,
+        .filter-group input,
+        .form-select,
+        .form-control {
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            border: 1.5px solid #d0d0d0;
+            padding: 7px 12px;
+            font-size: 1rem;
+            min-width: 120px;
+            background: #f9f9f9;
+            transition: border 0.2s;
         }
-        .dropdown-search-author .dropdown-item {
-            padding: 10px 15px;
-            transition: background-color 0.2s ease;
+        .filter-group select:focus,
+        .filter-group input:focus,
+        .form-select:focus,
+        .form-control:focus {
+            border: 1.5px solid #007bff;
+            outline: none;
+            background: #fff;
         }
-        .dropdown-search-author .dropdown-item:hover {
-            background-color: #f8f9fa;
+        .filter-search-btn {
+            align-self: flex-end;
+            margin-left: 18px;
+            margin-bottom: 0;
+            height: 40px;
+            min-width: 120px;
+            font-weight: 500;
+            border-radius: 8px;
         }
-        .results-section {
-            min-height: 400px;
+        @media (max-width: 1200px) {
+            .filter-row { gap: 10px; }
+            .filter-group { min-width: 120px; }
         }
-        .no-results {
-            text-align: center;
-            padding: 80px 20px;
-            color: #6c757d;
-        }
-        .no-results h3 {
-            color: #495057;
-            margin-bottom: 15px;
-        }
-        .card-footer {
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-        .btn-primary {
-            border-radius: 6px;
-        }
-        .btn-success {
-            border-radius: 6px;
+        @media (max-width: 992px) {
+            .filter-row { flex-direction: column; gap: 10px; align-items: stretch; }
+            .filter-group { width: 100%; min-width: 0; }
+            .filter-search-btn { align-self: stretch; margin-left: 0; }
         }
         @media (max-width: 768px) {
-            .search-bar {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            .search-bar > * {
-                width: 100%;
-                margin-bottom: 0;
-            }
-            .search-container {
-                padding: 20px;
-            }
-            .advanced-filters {
-                padding: 20px;
-            }
+            .advanced-filters { padding: 10px 4px 4px 4px; }
         }
     </style>
 </head>
@@ -161,25 +103,22 @@
         
         <div class="search-container">
             <form method="get" action="${ctx}/search" id="searchForm">
-                <!-- Thanh tìm kiếm chính -->
-                <div class="search-bar">
-                    <input type="text" class="form-control flex-grow-1" name="keyword" 
-                           placeholder="Nhập tên truyện để tìm kiếm..." value="${param.keyword}"
-                           oninput="handleKeywordInput()">
-                    <button type="button" class="btn btn-outline-secondary filter-toggle-btn" 
-                            onclick="toggleAdvancedFilters()" 
-                            ${not empty param.keyword ? 'style="opacity: 0.5;" title="Bộ lọc không khả dụng khi tìm theo từ khóa"' : ''}>
-                        <i class="bi bi-funnel"></i> Hiện bộ lọc
+                <div class="filter-controls">
+                    <button type="button" class="btn btn-outline-secondary filter-toggle-btn" onclick="toggleAdvancedFilters()">
+                        <i class="bi bi-funnel"></i> <span id="toggleText">Hiện bộ lọc</span>
                     </button>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i> Tìm
                     </button>
                 </div>
-
-                <!-- Bộ lọc nâng cao (ẩn/hiện) -->
-                <div class="advanced-filters ${empty param.keyword and (not empty param.genre or not empty param.author or not empty param.minChapters or not empty param.sortBy or param.status ne 'all') ? 'show' : ''}" id="advancedFilters">
-                    <div class="row g-3">
-                        <div class="col-md-3">
+                <div class="search-bar">
+                    <input type="text" class="form-control flex-grow-1" name="keyword" 
+                           placeholder="Nhập tên truyện để tìm kiếm..." value="${param.keyword}"
+                           oninput="handleKeywordInput()">
+                </div>
+                <div class="advanced-filters ${empty param.keyword and (not empty param.genre or not empty param.author or not empty param.minChapters or not empty param.sortBy or param.status ne 'all') ? 'show' : 'hide'}" id="advancedFilters">
+                    <div class="filter-row">
+                        <div class="filter-group">
                             <label class="form-label">Thể loại</label>
                             <select class="form-select" name="genre">
                                 <option value="">Tất cả thể loại</option>
@@ -188,7 +127,7 @@
                                 </c:forEach>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="filter-group">
                             <label class="form-label">Tác giả</label>
                             <div class="dropdown dropdown-search-author w-100">
                                 <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" 
@@ -218,7 +157,7 @@
                                 <input type="hidden" name="author" id="authorInput" value="${param.author}">
                             </div>
                         </div>
-                        <div class="col-md-2">
+                        <div class="filter-group">
                             <label class="form-label">Số chapter tối thiểu</label>
                             <select class="form-select" name="minChapters">
                                 <option value="0" ${param.minChapters == '0' || empty param.minChapters ? 'selected' : ''}>0 chapter</option>
@@ -227,7 +166,7 @@
                                 <option value="60" ${param.minChapters == '60' ? 'selected' : ''}>60 chapter</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="filter-group">
                             <label class="form-label">Sắp xếp theo</label>
                             <select class="form-select" name="sortBy">
                                 <option value="" ${empty param.sortBy ? 'selected' : ''}>Lượt xem trong ngày</option>
@@ -237,7 +176,7 @@
                                 <option value="like" ${param.sortBy == 'like' ? 'selected' : ''}>Lượt like</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="filter-group">
                             <label class="form-label">Tình trạng</label>
                             <select class="form-select" name="status">
                                 <option value="all" ${param.status == 'all' || empty param.status ? 'selected' : ''}>Tất cả</option>
@@ -245,6 +184,9 @@
                                 <option value="completed" ${param.status == 'completed' ? 'selected' : ''}>Hoàn thành</option>
                             </select>
                         </div>
+                        <button type="submit" class="btn btn-primary filter-search-btn">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
                     </div>
                 </div>
             </form>
@@ -333,21 +275,21 @@
 <script>
 function toggleAdvancedFilters() {
     const filters = document.getElementById('advancedFilters');
-    const button = document.querySelector('.filter-toggle-btn');
-    
-    if (filters.classList.contains('show')) {
-        filters.classList.remove('show');
-        button.innerHTML = '<i class="bi bi-funnel"></i> Hiện bộ lọc';
-        // Smooth transition để avoid layout jump
-        setTimeout(() => {
-            filters.style.display = 'none';
-        }, 300);
-    } else {
-        filters.style.display = 'block';
-        // Force reflow
-        filters.offsetHeight;
+    const btn = document.querySelector('.filter-toggle-btn');
+    const toggleText = document.getElementById('toggleText');
+    if (filters.classList.contains('hide')) {
+        filters.classList.remove('hide');
         filters.classList.add('show');
-        button.innerHTML = '<i class="bi bi-funnel-fill"></i> Ẩn bộ lọc';
+        toggleText.textContent = 'Ẩn bộ lọc';
+        btn.innerHTML = '<i class="bi bi-funnel-fill"></i> <span id="toggleText">Ẩn bộ lọc</span>';
+        setTimeout(() => {
+            filters.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 400);
+    } else {
+        filters.classList.remove('show');
+        filters.classList.add('hide');
+        toggleText.textContent = 'Hiện bộ lọc';
+        btn.innerHTML = '<i class="bi bi-funnel"></i> <span id="toggleText">Hiện bộ lọc</span>';
     }
 }
 
@@ -356,15 +298,15 @@ function handleKeywordInput() {
     const keywordInput = document.querySelector('input[name="keyword"]');
     const filterToggle = document.querySelector('.filter-toggle-btn');
     const filters = document.getElementById('advancedFilters');
+    const toggleText = document.getElementById('toggleText');
     
     if (keywordInput.value.trim() !== '') {
         // Hide filters when user types keyword
         if (filters.classList.contains('show')) {
             filters.classList.remove('show');
-            filterToggle.innerHTML = '<i class="bi bi-funnel"></i> Hiện bộ lọc';
-            setTimeout(() => {
-                filters.style.display = 'none';
-            }, 300);
+            filters.classList.add('hide');
+            toggleText.textContent = 'Hiện bộ lọc';
+            filterToggle.innerHTML = '<i class="bi bi-funnel"></i> <span id="toggleText">Hiện bộ lọc</span>';
         }
         filterToggle.style.opacity = '0.5';
         filterToggle.title = 'Bộ lọc không khả dụng khi tìm theo từ khóa';
@@ -397,15 +339,6 @@ function filterAuthorOptions(input) {
 
 // Auto show filters if any filter is active
 document.addEventListener('DOMContentLoaded', function() {
-    const filters = document.getElementById('advancedFilters');
-    const button = document.querySelector('.filter-toggle-btn');
-    const keywordInput = document.querySelector('input[name="keyword"]');
-    
-    if (filters.classList.contains('show')) {
-        button.innerHTML = '<i class="bi bi-funnel-fill"></i> Ẩn bộ lọc';
-    }
-    
-    // Initialize state based on keyword
     handleKeywordInput();
 });
 </script>

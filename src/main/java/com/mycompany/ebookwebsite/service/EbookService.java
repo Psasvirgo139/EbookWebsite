@@ -5,14 +5,14 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.mycompany.ebookwebsite.dao.ChapterDAO;
 import com.mycompany.ebookwebsite.dao.EbookDAO;
 import com.mycompany.ebookwebsite.dao.FavoriteDAO;
 import com.mycompany.ebookwebsite.dao.UserReadDAO;
-import com.mycompany.ebookwebsite.dao.ChapterDAO;
+import com.mycompany.ebookwebsite.model.Chapter;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.LatestBookView;
 import com.mycompany.ebookwebsite.model.User;
-import com.mycompany.ebookwebsite.model.Chapter;
 
 public class EbookService {
     private final EbookDAO ebookDAO = new EbookDAO();
@@ -146,5 +146,60 @@ public class EbookService {
             if (ebook != null) ebooks.add(ebook);
         }
         return ebooks;
+    }
+
+    /**
+     * Lọc danh sách Ebook theo nhiều tiêu chí (status, genre, sortBy)
+     */
+    public List<Ebook> filterBooksByCriteria(List<Ebook> books, String status, String genre, String sortBy) {
+        System.out.println("[DEBUG] Filter - status: '" + status + "', genre: '" + genre + "', sortBy: '" + sortBy + "'");
+        return books.stream()
+            .filter(book -> {
+                boolean match = status == null || status.isEmpty() || status.equalsIgnoreCase(book.getStatus());
+                if (!match) {
+                    System.out.println("[DEBUG] Không match status: " + book.getTitle() + " - " + book.getStatus());
+                }
+                return match;
+            })
+            .filter(book -> {
+                boolean match = genre == null || genre.isEmpty() ||
+                    (book.getReleaseType() != null && genre.trim().equalsIgnoreCase(book.getReleaseType().trim()));
+                if (!match) {
+                    System.out.println("[DEBUG] Không match genre: " + book.getTitle() + " - '" + book.getReleaseType() + "'");
+                }
+                return match;
+            })
+            .sorted((a, b) -> {
+                if (sortBy == null || sortBy.isEmpty()) return 0;
+                switch (sortBy) {
+                    case "title":
+                        return a.getTitle().compareToIgnoreCase(b.getTitle());
+                    case "newest":
+                        return b.getId() - a.getId();
+                    case "oldest":
+                        return a.getId() - b.getId();
+                    case "views":
+                        return b.getViewCount() - a.getViewCount();
+                    default:
+                        return 0;
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Lọc sách cho trang book-list: ưu tiên keyword, nếu không thì lọc nâng cao (genre, status, sortBy)
+     */
+    public List<Ebook> searchBooksForList(String keyword, String genre, String status, String sortBy) throws SQLException {
+        keyword = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+        genre = (genre != null && !genre.trim().isEmpty()) ? genre.trim() : null;
+        status = (status != null && !status.trim().isEmpty()) ? status.trim() : null;
+        sortBy = (sortBy != null && !sortBy.trim().isEmpty()) ? sortBy.trim() : null;
+        if (keyword != null) {
+            return searchByKeyword(keyword);
+        } else {
+            // Không dùng author, minChapters cho book-list
+            return searchWithFilters(genre, null, null, sortBy, status);
+        }
     }
 }

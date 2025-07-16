@@ -73,14 +73,17 @@
             <form method="get" action="${ctx}/book-list">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <input type="text" class="form-control" name="search" 
-                               placeholder="Tìm kiếm sách..." value="${searchKeyword}">
+                        <select class="form-select" name="status">
+                            <option value="">Tất cả tiến độ</option>
+                            <option value="Ongoing" ${status == 'Ongoing' ? 'selected' : ''}>Đang tiến hành</option>
+                            <option value="Completed" ${status == 'Completed' ? 'selected' : ''}>Đã hoàn thành</option>
+                        </select>
                     </div>
                     <div class="col-md-3">
                         <select class="form-select" name="genre">
                             <option value="">Tất cả thể loại</option>
-                            <c:forEach var="genre" items="${genres}">
-                                <option value="${genre}" ${selectedGenre == genre ? 'selected' : ''}>${genre}</option>
+                            <c:forEach var="tag" items="${tags}">
+                                <option value="${tag.name}" ${selectedGenre == tag.name ? 'selected' : ''}>${tag.name}</option>
                             </c:forEach>
                         </select>
                     </div>
@@ -94,7 +97,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">🔍 Tìm</button>
+                        <button type="submit" class="btn btn-primary w-100">🔍 Lọc</button>
                     </div>
                 </div>
             </form>
