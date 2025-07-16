@@ -23,4 +23,15 @@ public class FavoriteService {
     public List<Favorite> getFavoritesByUser(int userId) throws SQLException {
         return favoriteDAO.getFavoritesByUser(userId);
     }
+
+    /**
+     * Đếm số lượng favorite của một ebook
+     * @param ebookId id sách
+     * @return số lượng favorite
+     * @throws SQLException nếu có lỗi database
+     */
+    public int countFavoritesByEbook(int ebookId) throws SQLException {
+        List<Favorite> list = favoriteDAO.getFavoritesByEbook(ebookId);
+        return (list != null) ? list.size() : 0;
+    }
 } 

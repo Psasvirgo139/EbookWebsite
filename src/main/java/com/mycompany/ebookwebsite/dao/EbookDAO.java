@@ -20,12 +20,52 @@ public class EbookDAO {
     private static final String SOFT_DELETE = "UPDATE Ebooks SET status = 'deleted' WHERE id = ?";
     private static final String INCREMENT_VIEW = "UPDATE Ebooks SET view_count = view_count + 1 WHERE id = ?";
     private static final String SELECT_ALL_BY_CREATED_TIME = "SELECT * FROM Ebooks ORDER BY created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    private static final String SELECT_FEATURED_BY_VIEW_COUNT = "SELECT TOP (?) * FROM Ebooks WHERE (status != 'deleted' OR status IS NULL) AND visibility = 'public' ORDER BY view_count DESC";
+    private static final String SELECT_LATEST_BOOKS = "SELECT TOP (?) * FROM Ebooks WHERE (status != 'deleted' OR status IS NULL) AND visibility = 'public' ORDER BY created_at DESC";
 
     public List<Ebook> getBooksByPage(int offset, int limit) throws SQLException {
         List<Ebook> ebooks = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_ALL_BY_CREATED_TIME)) {
             ps.setInt(1, offset);
             ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+
+    /**
+     * Lấy danh sách sách nổi bật theo lượt xem
+     * @param limit Số lượng sách cần lấy
+     * @return Danh sách sách nổi bật
+     * @throws SQLException Nếu có lỗi database
+     */
+    public List<Ebook> getFeaturedBooksByViewCount(int limit) throws SQLException {
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_FEATURED_BY_VIEW_COUNT)) {
+            ps.setInt(1, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ebooks.add(mapRow(rs));
+                }
+            }
+        }
+        return ebooks;
+    }
+
+    /**
+     * Lấy danh sách sách mới nhất theo thời gian tạo
+     * @param limit Số lượng sách cần lấy
+     * @return Danh sách sách mới nhất
+     * @throws SQLException Nếu có lỗi database
+     */
+    public List<Ebook> getLatestBooks(int limit) throws SQLException {
+        List<Ebook> ebooks = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_LATEST_BOOKS)) {
+            ps.setInt(1, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     ebooks.add(mapRow(rs));

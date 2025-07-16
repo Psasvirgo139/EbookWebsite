@@ -39,7 +39,7 @@ public class BookWithLink {
         this.coverUrl = ebook.getCoverUrl();
         
         // Tạo link trực tiếp
-        this.directLink = "http://localhost:9999/EbookWebsite/book/detail?id=" + this.id;
+        this.directLink = "http://localhost:8080/EbookWebsite/book/detail?id=" + this.id;
         
         // Tạo mô tả ngắn gọn
         if (this.description != null && !this.description.isEmpty()) {
