@@ -104,7 +104,7 @@ public class SearchServlet extends HttpServlet {
             // Debug info
             System.out.println("SearchServlet - Found " + bookList.size() + " books");
 
-            request.getRequestDispatcher("/book/search.jsp").forward(request, response);
+            request.getRequestDispatcher("/book/list.jsp").forward(request, response);
         } catch (SQLException e) {
             System.err.println("SearchServlet - SQL Error: " + e.getMessage());
             e.printStackTrace();
