@@ -438,14 +438,28 @@
   width: 300px;
   height: 100vh;
   background: #fff;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 16px rgba(34,34,68,0.18);
   z-index: 2000;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.35s cubic-bezier(.77,0,.18,1);
+  border-radius: 0 16px 16px 0;
+  opacity: 0.98;
 }
 
 .sidebar-menu.show {
   transform: translateX(0);
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 60, 114, 0.25);
+  z-index: 1999;
+  animation: fadeInBackdrop 0.3s;
+}
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .sidebar-header {

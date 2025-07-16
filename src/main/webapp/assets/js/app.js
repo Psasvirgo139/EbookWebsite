@@ -128,6 +128,38 @@ dlg.addEventListener('close',()=>$('#accountMenu').classList.remove('show'));
 $('#hamburgerBtn').addEventListener('click',()=>$('#mainNav').classList.toggle('show-mobile'));
 window.addEventListener('resize',()=>$('#mainNav').classList.remove('show-mobile'));
 
+// Sidebar menu hiệu ứng mượt
+const hamburgerMenu = document.getElementById('hamburgerMenu');
+const sidebarMenu = document.getElementById('sidebarMenu');
+const sidebarClose = document.getElementById('sidebarClose');
+let sidebarBackdrop = null;
+
+function showSidebarMenu() {
+  sidebarMenu.style.display = 'block';
+  setTimeout(() => sidebarMenu.classList.add('show'), 10); // trigger CSS transition
+  // Tạo overlay mờ
+  sidebarBackdrop = document.createElement('div');
+  sidebarBackdrop.className = 'sidebar-backdrop';
+  sidebarBackdrop.onclick = hideSidebarMenu;
+  document.body.appendChild(sidebarBackdrop);
+  document.body.style.overflow = 'hidden';
+}
+function hideSidebarMenu() {
+  sidebarMenu.classList.remove('show');
+  document.body.style.overflow = '';
+  if (sidebarBackdrop) {
+    sidebarBackdrop.remove();
+    sidebarBackdrop = null;
+  }
+  setTimeout(() => { sidebarMenu.style.display = 'none'; }, 300); // chờ transition
+}
+if (hamburgerMenu && sidebarMenu) {
+  hamburgerMenu.addEventListener('click', showSidebarMenu);
+}
+if (sidebarClose) {
+  sidebarClose.addEventListener('click', hideSidebarMenu);
+}
+
 // ----------------------------
 // 7. Init
 // ----------------------------

@@ -49,7 +49,7 @@
 <style>
 .footer-scroll-dark {
   width: 100%;
-  background: #393939;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   border-top: 2px solid #eee;
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
@@ -73,7 +73,7 @@
 }
 .footer-banner {
   display: inline-block;
-  background: #a7261a;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
   font-weight: 600;
   border-radius: 22px;
@@ -124,7 +124,7 @@
 .footer-social-row a {
   display: inline-block;
   border-radius: 50%;
-  background: #222;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   box-shadow: 0 2px 8px 0 rgba(0,0,0,0.13);
   transition: transform 0.18s, box-shadow 0.18s;
 }
@@ -191,5 +191,9 @@
     height: 1.7em;
     width: 1.7em;
   }
+}
+.footer-main, .footer, .footer-dark, .footer-bg, .footer-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff;
 }
 </style>
