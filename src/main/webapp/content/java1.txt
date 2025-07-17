@@ -1,3 +1,0 @@
-Chương 1: Giới thiệu về Java
-
-Java là một ngôn ngữ lập trình hướng đối tượng mạnh mẽ, đa nền tảng, được sử dụng rộng rãi để phát triển ứng dụng máy tính, web và di động.
