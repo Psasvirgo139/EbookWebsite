@@ -100,6 +100,33 @@
         z-index: 1055 !important;
         position: absolute !important;
     }
+    /* Book cover wrapper fix for grid alignment */
+    .book-cover-wrapper {
+        width: 100%;
+        max-width: 180px;
+        height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #f8f8f8;
+        border-radius: 8px;
+        margin: 0 auto 12px auto;
+    }
+    .book-cover-wrapper img.book-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    .book-cover-wrapper .book-cover.bg-light {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
     </style>
 </head>
 <body>
@@ -214,6 +241,7 @@
                     <c:forEach var="book" items="${bookList}">
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                             <div class="card book-card position-relative">
+                                <div class="book-cover-wrapper">
                                 <c:choose>
                                     <c:when test="${not empty book.coverUrl}">
                                         <img src="${book.coverUrl}" class="card-img-top book-cover" alt="${book.title}">
@@ -224,6 +252,7 @@
                                         </div>
                                     </c:otherwise>
                                 </c:choose>
+                                </div>
                                 <div class="card-body">
                                     <h6 class="card-title fw-bold">${book.title}</h6>
                                     <p class="card-text">
