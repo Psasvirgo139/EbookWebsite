@@ -15,6 +15,11 @@
     background: #fafbfc;
     border-radius: 4px;
 }
+.comment-content {
+    color: #111 !important;
+    font-size: 1.05rem;
+    line-height: 1.75;
+}
 </style>
 
 <div class="comments-section">
