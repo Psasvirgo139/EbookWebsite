@@ -99,9 +99,12 @@ public class FavoriteServlet extends HttpServlet {
         try {
             if ("add".equals(action)) {
                 handleAddFavorite(request, response, currentUser);
-                // Nếu là form HTML, redirect về lại trang cũ
                 if (redirectUrl != null && !redirectUrl.isEmpty()) {
                     response.sendRedirect(redirectUrl);
+                    return;
+                } else {
+                    // Nếu không có redirectUrl, reload lại trang hiện tại
+                    response.sendRedirect(request.getHeader("Referer"));
                     return;
                 }
             } else if ("delete".equals(action)) {
@@ -109,14 +112,15 @@ public class FavoriteServlet extends HttpServlet {
                 if (redirectUrl != null && !redirectUrl.isEmpty()) {
                     response.sendRedirect(redirectUrl);
                     return;
+                } else {
+                    response.sendRedirect(request.getHeader("Referer"));
+                    return;
                 }
             } else {
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Action không hợp lệ");
             }
-            
         } catch (IllegalArgumentException e) {
             if (redirectUrl != null && !redirectUrl.isEmpty()) {
-                // Có thể set thông báo lỗi vào session để hiển thị lại trên trang
                 session.setAttribute("favoriteError", e.getMessage());
                 response.sendRedirect(redirectUrl);
             } else {

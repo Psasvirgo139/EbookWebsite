@@ -24,8 +24,8 @@ import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
 import com.mycompany.ebookwebsite.dao.DBConnection;
-import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.BookWithLink;
+import com.mycompany.ebookwebsite.model.Ebook;
 
 /**
  * Tiện ích đọc file đa định dạng cho kiểm duyệt AI nội dung sách + tiện ích đọc biến môi trường từ .env
@@ -357,18 +357,36 @@ public class Utils {
         if (title == null || title.trim().isEmpty()) {
             return null;
         }
-        
         List<Ebook> allBooks = getAvailableBooks(1000);
-        String searchTitle = title.toLowerCase().trim();
-        
+        String searchTitle = normalizeForSearch(title);
+        // Ưu tiên match contains không dấu, không phân biệt hoa thường
         for (Ebook book : allBooks) {
-            if (book.getTitle() != null && 
-                book.getTitle().toLowerCase().contains(searchTitle)) {
-                return new BookWithLink(book);
+            if (book.getTitle() != null) {
+                String bookTitle = normalizeForSearch(book.getTitle());
+                if (bookTitle.contains(searchTitle)) {
+                    return new BookWithLink(book);
+                }
             }
         }
-        
+        // Nếu không tìm thấy, thử match gần đúng (bắt đầu bằng, kết thúc bằng)
+        for (Ebook book : allBooks) {
+            if (book.getTitle() != null) {
+                String bookTitle = normalizeForSearch(book.getTitle());
+                if (bookTitle.startsWith(searchTitle) || bookTitle.endsWith(searchTitle)) {
+                    return new BookWithLink(book);
+                }
+            }
+        }
         return null;
+    }
+
+    // Hàm loại bỏ dấu tiếng Việt và chuẩn hóa chuỗi để so sánh tìm kiếm
+    public static String normalizeForSearch(String input) {
+        if (input == null) return "";
+        String temp = java.text.Normalizer.normalize(input, java.text.Normalizer.Form.NFD);
+        temp = temp.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        temp = temp.replaceAll("đ", "d").replaceAll("Đ", "D");
+        return temp.toLowerCase().trim().replaceAll("\\s+", " ");
     }
     
     /**
