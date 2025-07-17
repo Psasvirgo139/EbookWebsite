@@ -523,14 +523,19 @@
                 <div class="book-actions" style="display:flex;flex-wrap:wrap;gap:12px 16px;margin-bottom:18px;">
                     <a href="${pageContext.request.contextPath}/book/read?bookId=${ebook.id}&chapterId=1" class="btn btn-success btn-lg"><i class="fas fa-book-open me-2"></i>Đọc từ đầu</a>
                     <c:if test="${sessionScope.user != null}">
-                        <button id="favoriteBtn"
-                            class="btn <c:choose><c:when test='${isFavorite}'>btn-danger</c:when><c:otherwise>btn-outline-danger</c:otherwise></c:choose>"
-                            data-favorited="${isFavorite ? 'true' : 'false'}"
-                            data-ebook-id="${ebook.id}">
-                            <i class="<c:choose><c:when test='${isFavorite}'>fas</c:when><c:otherwise>far</c:otherwise></c:choose> fa-heart me-2"></i>
-                            <span>${isFavorite ? 'Đã yêu thích' : 'Yêu thích'}</span>
-                        </button>
-                        <span id="favoriteMsg" style="margin-left:10px;color:#ff6b6b;display:none;"></span>
+                        <form method="post" action="${pageContext.request.contextPath}/favorites" style="display:inline;">
+                            <input type="hidden" name="ebookId" value="${ebook.id}"/>
+                            <input type="hidden" name="action" value="${isFavorite ? 'delete' : 'add'}"/>
+                            <input type="hidden" name="redirectUrl" value="${pageContext.request.contextPath}/book/detail?id=${ebook.id}"/>
+                            <button type="submit" class="btn ${isFavorite ? 'btn-danger' : 'btn-outline-danger'}">
+                                <i class="${isFavorite ? 'fas' : 'far'} fa-heart me-2"></i>
+                                <span>${isFavorite ? 'Đã yêu thích' : 'Yêu thích'}</span>
+                            </button>
+                        </form>
+                        <c:if test="${not empty sessionScope.favoriteError}">
+                            <span style="margin-left:10px;color:#ff6b6b;">${sessionScope.favoriteError}</span>
+                            <c:remove var="favoriteError" scope="session"/>
+                        </c:if>
                     </c:if>
                 </div>
                 <!-- AI SUMMARY (optional, can be below actions or in description) -->
@@ -618,61 +623,3 @@
 </div>
 
 <%@ include file="/common/footer.jsp" %>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add subtle animations to interactive elements
-    const interactiveElements = document.querySelectorAll('.btn, .badge, .chapter-item');
-    interactiveElements.forEach(el => {
-        el.addEventListener('mouseenter', () => {
-            el.style.transform = 'translateY(-3px)';
-        });
-        el.addEventListener('mouseleave', () => {
-            el.style.transform = 'translateY(0)';
-        });
-    });
-    
-    // Add parallax effect to cover image
-    const cover = document.querySelector('.cover-container');
-    if(cover) {
-        window.addEventListener('scroll', () => {
-            const scrollPosition = window.pageYOffset;
-            cover.style.transform = `translateY(${scrollPosition * 0.1}px)`;
-        });
-    }
-
-    const btn = document.getElementById('favoriteBtn');
-    const msg = document.getElementById('favoriteMsg');
-    if (!btn) return;
-    const ctx = "${pageContext.request.contextPath}";
-    btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const ebookId = btn.getAttribute('data-ebook-id');
-        const isFavorited = btn.getAttribute('data-favorited') === 'true';
-        const action = isFavorited ? 'remove' : 'add';
-        fetch(`${ctx}/favorites`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: `action=${action}&ebookId=${ebookId}`
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                // Toggle trạng thái
-                btn.setAttribute('data-favorited', (!isFavorited).toString());
-                btn.classList.toggle('btn-danger', !isFavorited);
-                btn.classList.toggle('btn-outline-danger', isFavorited);
-                btn.querySelector('i').className = (!isFavorited ? 'fas' : 'far') + ' fa-heart me-2';
-                btn.querySelector('span').textContent = !isFavorited ? 'Đã yêu thích' : 'Yêu thích';
-                // Hiệu ứng
-                btn.classList.add('favorite-animate');
-                setTimeout(() => btn.classList.remove('favorite-animate'), 500);
-                // Thông báo
-                msg.textContent = !isFavorited ? 'Đã thêm vào yêu thích!' : 'Đã xóa khỏi yêu thích!';
-                msg.style.display = 'inline';
-                setTimeout(() => msg.style.display = 'none', 1500);
-            }
-        });
-    });
-});
-</script>

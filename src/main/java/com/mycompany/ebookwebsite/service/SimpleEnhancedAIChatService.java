@@ -15,8 +15,8 @@ import com.mycompany.ebookwebsite.ai.CachedAnswerStore;
 import com.mycompany.ebookwebsite.ai.EmbeddingCache;
 import com.mycompany.ebookwebsite.ai.SimilarityUtil;
 import com.mycompany.ebookwebsite.dao.EbookDAO;
-import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.BookWithLink;
+import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.utils.Utils;
 
 import dev.langchain4j.memory.ChatMemory;
@@ -130,10 +130,31 @@ public class SimpleEnhancedAIChatService {
                     return "Lỗi khi truy vấn sách thể loại '" + genre + "': " + e.getMessage();
                 }
             }
+            // === BỔ SUNG: Nếu user hỏi đề xuất/gợi ý N cuốn sách mà không có genre ===
+            if ((lowerMsg.contains("gợi ý") || lowerMsg.contains("suggest") || 
+                lowerMsg.contains("recommend") || lowerMsg.contains("đề xuất") ||
+                lowerMsg.contains("sách nào") || lowerMsg.contains("book")) && genre == null) {
+                int count = extractBookCountFromMessage(userMessage); // Số lượng sách user muốn
+                List<BookWithLink> books = Utils.getAvailableBooksWithLinks(count);
+                if (books.isEmpty()) {
+                    return "Hiện tại chưa có sách nào trong thư viện.";
+                }
+                StringBuilder sb = new StringBuilder("📚 <strong>" + count + " cuốn sách nổi bật:</strong><br><br>");
+                int i = 1;
+                for (BookWithLink book : books) {
+                    sb.append(i++).append(". <strong>").append(book.getTitle()).append("</strong>");
+                    sb.append("<br>   ").append(book.getShortDescription()).append("<br>");
+                    sb.append("   <a href='").append(book.getDirectLink()).append("' target='_blank' style='color: #007bff; text-decoration: underline;'>🔗 Xem chi tiết</a><br><br>");
+                }
+                sb.append("Bạn muốn đọc cuốn nào? Hãy nhập tên hoặc số thứ tự!");
+                String result = sb.toString();
+                CachedAnswerStore.put(userMessage, result);
+                return result;
+            }
             
             // OVERRIDE: Nếu user muốn đọc sách cụ thể
             if (lowerMsg.contains("muốn đọc") || lowerMsg.contains("đọc cuốn") || 
-                lowerMsg.contains("cuốn sách") || lowerMsg.contains("sách đầu tiên") ||
+                lowerMsg.contains("sách đầu tiên") ||
                 lowerMsg.contains("sách thứ") || lowerMsg.contains("đầu tiên") ||
                 lowerMsg.contains("thứ nhất") || lowerMsg.contains("thứ hai") ||
                 lowerMsg.contains("thứ ba") || lowerMsg.contains("thứ tư") ||
@@ -142,15 +163,15 @@ public class SimpleEnhancedAIChatService {
                 BookWithLink targetBook = null;
                 
                 // Tìm theo số thứ tự
-                if (lowerMsg.contains("đầu tiên") || lowerMsg.contains("thứ nhất") || lowerMsg.contains("1")) {
+                if (lowerMsg.contains("đầu tiên") || lowerMsg.contains("thứ nhất")) {
                     targetBook = Utils.findBookByIndex(1);
-                } else if (lowerMsg.contains("thứ hai") || lowerMsg.contains("2")) {
+                } else if (lowerMsg.contains("thứ hai")) {
                     targetBook = Utils.findBookByIndex(2);
-                } else if (lowerMsg.contains("thứ ba") || lowerMsg.contains("3")) {
+                } else if (lowerMsg.contains("thứ ba")) {
                     targetBook = Utils.findBookByIndex(3);
-                } else if (lowerMsg.contains("thứ tư") || lowerMsg.contains("4")) {
+                } else if (lowerMsg.contains("thứ tư")) {
                     targetBook = Utils.findBookByIndex(4);
-                } else if (lowerMsg.contains("thứ năm") || lowerMsg.contains("5")) {
+                } else if (lowerMsg.contains("thứ năm")) {
                     targetBook = Utils.findBookByIndex(5);
                 }
                 
@@ -172,6 +193,34 @@ public class SimpleEnhancedAIChatService {
                     return result;
                 } else {
                     return "Xin lỗi, tôi không tìm thấy sách bạn muốn đọc. Hãy thử nhập tên sách cụ thể hoặc số thứ tự!";
+                }
+            }
+
+            // === BỔ SUNG: Trả về mô tả/tóm tắt/nội dung sách khi user hỏi về nội dung sách cụ thể ===
+            if ((lowerMsg.contains("nội dung của sách") || lowerMsg.contains("tóm tắt sách") || lowerMsg.contains("mô tả sách") || lowerMsg.contains("giới thiệu sách") || lowerMsg.contains("nội dung sách")) ) {
+                String bookTitle = extractBookTitleFromMessage(userMessage);
+                if (bookTitle == null) {
+                    // Nếu không trích xuất được tên sách, thử lấy từ cuối câu
+                    String[] words = userMessage.split("sách");
+                    if (words.length > 1) {
+                        bookTitle = words[words.length-1].replaceAll("[^a-zA-Z0-9À-ỹ\\s]", "").trim();
+                    }
+                }
+                if (bookTitle != null && !bookTitle.isEmpty()) {
+                    BookWithLink book = Utils.findBookByTitle(bookTitle);
+                    if (book != null) {
+                        String summary = book.getShortDescription();
+                        if (summary == null || summary.isEmpty()) summary = book.getDescription();
+                        if (summary != null && !summary.isEmpty()) {
+                            return "\uD83D\uDCD6 <strong>Nội dung/tóm tắt sách \"" + book.getTitle() + "\":</strong><br>" + summary;
+                        } else {
+                            return "Sách \"" + book.getTitle() + "\" chưa có tóm tắt/mô tả trong hệ thống.";
+                        }
+                    } else {
+                        return "Chưa có sách này trong thư viện.";
+                    }
+                } else {
+                    return "Vui lòng nhập rõ tên sách bạn muốn xem nội dung/tóm tắt.";
                 }
             }
 

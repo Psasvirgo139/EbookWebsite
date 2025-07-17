@@ -144,6 +144,21 @@ public class BookDetailServlet extends HttpServlet {
     
             boolean isMultiVolume = volumes != null && volumes.size() > 1;
     
+            // Lấy user hiện tại để kiểm tra trạng thái yêu thích
+            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            boolean isFavorite = false;
+            if (session != null && session.getAttribute("user") != null) {
+                com.mycompany.ebookwebsite.model.User currentUser = (com.mycompany.ebookwebsite.model.User) session.getAttribute("user");
+                com.mycompany.ebookwebsite.service.FavoriteService favoriteService = new com.mycompany.ebookwebsite.service.FavoriteService();
+                try {
+                    isFavorite = favoriteService != null && favoriteService.getFavoritesByUser(currentUser.getId())
+                        .stream().anyMatch(fav -> fav.getEbookID() == id);
+                } catch (Exception e) {
+                    isFavorite = false;
+                }
+            }
+            request.setAttribute("isFavorite", isFavorite);
+    
             request.setAttribute("ebook", ebook);
             // Convert LocalDateTime -> java.util.Date for JSTL fmt
             if (ebook.getCreatedAt() != null) {
