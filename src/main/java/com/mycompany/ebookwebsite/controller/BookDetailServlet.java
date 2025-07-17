@@ -16,12 +16,14 @@ import com.mycompany.ebookwebsite.model.Chapter;
 import com.mycompany.ebookwebsite.model.Comment;
 import com.mycompany.ebookwebsite.model.Ebook;
 import com.mycompany.ebookwebsite.model.Tag;
+import com.mycompany.ebookwebsite.model.User;
 import com.mycompany.ebookwebsite.model.Volume;
 import com.mycompany.ebookwebsite.service.ChapterService;
 import com.mycompany.ebookwebsite.service.CommentService;
 import com.mycompany.ebookwebsite.service.CommentVoteService;
 import com.mycompany.ebookwebsite.service.EbookService;
 import com.mycompany.ebookwebsite.service.EbookWithAIService;
+import com.mycompany.ebookwebsite.service.FavoriteService;
 import com.mycompany.ebookwebsite.service.VolumeService;
 import com.mycompany.ebookwebsite.utils.EbookValidation;
 
@@ -30,6 +32,9 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.sql.Timestamp;
+import java.util.Date;
 
 @WebServlet("/book/detail")
 public class BookDetailServlet extends HttpServlet {
@@ -39,6 +44,7 @@ public class BookDetailServlet extends HttpServlet {
     private final CommentService commentService = new CommentService();
     private final VolumeService volumeService = new VolumeService();
     private final ChapterService chapterService = new ChapterService();
+    private final FavoriteService favoriteService = new FavoriteService();
     private final EbookAuthorDAO ebookAuthorDAO = new EbookAuthorDAO();
     private final AuthorDAO authorDAO = new AuthorDAO();
     private final EbookTagDAO ebookTagDAO = new EbookTagDAO();
@@ -145,11 +151,10 @@ public class BookDetailServlet extends HttpServlet {
             boolean isMultiVolume = volumes != null && volumes.size() > 1;
     
             // Lấy user hiện tại để kiểm tra trạng thái yêu thích
-            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            HttpSession session = request.getSession(false);
             boolean isFavorite = false;
             if (session != null && session.getAttribute("user") != null) {
-                com.mycompany.ebookwebsite.model.User currentUser = (com.mycompany.ebookwebsite.model.User) session.getAttribute("user");
-                com.mycompany.ebookwebsite.service.FavoriteService favoriteService = new com.mycompany.ebookwebsite.service.FavoriteService();
+                User currentUser = (User) session.getAttribute("user");
                 try {
                     isFavorite = favoriteService != null && favoriteService.getFavoritesByUser(currentUser.getId())
                         .stream().anyMatch(fav -> fav.getEbookID() == id);
@@ -162,7 +167,7 @@ public class BookDetailServlet extends HttpServlet {
             request.setAttribute("ebook", ebook);
             // Convert LocalDateTime -> java.util.Date for JSTL fmt
             if (ebook.getCreatedAt() != null) {
-                java.util.Date cDate = java.sql.Timestamp.valueOf(ebook.getCreatedAt());
+                Date cDate = Timestamp.valueOf(ebook.getCreatedAt());
                 request.setAttribute("ebookCreatedDate", cDate);
             }
             request.setAttribute("bookComments", bookComments);

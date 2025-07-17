@@ -79,7 +79,7 @@ public class RegisterServlet extends HttpServlet {
             user.setPasswordHash(password); // Password sẽ được hash trong UserService
             user.setEmail(email);
             user.setRole("user");
-            user.setAvatarUrl("/assets/img/default-avatar.png");
+            user.setAvatarUrl("assets/img/default-avatar.png");
             user.setStatus("active");
             user.setCreatedAt(LocalDate.now());
 
