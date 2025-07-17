@@ -94,6 +94,13 @@
             .advanced-filters { padding: 10px 4px 4px 4px; }
         }
     </style>
+    <style>
+    /* Fix dropdown tác giả bị chìm */
+    .dropdown-search-author .dropdown-menu {
+        z-index: 1055 !important;
+        position: absolute !important;
+    }
+    </style>
 </head>
 <body>
 <%@ include file="/common/header.jsp" %>
@@ -129,34 +136,14 @@
                         </div>
                         <div class="filter-group">
                             <label class="form-label">Tác giả</label>
-                            <div class="dropdown dropdown-search-author w-100">
-                                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" 
-                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="me-auto">
-                                        <c:choose>
-                                            <c:when test="${not empty param.author}">
-                                                ${param.author}
-                                            </c:when>
-                                            <c:otherwise>Tất cả</c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </button>
-                                <ul class="dropdown-menu p-2" style="max-height: 300px; overflow-y: auto; width: 100%">
-                                    <li>
-                                        <input type="text" class="form-control mb-2" 
-                                               placeholder="Tìm tác giả..." onkeyup="filterAuthorOptions(this)">
-                                    </li>
-                                    <li><a class="dropdown-item author-option" href="#" onclick="selectAuthor('')">Tất cả</a></li>
-                                    <c:forEach var="author" items="${topAuthors}">
-                                        <li>
-                                            <a class="dropdown-item author-option" href="#" 
-                                               onclick="selectAuthor('${author.name}')">${author.name}</a>
-                                        </li>
-                                    </c:forEach>
-                                </ul>
-                                <input type="hidden" name="author" id="authorInput" value="${param.author}">
-                            </div>
+                            <select class="form-select" name="author">
+                                <option value="">Tất cả</option>
+                                <c:forEach var="author" items="${authors}">
+                                    <option value="${author.name}" ${param.author == author.name ? 'selected' : ''}>${author.name}</option>
+                                </c:forEach>
+                            </select>
                         </div>
+                        
                         <div class="filter-group">
                             <label class="form-label">Số chapter tối thiểu</label>
                             <select class="form-select" name="minChapters">
@@ -317,24 +304,6 @@ function handleKeywordInput() {
         filterToggle.title = '';
         filterToggle.disabled = false;
     }
-}
-
-function selectAuthor(name) {
-    document.getElementById('authorInput').value = name;
-    const displayText = name || 'Tất cả';
-    document.querySelector('.dropdown-search-author .dropdown-toggle span').textContent = displayText;
-}
-
-function filterAuthorOptions(input) {
-    var filter = input.value.toLowerCase();
-    var options = document.querySelectorAll('.author-option');
-    options.forEach(function(opt) {
-        if (opt.textContent.toLowerCase().indexOf(filter) > -1) {
-            opt.style.display = '';
-        } else {
-            opt.style.display = 'none';
-        }
-    });
 }
 
 // Auto show filters if any filter is active
